@@ -18,7 +18,7 @@ fi
 
 say "[2/6] cc-sdd を取得・適用（Claude Code + Codex の両方）"
 echo "  - Claude Code 用 (.claude/skills, CLAUDE.md)"
-npx -y cc-sdd@latest --lang "$LANG_OPT" || { echo "cc-sdd(Claude) 実行に失敗しました"; exit 1; }
+npx -y cc-sdd@latest --claude-code-skills --lang "$LANG_OPT" || { echo "cc-sdd(Claude) 実行に失敗しました"; exit 1; }
 echo "  - Codex 用 (.agents/skills, AGENTS.md)"
 npx -y cc-sdd@latest --codex-skills --lang "$LANG_OPT" || { echo "cc-sdd(Codex) 実行に失敗しました"; exit 1; }
 
