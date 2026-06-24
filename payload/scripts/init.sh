@@ -69,6 +69,8 @@ bash "$PAYLOAD/scripts/validate.sh" "$ROOT" "$PAYLOAD" post || true
 say "完了：SDD ベースを展開しました。"
 cat <<'EOS'
 次の一歩:
+  0. Claude Code / Codex を起動し、まず適用ルールと進め方を確認:
+       「このリポジトリに適用されているSDDのルールと、これからの開発の進め方を教えて」
   1. CLAUDE.md / AGENTS.md の「## プロジェクト概要（要記入）」を埋める
   2. /kiro-discovery "<やりたいこと>" から仕様化を開始
   3. 区切りでコミット（main直コミット禁止・ブランチ→PR）
