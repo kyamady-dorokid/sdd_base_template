@@ -8,23 +8,47 @@
 
 ## クイックスタート
 
-### 1) 個人環境にスキルを設置（初回ワンライナー）
+> **前提:** 対象は **git リポジトリ**であること（`git init` 済み）。リモートは不要・ローカルのみで可。
+> 未初期化のディレクトリでは `init` がエラーになり `git init` を促す。
+
+### 1) 単発でリポジトリに展開（スキル登録なし）
+
+**新規開発をはじめる場合** — ディレクトリ作成 → `git init` → 展開:
+```bash
+mkdir <project> && cd <project>
+git init
+npx -y github:kyamady-dorokid/sdd_base_template init
+```
+
+**既存リポジトリに追加する場合** — リポジトリ内で展開コマンドのみ:
+```bash
+cd <existing-repo>
+npx -y github:kyamady-dorokid/sdd_base_template init
+```
+
+実行すると **Claude Code と Codex の両環境**（`.claude/` `.agents/`、各 `CLAUDE.md`/`AGENTS.md`、`docs/sdd/`）が
+**まとめて自動構築**される。利用エージェントを選ぶ対話メニューはなく、両方が同時に入る
+（言語は既定 `ja`。変更時は `init --lang en` のように指定）。
+
+### 2) 個人環境にスキルを設置（初回ワンライナー）
 ```bash
 npx -y github:kyamady-dorokid/sdd_base_template install
 ```
 `~/.claude/skills/sdd-init` と `~/.codex/skills/sdd-init` に自己完結のスキルを設置する。
-以後は各エージェントで「**このリポジトリでSDD開発のベースを構築して**」と依頼すれば発火する。
 
-### 2) 単発でリポジトリに展開（スキル登録なし）
-```bash
-cd <target-repo>
-npx -y github:kyamady-dorokid/sdd_base_template init --lang ja
-```
+**1) との違い:** 1) は展開のたびに npx コマンドが必要。こちらは**一度設置すれば、次回以降は各エージェントに
+「このリポジトリでSDD開発のベースを構築して」と指示するだけで構築が発火する**（npx 不要）。
 
 ### 3) clone 運用（symlinkで自動更新したい場合）
 ```bash
 git clone git@github.com:kyamady-dorokid/sdd_base_template.git
 cd sdd_base_template && ./scripts/install.sh --link   # git pull で全環境に即反映
+```
+
+### 構築後の最初の一歩
+SDD ベース構築後、Claude Code（または Codex）を起動したら、まず**適用される SDD ルールと開発の進め方**を確認する:
+```
+このリポジトリに適用されているSDDのルールと、これからの開発の進め方を教えて
 ```
 
 ## サブコマンド
