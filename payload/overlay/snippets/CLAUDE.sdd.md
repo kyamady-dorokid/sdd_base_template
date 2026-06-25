@@ -2,16 +2,18 @@
 ## SDD 開発の進め方（このリポジトリの基本ルール）
 
 本リポジトリは **cc-sdd（Kiro 風 Spec-Driven Development）** をベースに、独自の運用ルールを重ねて開発する。
-詳細フローは [docs/sdd/workflow.md](docs/sdd/workflow.md) を参照。
+始め方は **自然言語SDD（軽量）** と **kiroコマンドSDD（フルフロー）** の2入口があり、**どちらでも適用ルール・
+成果物・出力先は同一**（変わるのは規模で選ぶ Tier だけ）。詳細フロー・Tierは [docs/sdd/workflow.md](docs/sdd/workflow.md) を参照。
 
-### 必ず守ること
+### 必ず守ること（入口に依らず共通）
 1. ドキュメント完成後、いきなり実装しない。**人間の承認**を得てから実装を開始する。
 2. 単体テストは実装とセット。**TDD（テスト先行）** で進める。
 3. **コミットは自動で行わない。** 区切りで推奨提示し、人間が判断・実行する（希望時は自動コミットへ切替可）。
-4. 合意内容は `docs/specs/<task-id>/agreement-log.md` に必ず記録する。
-5. 初回実装時は `docs/specs/<task-id>/tech-requirements.md` で技術要件を確認する。
-6. 実行テスト結果は `docs/specs/<task-id>/test-results.md` に記録する。
-7. 結合試験項目は `docs/specs/<task-id>/integration-test-checklist.md` に残す。
+4. 1タスクの記録は **`.kiro/specs/<id>/` に集約**する（`docs/specs/` は使わない）。合意は `agreement-log.md`、
+   承認状態の正本は `spec.json`。
+5. 技術要件は独立ファイルにせず `design.md` の「技術要件・制約チェック」節で確認する。
+6. 実行テスト結果は `.kiro/specs/<id>/test-results.md` に記録する。
+7. 結合試験項目は `.kiro/specs/<id>/integration-test-checklist.md` に残す。
 8. **`main` への直接コミット禁止。** ブランチ→push→PR。詳細は [docs/sdd/rules/branching-policy.md](docs/sdd/rules/branching-policy.md)。
 
 ### ベースルールの所在

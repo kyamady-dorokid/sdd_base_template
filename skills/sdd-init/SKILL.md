@@ -36,7 +36,9 @@ Claude Code / Codex のどちらでも同一の環境（`.claude/skills` と `.a
 
 4. **完了後の案内**:
    - `CLAUDE.md` / `AGENTS.md` の「## プロジェクト概要（要記入）」を埋めるよう促す。
-   - 次アクション `/kiro-discovery "<やりたいこと>"` を案内。
+   - 開発の進め方は2入口（軽量＝自然言語SDD / フルフロー＝kiroコマンド）で、どちらでもルール・成果物・出力先（`.kiro/specs/<id>/`）は同一である旨を案内。詳細は `docs/sdd/workflow.md`。
+     - 軽量: 「<やりたいこと>。簡単な要件定義とプランニングから始めて」
+     - フルフロー: `/kiro-discovery "<やりたいこと>"`
    - コミットは自動で行わず、ブランチ→PR（main直コミット禁止）を案内。
    - 整合確認コマンド `diff -qr .claude/skills .agents/skills` を案内。
 

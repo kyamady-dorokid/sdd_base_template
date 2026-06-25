@@ -21,6 +21,15 @@
 - [ ] `AGENTS.md` 内のパス参照が `.agents/` 系で正しい（`.claude/` 固定参照の誤りがない）
 - [ ] 検出時は `patches/` の対応パッチを自動適用し、再チェック
 
+## C2. 独自ポリシーパッチの注入（薄い委譲パッチ）
+- 設計: cc-sdd の *上流ソース* は触らず、取得済みローカル生成物に append/marker で当てる。
+  ポリシー本文は overlay 文書（SSOT）に置き、パッチは参照のみ。
+- [ ] `fix-impl-team-policy.sh`: `.claude/` と `.agents/` 両方の `kiro-impl/SKILL.md` に
+      `SDD-OVERLAY:IMPL-POLICY` ブロックが1つ注入されている（自動commit無効・main直禁止・branch→PR・記録は.kiro/specs）
+- [ ] `fix-design-template.sh`: `.kiro/settings/templates/specs/design.md` に
+      `SDD-OVERLAY:DESIGN-TECHREQ` 節が注入されている（技術要件を design.md へ一本化）
+- [ ] 冪等性: 再 init で重複注入されない（マーカー検出でスキップ）
+
 ## D. バージョン整合
 - [ ] 取得した cc-sdd のバージョンを記録
 - [ ] `KNOWN_GOOD_CCSDD_VERSION` と一致するか確認
@@ -29,8 +38,14 @@
 ## E. overlay 適用後の再検証
 - [ ] `CLAUDE.md` / `AGENTS.md` に `<!-- SDD-BASE:START -->`〜`END` ブロックが1つだけ存在（重複挿入なし）
 - [ ] `docs/sdd/` 一式が存在
-- [ ] `.gitignore` に SDD base スニペットが追記済み
+- [ ] `.gitignore` に SDD base スニペット（`.kiro/specs/*/outputs/`）が追記済み
 - [ ] `docs/sdd/` 内のリンク切れがない
+
+## E2. 記録レイアウト統一（差分排除）
+- [ ] 1タスクの記録は `.kiro/specs/<id>/` に集約される（`docs/specs/` は作らない）
+- [ ] `docs/specs/` が残存していない
+- [ ] `docs/sdd/templates/tech-requirements.md` が存在しない（design.md へ統合済み）
+- [ ] 承認状態は `spec.json` を正本とし、agreement-log に承認ブール値を二重管理していない
 
 ## F. ライセンス注意（設計変更時のゲート）
 - [ ] **cc-sdd の生成物をテンプレ（payload）へ同梱する設計変更を行う場合**、MIT条項により

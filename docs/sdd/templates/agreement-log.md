@@ -33,11 +33,14 @@
 
 ## フェーズゲート承認記録
 
-| フェーズ | 承認日 | 承認者 | 備考 |
-|---|---|---|---|
-| 要件定義（requirements.md） | | | |
-| 設計（design.md） | | | |
-| タスク分解・実装前確認（tasks.md） | | | |
+> 承認状態の正本は `.kiro/specs/<id>/spec.json` の `approvals.{requirements,design,tasks}.approved`。
+> ここではブール値を二重管理せず、合意の経緯・補足のみを残す。
+
+| フェーズ | 合意メモ（理由・補足） |
+|---|---|
+| 要件定義（requirements.md） | |
+| 設計（design.md） | |
+| タスク分解・実装前確認（tasks.md） | |
 
 ---
 

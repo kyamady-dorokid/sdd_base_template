@@ -43,9 +43,8 @@ say "[5/6] overlay 適用（冪等）"
 mkdir -p "$ROOT/docs/sdd"
 cp -R "$PAYLOAD/overlay/docs/sdd/." "$ROOT/docs/sdd/"
 echo "  docs/sdd/ 展開"
-# 5-2: specs 置き場
-mkdir -p "$ROOT/docs/specs" "$ROOT/.kiro/specs"
-[ -f "$ROOT/docs/specs/.gitkeep" ] || touch "$ROOT/docs/specs/.gitkeep"
+# 5-2: specs 置き場（記録は .kiro/specs/<id>/ に集約。docs/specs は使わない）
+mkdir -p "$ROOT/.kiro/specs"
 [ -f "$ROOT/.kiro/specs/.gitkeep" ] || touch "$ROOT/.kiro/specs/.gitkeep"
 # 5-3: CLAUDE.md / AGENTS.md にマーカー挿入（重複回避）
 inject(){ # <target> <snippet> <marker>
@@ -59,7 +58,7 @@ inject "$ROOT/CLAUDE.md" "$PAYLOAD/overlay/snippets/project-overview.md" "SDD-BA
 inject "$ROOT/AGENTS.md" "$PAYLOAD/overlay/snippets/AGENTS.sdd.md"       "SDD-BASE:START"
 inject "$ROOT/AGENTS.md" "$PAYLOAD/overlay/snippets/project-overview.md" "SDD-BASE:PROJECT-OVERVIEW:START"
 # 5-4: .gitignore 追記
-if ! grep -q 'docs/specs/\*/outputs/' "$ROOT/.gitignore" 2>/dev/null; then
+if ! grep -q '\.kiro/specs/\*/outputs/' "$ROOT/.gitignore" 2>/dev/null; then
   { printf '\n'; cat "$PAYLOAD/overlay/gitignore.snippet"; } >> "$ROOT/.gitignore"; echo "  .gitignore 追記"
 else echo "  .gitignore は既存（スキップ）"; fi
 
@@ -72,7 +71,10 @@ cat <<'EOS'
   0. Claude Code / Codex を起動し、まず適用ルールと進め方を確認:
        「このリポジトリに適用されているSDDのルールと、これからの開発の進め方を教えて」
   1. CLAUDE.md / AGENTS.md の「## プロジェクト概要（要記入）」を埋める
-  2. /kiro-discovery "<やりたいこと>" から仕様化を開始
+  2. 開発を始める（2つの入口。どちらでもルール・成果物・出力先は同一）:
+       ・軽量（自然言語SDD） … 「<やりたいこと>。簡単な要件定義とプランニングから始めて」と指示
+       ・フルフロー（kiroコマンド） … /kiro-discovery "<やりたいこと>" から仕様化を開始
+     規模で Tier S/L を選ぶ。詳細は docs/sdd/workflow.md
   3. 区切りでコミット（main直コミット禁止・ブランチ→PR）
   整合確認: diff -qr .claude/skills .agents/skills
 EOS

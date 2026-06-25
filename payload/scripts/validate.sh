@@ -58,7 +58,21 @@ if [ "$PHASE" = "post" ]; then
     [ "$n" = 1 ] && ok "$f の SDD-BASE ブロックは1つ" || ng "$f の SDD-BASE ブロックが $n 個（重複/欠落）"
   done
   [ -f "$ROOT/docs/sdd/workflow.md" ] && ok "docs/sdd/ 展開済み" || ng "docs/sdd/ が無い"
-  grep -q 'docs/specs/\*/outputs/' "$ROOT/.gitignore" 2>/dev/null && ok ".gitignore 追記済み" || ng ".gitignore 未追記"
+  grep -q '\.kiro/specs/\*/outputs/' "$ROOT/.gitignore" 2>/dev/null && ok ".gitignore 追記済み(.kiro/specs)" || ng ".gitignore 未追記(.kiro/specs/*/outputs/)"
+
+  say "== 検証(post): 独自パッチの注入確認 =="
+  for f in ".claude/skills/kiro-impl/SKILL.md" ".agents/skills/kiro-impl/SKILL.md"; do
+    grep -q 'SDD-OVERLAY:IMPL-POLICY' "$ROOT/$f" 2>/dev/null && ok "$f に IMPL-POLICY 注入済み" || ng "$f に IMPL-POLICY 未注入"
+  done
+  DT="$ROOT/.kiro/settings/templates/specs/design.md"
+  if [ -f "$DT" ]; then
+    grep -q 'SDD-OVERLAY:DESIGN-TECHREQ' "$DT" && ok "design テンプレに技術要件節 注入済み" || ng "design テンプレに技術要件節 未注入"
+  fi
+
+  say "== 検証(post): 記録レイアウト統一（docs/specs 不使用・重複排除） =="
+  [ -d "$ROOT/.kiro/specs" ] && ok ".kiro/specs/ 存在" || ng ".kiro/specs/ が無い"
+  [ -e "$ROOT/docs/specs" ] && ng "docs/specs/ が残存（.kiro/specs へ集約のはず）" || ok "docs/specs/ 不使用"
+  [ -e "$ROOT/docs/sdd/templates/tech-requirements.md" ] && ng "tech-requirements.md が残存（design.md へ統合済みのはず）" || ok "tech-requirements.md 不在（design.md へ統合）"
 fi
 
 if [ "$WARN" = 0 ]; then say "==> 検証 PASS"; exit 0; else say "==> 検証で要確認あり（人間の判断を推奨）"; exit 2; fi
