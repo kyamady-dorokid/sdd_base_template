@@ -5,8 +5,8 @@
 1. **単体テストは必ず実装コードとセットで書く。** テストなし実装は受け付けない。
 2. **TDD（テスト駆動開発）で進める。** テスト項目 → テストコード（RED）→ 実装（GREEN）の順。
 3. **テスト項目は仕様ドキュメントから導出する。** `requirements.md` の受け入れ基準をテストケースに落とす。
-4. **実行したテストの結果は `docs/specs/<task>/test-results.md` に記録する。**
-5. **結合試験項目は `docs/specs/<task>/integration-test-checklist.md` に残し、人間が確認する。**
+4. **実行したテストの結果は `.kiro/specs/<id>/test-results.md` に記録する。**
+5. **結合試験項目は `.kiro/specs/<id>/integration-test-checklist.md` に残し、人間が確認する。**
 
 ---
 
@@ -17,7 +17,7 @@
   │
   ▼
 テスト項目を文章で列挙（テスト設計）
-  → docs/specs/<task>/test-results.md の「テスト項目」欄に先行記載
+  → .kiro/specs/<id>/test-results.md の「テスト項目」欄に先行記載
   │
   ▼
 テストコードを実装（RED）
@@ -48,8 +48,10 @@ test-results.md に実行結果を記録
 
 ## 初回実装時の技術要件確認
 
-新機能を初めて実装するフェーズの場合、実装前に `tech-requirements.md` を作成して確認する。
-（テンプレート: `docs/sdd/templates/tech-requirements.md`）
+新機能を初めて実装するフェーズの場合、実装前に技術要件を確認する。
+**技術要件は独立ファイルにせず `.kiro/specs/<id>/design.md` の「技術要件・制約チェック」節に一本化する**
+（言語/FW/ライブラリは Technology Stack、テスト方針は Testing Strategy、既存結合は Existing Architecture /
+Modified Files に記載。承認状態の正本は `spec.json` の design ゲート）。
 
 確認事項の例:
 - 利用する言語・FW・ライブラリのバージョン制約
