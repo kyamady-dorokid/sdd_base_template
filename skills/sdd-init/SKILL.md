@@ -30,6 +30,13 @@ Claude Code / Codex のどちらでも同一の環境（`.claude/skills` と `.a
    ```
    init は内部で次を行う: `npx cc-sdd@latest` 取得 → **検証(pre)** → 既知パッチ適用 → **overlay適用** → **検証(post)**。
 
+   **既存エージェント環境の検出（重要）**: 既に `CLAUDE.md`/`AGENTS.md`/`.claude/skills`/`.agents/skills`/`.kiro/settings` がある場合、init は**勝手に進めず**、扱いの明示が無いと**停止する**（終了コード3）。その場合は**自動で押し切らず、必ず人間に次の3択を提示して選択を得てから** `--on-existing=` を付けて再実行する:
+   - `--on-existing=overwrite` … 対比して上書き（`.sdd-backup/` にバックアップ取得。既定・推奨）
+   - `--on-existing=keep` … 既存を温存（マージ）。設定衝突に注意
+   - `--on-existing=compare` … 差分の表示のみ（インストールしない）
+
+   ※ `.kiro/specs/`・`.kiro/steering/`（ユーザーの仕様・記録・プロジェクトメモリ）はどの選択でも初期化されない。
+
 3. **検証結果を人間に必ず共有する。**
    - 検証(pre/post)で「要確認(NG)」が出た場合は、内容（特に Claude/Codex パリティの想定外差分、Codexパス誤り、cc-sddバージョン不一致）を要約して報告する。
    - **未知の不整合は自動で押し切らず、人間に確認を求める。**

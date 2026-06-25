@@ -36,24 +36,41 @@ done
 if [ -n "$EXISTING" ]; then
   echo "  既存のエージェント環境（上書き対象）を検出:$EXISTING"
   [ -n "$PROTECTED" ] && echo "  ※ 保護対象（初期化しません）:$PROTECTED"
+  # 既存が見つかった場合は、明示指定が無ければ「黙って進めない」。
+  #  - 端末（/dev/tty）が使えるなら必ず選択肢を提示（既定=overwrite）。
+  #  - 端末が無い非対話（CI/エージェント/-y）で未指定なら、停止して明示を促す。
   if [ -z "$ON_EXISTING" ]; then
-    if [ "$ASSUME_YES" = 1 ] || [ ! -t 0 ]; then
-      ON_EXISTING="keep"   # 非対話/-y は安全側（温存）
+    # 対話可否は /dev/tty を実際に open できるかで判定（モードビットの -r だけでは CI 等で誤判定するため）。
+    TTY_OK=0
+    if [ "$ASSUME_YES" = 0 ] && { exec 3</dev/tty; } 2>/dev/null; then TTY_OK=1; fi
+    if [ "$TTY_OK" = 1 ]; then
+      echo "  既存設定と新規設定が衝突する可能性があります。扱いを選択してください:"
+      echo "    [o] overwrite … バックアップ後に上書きし、差分を表示（既定・推奨）"
+      echo "    [k] keep      … 既存を温存（マージ）。衝突に注意"
+      echo "    [c] compare   … 差分の表示のみ（インストールしない）"
+      printf "  選択 [O/k/c] (既定 O): "
+      read -r ans <&3 || ans=""
+      exec 3<&- 2>/dev/null || true
+      case "$ans" in k|K|keep) ON_EXISTING="keep";; c|C|compare) ON_EXISTING="compare";; *) ON_EXISTING="overwrite";; esac
     else
-      echo "  既存ファイルの扱いを選択してください:"
-      echo "    [k] keep      … 既存を温存（推奨・既定）。SDDルールは追記のみ"
-      echo "    [o] overwrite … cc-sdd で再生成（.sdd-backup/ にバックアップ後に上書き）"
-      echo "    [c] compare   … 上書きせず、新旧の差分を表示（バックアップ保持）"
-      printf "  選択 [k/o/c] (既定 k): "
-      read -r ans </dev/tty || ans=""
-      case "$ans" in o|O|overwrite) ON_EXISTING="overwrite";; c|C|compare) ON_EXISTING="compare";; *) ON_EXISTING="keep";; esac
+      echo "  [停止] 既存のエージェント環境を検出しましたが、非対話で扱いが未指定です。"
+      echo "         自動では進めません。次のいずれかで扱いを明示して再実行してください:"
+      echo "           --on-existing=overwrite  （対比して上書き・バックアップ取得）"
+      echo "           --on-existing=keep       （既存を温存・マージ）"
+      echo "           --on-existing=compare    （差分の表示のみ・インストールしない）"
+      echo "         または端末（対話可能なシェル）で実行してください。"
+      exit 3
     fi
   fi
 else
+  # 既存なし＝上書き対象が無い。生成のみ（バックアップ不要）。内部的には keep 相当で扱う。
   ON_EXISTING="keep"
 fi
-case "$ON_EXISTING" in keep|overwrite|compare) ;; *) echo "  不明な --on-existing='$ON_EXISTING' → keep として扱います"; ON_EXISTING="keep";; esac
-echo "  既存ファイルの扱い: $ON_EXISTING"
+case "$ON_EXISTING" in
+  keep|overwrite|compare) ;;
+  *) echo "  [停止] 不明な --on-existing='$ON_EXISTING'。keep|overwrite|compare のいずれかを指定してください。"; exit 3;;
+esac
+[ -n "$EXISTING" ] && echo "  既存ファイルの扱い: $ON_EXISTING"
 
 # モード→cc-sdd フラグへ写像
 #  keep    : フラグ無し＋stdin非TTY（</dev/null）＝既存温存・不足分のみ生成（cc-sdd既定の非対話挙動）
@@ -72,7 +89,19 @@ echo "  - Claude Code 用 (.claude/skills, CLAUDE.md)  [$MODE_LABEL]"
 npx -y cc-sdd@latest --claude-code-skills --lang "$LANG_OPT" ${CC_FLAGS[@]+"${CC_FLAGS[@]}"} </dev/null || { echo "cc-sdd(Claude) 実行に失敗しました"; exit 1; }
 echo "  - Codex 用 (.agents/skills, AGENTS.md)  [$MODE_LABEL]"
 npx -y cc-sdd@latest --codex-skills --lang "$LANG_OPT" ${CC_FLAGS[@]+"${CC_FLAGS[@]}"} </dev/null || { echo "cc-sdd(Codex) 実行に失敗しました"; exit 1; }
-[ "$ON_EXISTING" = "overwrite" ] && [ -n "$BACKUP_DIR" ] && echo "  バックアップ: $BACKUP_DIR （上書き前の旧ファイルを保存）"
+
+# overwrite モード: 「対比して上書き」。バックアップ(旧)と上書き後(新)の差分を提示。
+if [ "$ON_EXISTING" = "overwrite" ] && [ -n "$BACKUP_DIR" ] && [ -d "$ROOT/$BACKUP_DIR" ]; then
+  echo "  バックアップ: $BACKUP_DIR （上書き前の旧ファイルを保存）"
+  say "[2.5] overwrite: 上書き前(旧) ↔ 上書き後(新) の差分（対比）"
+  for f in CLAUDE.md AGENTS.md; do
+    if [ -f "$ROOT/$BACKUP_DIR/$f" ] && [ -f "$ROOT/$f" ]; then
+      echo "  --- diff: $f （< 旧 / > 新） ---"
+      diff "$ROOT/$BACKUP_DIR/$f" "$ROOT/$f" || true
+    fi
+  done
+  echo "  ※ 旧ファイルは $BACKUP_DIR に保持。固有の追記があれば手動で取り込んでください。"
+fi
 
 # compare モード: 既存を上書きせず、cc-sdd が書くであろう新版を temp に生成して新旧 diff を提示
 if [ "$ON_EXISTING" = "compare" ]; then
@@ -141,13 +170,16 @@ bash "$PAYLOAD/scripts/validate.sh" "$ROOT" "$PAYLOAD" post || true
 say "完了：SDD ベースを展開しました。"
 cat <<'EOS'
 次の一歩:
-  0. Claude Code / Codex を起動し、まず適用ルールと進め方を確認:
+  1. Claude Code / Codex を起動し、まず適用ルールと進め方を確認:
        「このリポジトリに適用されているSDDのルールと、これからの開発の進め方を教えて」
-  1. CLAUDE.md / AGENTS.md の「## プロジェクト概要（要記入）」を埋める
-  2. 開発を始める（2つの入口。どちらでもルール・成果物・出力先は同一）:
-       ・軽量（自然言語SDD） … 「<やりたいこと>。簡単な要件定義とプランニングから始めて」と指示
-       ・フルフロー（kiroコマンド） … /kiro-discovery "<やりたいこと>" から仕様化を開始
-     規模で Tier S/L を選ぶ。詳細は docs/sdd/workflow.md
-  3. 区切りでコミット（main直コミット禁止・ブランチ→PR）
-  整合確認: diff -qr .claude/skills .agents/skills
+  2. CLAUDE.md / AGENTS.md の「## プロジェクト概要（要記入）」を埋める
+  3. 開発を始める（2つの入口。どちらでもルール・成果物・出力先は同一。規模で Tier S/L）:
+       ・軽量（自然言語SDD）   「<やりたいこと>。簡単な要件定義とプランニングから始めて」
+       ・フルフロー（kiroコマンド） /kiro-discovery "<やりたいこと>"
+     コミットは区切りで提案（自動コミットしない・main 直禁止・ブランチ→PR）。
+
+  次回から楽にするなら（任意）: 個人環境にスキルを設置しておくと npx 不要になります。
+       npx -y github:kyamady-dorokid/sdd_base_template install
+
+  詳しい進め方は docs/sdd/workflow.md を参照。
 EOS
