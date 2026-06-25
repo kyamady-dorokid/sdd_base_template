@@ -20,6 +20,13 @@ if [ "$PHASE" = "pre" ]; then
     [ -e "$ROOT/$p" ] && ok "$p" || ng "$p が無い"
   done
 
+  say "== 検証(pre): 保護対象（初期化されない領域）の情報 =="
+  for p in ".kiro/specs" ".kiro/steering"; do
+    if [ -d "$ROOT/$p" ] && [ -n "$(ls -A "$ROOT/$p" 2>/dev/null | grep -v '^\.gitkeep$' || true)" ]; then
+      ok "$p にユーザードキュメントを検出（全モードで温存・初期化しません）"
+    fi
+  done
+
   say "== 検証(pre): Claude/Codex 構造パリティ =="
   # 注: cc-sdd は Claude(/kiro)とCodex($kiro,agents/)で内容を意図的に変える。
   # よってファイル内容の一致ではなく「同じスキル群が両方に存在するか（名前集合）」を検証する。

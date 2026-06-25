@@ -6,5 +6,6 @@ tmp/
 # --- SDD base (sdd_base_template) ---
 # タスクごとの生成物（個人情報を含み得る・再生成可能なため履歴に残さない）
 .kiro/specs/*/outputs/
+.sdd-backup/
 # 大容量・一時ファイル
 tmp/

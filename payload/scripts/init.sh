@@ -1,10 +1,16 @@
 #!/usr/bin/env bash
 # SDD base 初期化（cc-sdd 取得 → 検証 → overlay → 再検証）。冪等。
-# 使い方: init.sh <repo_root> <payload_dir> [--lang ja] [--yes]
+# 使い方: init.sh <repo_root> <payload_dir> [--lang ja] [--yes] [--on-existing keep|overwrite|compare]
 set -uo pipefail
 ROOT="${1:?repo_root required}"; PAYLOAD="${2:?payload_dir required}"; shift 2 || true
-LANG_OPT="ja"; ASSUME_YES=0
-while [ $# -gt 0 ]; do case "$1" in --lang) LANG_OPT="$2"; shift 2;; --yes|-y) ASSUME_YES=1; shift;; *) shift;; esac; done
+LANG_OPT="ja"; ASSUME_YES=0; ON_EXISTING=""
+while [ $# -gt 0 ]; do case "$1" in
+  --lang) LANG_OPT="$2"; shift 2;;
+  --yes|-y) ASSUME_YES=1; shift;;
+  --on-existing) ON_EXISTING="$2"; shift 2;;
+  --on-existing=*) ON_EXISTING="${1#*=}"; shift;;
+  *) shift;;
+esac; done
 cd "$ROOT" || exit 1
 say(){ printf '\n\033[1m%s\033[0m\n' "$*"; }
 
@@ -12,15 +18,82 @@ say "[1/6] 前提チェック"
 command -v node >/dev/null || { echo "node が必要です"; exit 1; }
 command -v npx  >/dev/null || { echo "npx が必要です"; exit 1; }
 git rev-parse --is-inside-work-tree >/dev/null 2>&1 || { echo "git リポジトリではありません。先に 'git init' してください。"; exit 1; }
-if [ -d "$ROOT/.kiro/settings" ] && [ "$ASSUME_YES" = 0 ]; then
-  echo "既存の .kiro/settings を検出。cc-sdd の再適用は既存ファイルを保持します（cc-sdd既定）。続行します。"
+
+# --- 既存エージェント環境（上書き対象）の検出と扱いの決定 ---
+# 上書きされ得る再生成可能な足場のみを検出対象とする。
+EXISTING=""
+for p in CLAUDE.md AGENTS.md .claude/skills .agents/skills .kiro/settings; do
+  [ -e "$ROOT/$p" ] && EXISTING="$EXISTING $p"
+done
+# 保護対象（どのモードでも初期化しない＝ユーザーの仕様・記録・プロジェクトメモリ）
+PROTECTED=""
+for p in .kiro/specs .kiro/steering; do
+  if [ -d "$ROOT/$p" ] && [ -n "$(ls -A "$ROOT/$p" 2>/dev/null | grep -v '^\.gitkeep$' || true)" ]; then
+    PROTECTED="$PROTECTED $p"
+  fi
+done
+
+if [ -n "$EXISTING" ]; then
+  echo "  既存のエージェント環境（上書き対象）を検出:$EXISTING"
+  [ -n "$PROTECTED" ] && echo "  ※ 保護対象（初期化しません）:$PROTECTED"
+  if [ -z "$ON_EXISTING" ]; then
+    if [ "$ASSUME_YES" = 1 ] || [ ! -t 0 ]; then
+      ON_EXISTING="keep"   # 非対話/-y は安全側（温存）
+    else
+      echo "  既存ファイルの扱いを選択してください:"
+      echo "    [k] keep      … 既存を温存（推奨・既定）。SDDルールは追記のみ"
+      echo "    [o] overwrite … cc-sdd で再生成（.sdd-backup/ にバックアップ後に上書き）"
+      echo "    [c] compare   … 上書きせず、新旧の差分を表示（バックアップ保持）"
+      printf "  選択 [k/o/c] (既定 k): "
+      read -r ans </dev/tty || ans=""
+      case "$ans" in o|O|overwrite) ON_EXISTING="overwrite";; c|C|compare) ON_EXISTING="compare";; *) ON_EXISTING="keep";; esac
+    fi
+  fi
+else
+  ON_EXISTING="keep"
+fi
+case "$ON_EXISTING" in keep|overwrite|compare) ;; *) echo "  不明な --on-existing='$ON_EXISTING' → keep として扱います"; ON_EXISTING="keep";; esac
+echo "  既存ファイルの扱い: $ON_EXISTING"
+
+# モード→cc-sdd フラグへ写像
+#  keep    : フラグ無し＋stdin非TTY（</dev/null）＝既存温存・不足分のみ生成（cc-sdd既定の非対話挙動）
+#            ※ cc-sdd の --overwrite=skip は「全ファイル skip（生成しない）」なので keep には使わない
+#  overwrite: --overwrite=force --backup=DIR（バックアップ後に全上書き）
+#  compare : 実ツリーは keep と同じ（非破壊）。別途 temp に生成して新旧 diff を提示
+CC_FLAGS=(); BACKUP_DIR=""; MODE_LABEL="keep(既存温存・不足分のみ生成)"
+if [ "$ON_EXISTING" = "overwrite" ]; then
+  BACKUP_DIR=".sdd-backup/$(date +%Y%m%d-%H%M%S)"
+  CC_FLAGS=(--overwrite=force --backup="$BACKUP_DIR")
+  MODE_LABEL="overwrite(force+backup)"
 fi
 
 say "[2/6] cc-sdd を取得・適用（Claude Code + Codex の両方）"
-echo "  - Claude Code 用 (.claude/skills, CLAUDE.md)"
-npx -y cc-sdd@latest --claude-code-skills --lang "$LANG_OPT" || { echo "cc-sdd(Claude) 実行に失敗しました"; exit 1; }
-echo "  - Codex 用 (.agents/skills, AGENTS.md)"
-npx -y cc-sdd@latest --codex-skills --lang "$LANG_OPT" || { echo "cc-sdd(Codex) 実行に失敗しました"; exit 1; }
+echo "  - Claude Code 用 (.claude/skills, CLAUDE.md)  [$MODE_LABEL]"
+npx -y cc-sdd@latest --claude-code-skills --lang "$LANG_OPT" ${CC_FLAGS[@]+"${CC_FLAGS[@]}"} </dev/null || { echo "cc-sdd(Claude) 実行に失敗しました"; exit 1; }
+echo "  - Codex 用 (.agents/skills, AGENTS.md)  [$MODE_LABEL]"
+npx -y cc-sdd@latest --codex-skills --lang "$LANG_OPT" ${CC_FLAGS[@]+"${CC_FLAGS[@]}"} </dev/null || { echo "cc-sdd(Codex) 実行に失敗しました"; exit 1; }
+[ "$ON_EXISTING" = "overwrite" ] && [ -n "$BACKUP_DIR" ] && echo "  バックアップ: $BACKUP_DIR （上書き前の旧ファイルを保存）"
+
+# compare モード: 既存を上書きせず、cc-sdd が書くであろう新版を temp に生成して新旧 diff を提示
+if [ "$ON_EXISTING" = "compare" ]; then
+  say "[2.5] compare: 既存（温存）と cc-sdd 新版の差分を提示（上書きはしません）"
+  TMPC="$(mktemp -d)"
+  ( cd "$TMPC" && git init -q \
+    && npx -y cc-sdd@latest --claude-code-skills --lang "$LANG_OPT" --overwrite=force </dev/null >/dev/null 2>&1 \
+    && npx -y cc-sdd@latest --codex-skills --lang "$LANG_OPT" --overwrite=force </dev/null >/dev/null 2>&1 ) || true
+  for f in CLAUDE.md AGENTS.md; do
+    if [ -f "$ROOT/$f" ] && [ -f "$TMPC/$f" ]; then
+      if diff -q "$ROOT/$f" "$TMPC/$f" >/dev/null 2>&1; then
+        echo "  $f: 既存と新版に差分なし"
+      else
+        echo "  --- diff: $f （< 既存 / > cc-sdd新版） ---"
+        diff "$ROOT/$f" "$TMPC/$f" || true
+      fi
+    fi
+  done
+  rm -rf "$TMPC"
+  echo "  ※ 既存ファイルは変更していません。必要箇所のみ手動で取り込んでください。"
+fi
 
 say "[3/6] 検証(pre): 構造・パリティ・Codexパス・バージョン"
 bash "$PAYLOAD/scripts/validate.sh" "$ROOT" "$PAYLOAD" pre
