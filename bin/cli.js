@@ -90,7 +90,7 @@ function help() {
   npx github:<org>/sdd_base_template install [--copy|--link]   個人環境へ sdd-init スキルを設置
   npx github:<org>/sdd_base_template init [--lang ja] [--yes] [--on-existing keep|overwrite|compare]
                                                               現リポジトリに SDD ベースを展開
-                                                              （既存 CLAUDE.md/AGENTS.md 等があれば扱いを選択。既定 keep=温存）
+                                                              （既存 CLAUDE.md/AGENTS.md 等があれば扱いを選択。既定 overwrite=対比して上書き・バックアップ取得）
   npx github:<org>/sdd_base_template validate [pre|post]       検証のみ
   npx github:<org>/sdd_base_template update                    （clone運用）git pull
 `);
