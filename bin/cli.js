@@ -3,7 +3,8 @@
  * sdd-base CLI — SDDベース構築の配布・実行ツール。
  * サブコマンド:
  *   install [--link|--copy]  個人スキルdir(~/.claude/skills, ~/.codex/skills)へ sdd-init を設置
- *   init [--lang ja] [--yes] 現在のリポジトリに SDD ベースを展開（cc-sdd取得→検証→overlay→再検証）
+ *   init [--lang ja] [--yes] [--on-existing keep|overwrite|compare]
+ *                            現在のリポジトリに SDD ベースを展開（cc-sdd取得→検証→overlay→再検証）
  *   validate [pre|post]      検証のみ実行
  *   update                   clone元なら git pull（symlink運用の更新）
  *   help
@@ -87,7 +88,9 @@ function help() {
 
 使い方:
   npx github:<org>/sdd_base_template install [--copy|--link]   個人環境へ sdd-init スキルを設置
-  npx github:<org>/sdd_base_template init [--lang ja] [--yes]  現リポジトリに SDD ベースを展開
+  npx github:<org>/sdd_base_template init [--lang ja] [--yes] [--on-existing keep|overwrite|compare]
+                                                              現リポジトリに SDD ベースを展開
+                                                              （既存 CLAUDE.md/AGENTS.md 等があれば扱いを選択。既定 keep=温存）
   npx github:<org>/sdd_base_template validate [pre|post]       検証のみ
   npx github:<org>/sdd_base_template update                    （clone運用）git pull
 `);
