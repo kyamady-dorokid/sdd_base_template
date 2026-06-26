@@ -2,7 +2,12 @@
 
 任意のリポジトリに **SDD（Spec-Driven Development）開発ベース** をワンステップで展開するための、インストーラ兼スキル配布リポジトリです。
 
-Claude Code / Codex の両方で同一の環境を構築します。内部で **[cc-sdd](https://github.com/gotalab/cc-sdd)** を実行し、その上に独自の運用 overlay（`docs/sdd/` のルール・テンプレート、`CLAUDE.md`/`AGENTS.md` のSDD節、specs配置）を重ねます。
+Claude Code / Codex の両方に同一の環境を構築します。内部で **[cc-sdd](https://github.com/gotalab/cc-sdd)** を実行し、その上に独自の運用 overlay（`docs/sdd/` のルール・テンプレート、`CLAUDE.md`/`AGENTS.md` のSDD節、specs配置）を重ねます。
+
+> **対応エージェントと検証状況:**
+> - **Claude Code** … 検証済み（動作確認の主対象）。
+> - **Codex** … コード上は対応（`.agents/skills`・`AGENTS.md` を生成）するが、**動作検証は未実施**。
+> - **その他のエージェント** … **未検討**（対応の予定・可否は未定）。
 
 <br>
 
@@ -33,7 +38,7 @@ npx -y github:kyamady-dorokid/sdd_base_template init
 
 実行すると、**Claude Code と Codex の両環境**（`.claude/` `.agents/`、各 `CLAUDE.md`/`AGENTS.md`、`docs/sdd/`）が**まとめて自動構築**されます。利用エージェントを選ぶ対話メニューはなく、両方が同時に入ります（言語は既定 `ja`。変更時は `init --lang en`）。
 
-> **既に CLAUDE.md / AGENTS.md などがある場合:** 勝手には進めず、展開時に必ず**扱いを確認**します（既定は **「対比して上書き」＝差分を表示し、`.sdd-backup/` にバックアップを取ってから上書き**）。「上書き / 温存（マージ）/ 差分のみ」から選べます（詳しくは末尾の[コマンド・オプション](#コマンドオプション)）。`.kiro/specs/`・`.kiro/steering/` のあなたのドキュメントは**どの選択でも初期化されません**。
+> **既に CLAUDE.md / AGENTS.md などがある場合:** 勝手には進めず、扱い（上書き / 温存 / 差分のみ）を確認します。選び方とコマンド例は [その他の使い方 → 既存環境への展開を指定する](#既存環境への展開を指定する) を参照してください。なお `.kiro/specs/`・`.kiro/steering/` のあなたのドキュメントは**どの選択でも初期化されません**。
 
 <br>
 
