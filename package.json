@@ -9,7 +9,8 @@
     "bin/",
     "payload/",
     "skills/",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "postinstall": "true"
