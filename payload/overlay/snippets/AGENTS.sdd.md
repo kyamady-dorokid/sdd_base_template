@@ -15,12 +15,14 @@
 6. 実行テスト結果は `.kiro/specs/<id>/test-results.md` に記録する。
 7. 結合試験項目は `.kiro/specs/<id>/integration-test-checklist.md` に残す。
 8. **`main` への直接コミット禁止。** ブランチ→push→PR。詳細は [docs/sdd/rules/branching-policy.md](docs/sdd/rules/branching-policy.md)。
+9. **環境越境（Windows × WSL）の確認。** 実行環境が Windows で、かつ作業対象が WSL パス（`\\wsl.localhost\...` / `\\wsl$\...`）の場合は、**そのセッションで最初の自動操作を行う直前に1回だけ**、差分懸念の警告と「WSL内ターミナルから `claude` を起動して作業する」回避策を提示し、このまま続行してよいか確認する。詳細は [docs/sdd/rules/environment-boundary-policy.md](docs/sdd/rules/environment-boundary-policy.md)。（越境でない／非Windowsでは何もしない）
 
 ### ベースルールの所在
 - ワークフロー: [docs/sdd/workflow.md](docs/sdd/workflow.md)
 - テスト方針: [docs/sdd/rules/testing-policy.md](docs/sdd/rules/testing-policy.md)
 - コミット方針: [docs/sdd/rules/commit-policy.md](docs/sdd/rules/commit-policy.md)
 - ブランチ方針: [docs/sdd/rules/branching-policy.md](docs/sdd/rules/branching-policy.md)
+- 環境越境ポリシー（Windows×WSL）: [docs/sdd/rules/environment-boundary-policy.md](docs/sdd/rules/environment-boundary-policy.md)
 - 各テンプレート: [docs/sdd/templates/](docs/sdd/templates/)
 
 ### エージェント整合
