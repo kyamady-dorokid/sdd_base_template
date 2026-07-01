@@ -29,7 +29,7 @@ git init
 npx -y github:kyamady-dorokid/sdd_base_template init
 ```
 
-**既存リポジトリに追加する場合:**
+**既存リポジトリに追加する場合（まだ本パッケージを使っていないリポジトリ）:**
 
 ```bash
 cd <existing-repo>
@@ -39,6 +39,15 @@ npx -y github:kyamady-dorokid/sdd_base_template init
 実行すると、**Claude Code と Codex の両環境**（`.claude/` `.agents/`、各 `CLAUDE.md`/`AGENTS.md`、`docs/sdd/`）が**まとめて自動構築**されます。利用エージェントを選ぶ対話メニューはなく、両方が同時に入ります（言語は既定 `ja`。変更時は `init --lang en`）。
 
 > **既に CLAUDE.md / AGENTS.md などがある場合:** 勝手には進めず、扱い（上書き / 温存 / 差分のみ）を確認します。選び方とコマンド例は [その他の使い方 → 既存環境への展開を指定する](#既存環境への展開を指定する) を参照してください。なお `.kiro/specs/`・`.kiro/steering/` のあなたのドキュメントは**どの選択でも初期化されません**。
+
+**既に本パッケージを運用中で、パッケージのアップデートを反映する場合:**
+
+```bash
+cd <repo-already-using-sdd_base_template>
+npx -y github:kyamady-dorokid/sdd_base_template sync --yes
+```
+
+`init` を再実行しないでください（ローカルのカスタマイズを壊さず更新分だけを安全に取り込む `sync` 専用のコマンドです）。詳細は [その他の使い方 → 展開済みリポジトリへ上流の更新を反映する — `sync`](#展開済みリポジトリへ上流の更新を反映する--sync) を参照してください。
 
 <br>
 
