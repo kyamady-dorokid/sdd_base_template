@@ -11,3 +11,4 @@ tmp/
 tmp/
 # sync 実行のたびに上書きされるレポート（実行時ログ・履歴として残さない）
 .kiro/sdd-base-update-report.md
+# init の上書き/対比モードで作るバックアップ
