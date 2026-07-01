@@ -107,17 +107,29 @@ write_report(){
 
 initial_sync(){
   mkdir -p "$SNAPSHOT/docs/sdd" "$SNAPSHOT/blocks"
-  cp -R "$PAYLOAD/overlay/docs/sdd/." "$SNAPSHOT/docs/sdd/" 2>/dev/null || true
 
   local commit; commit="$(sdd_lock_resolve_commit "$PAYLOAD")"
   : > "$LOCK"
   sdd_lock_set_meta "$LOCK" template_commit "$commit"
   sdd_lock_set_meta "$LOCK" template_repo "$SDD_TEMPLATE_REPO_FALLBACK"
 
-  local rel h
+  # 基準点（lock hash・snapshot）は「今この瞬間のローカルの状態」にする。
+  # payload の内容を基準にすると、init 後しばらく sync を導入していなかった
+  # リポジトリ（ローカルが既に payload より古い）で、2回目以降の sync が
+  # base==other（前回取得した payload 版のまま更新なし、と誤認）と判定してしまい、
+  # 実際にはローカルが古いだけなのに新版を取り込めなくなる不具合があった。
+  local rel h target
   while IFS= read -r rel; do
     [ -n "$rel" ] || continue
-    h="$(sdd_hash_file "$PAYLOAD/overlay/docs/sdd/$rel")"
+    target="$ROOT/docs/sdd/$rel"
+    mkdir -p "$(dirname "$SNAPSHOT/docs/sdd/$rel")"
+    if [ -f "$target" ]; then
+      cp "$target" "$SNAPSHOT/docs/sdd/$rel"
+      h="$(sdd_hash_file "$target")"
+    else
+      cp "$PAYLOAD/overlay/docs/sdd/$rel" "$SNAPSHOT/docs/sdd/$rel"
+      h="$(sdd_hash_file "$PAYLOAD/overlay/docs/sdd/$rel")"
+    fi
     sdd_lock_set_file "$LOCK" "docs/sdd/$rel" "$h"
     NEW_LIST+=("docs/sdd/$rel")
   done < <(managed_docs)
@@ -209,7 +221,21 @@ apply_blocks(){
     IFS='|' read -r f m stype sarg <<< "$entry"
     target="$ROOT/$f"
     [ -f "$target" ] || continue
-    cur_block="$(sdd_extract_block "$target" "$m" 2>/dev/null)" || continue
+
+    if ! cur_block="$(sdd_extract_block "$target" "$m" 2>/dev/null)"; then
+      # マーカーが存在しない = このリポジトリでは未適用（init 後に新設されたパッチ等）。
+      # patch 型は init と同じスクリプトをそのまま適用する（冪等・末尾追記のみ）。
+      [ "$stype" = "patch" ] || continue
+      bash "$PAYLOAD/validation/patches/$sarg" "$ROOT" >/dev/null 2>&1 || true
+      cur_block="$(sdd_extract_block "$target" "$m" 2>/dev/null)" || continue
+      cur_hash="$(sdd_hash_string "$cur_block")"
+      safe="$(printf '%s__%s' "$f" "$m" | tr '/:' '__')"
+      base_file="$SNAPSHOT/blocks/$safe"
+      sdd_lock_set_block "$LOCK" "$f" "$m" "$cur_hash"
+      printf '%s\n' "$cur_block" > "$base_file"
+      NEW_LIST+=("$f (block:$m, 未適用パッチを新規適用)")
+      continue
+    fi
     cur_hash="$(sdd_hash_string "$cur_block")"
     lock_hash="$(sdd_lock_get_block "$LOCK" "$f" "$m")"
     safe="$(printf '%s__%s' "$f" "$m" | tr '/:' '__')"

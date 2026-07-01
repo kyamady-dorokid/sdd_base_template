@@ -150,6 +150,64 @@ lock作成→`init --on-existing=keep`再実行→追記が保護されること
 
 ---
 
+## マージ後の追補: 自己適用（ドッグフーディング）で発見した2件のバグと修正
+
+**経緯**: PR #11（本spec）マージ後、「sdd_base_template 自身に改修内容を適用（ドッグフーディング）」を
+実施したところ、`sync` 自体に2件のバグを発見した。本リポジトリの root（`docs/sdd/`・`CLAUDE.md`/
+`AGENTS.md`・`.claude/skills`・`.agents/skills`）は PR #9（環境越境ポリシー）以降 `init` が
+再実行されておらず、payload 側の変更（PR #10 Part A+C: workflow.md 非コーディング節・
+security-policy.md・ensure-agreement-log パッチ）が一度も反映されていなかった。この
+「作ってからしばらく経って初めて sync を導入する」という状況が、以下2件の潜在バグを顕在化させた。
+
+### バグ1: 初回化（`initial_sync`）の基準点が payload 側の内容になっていた
+
+`sync.sh` の `initial_sync()` は、docs/sdd 系ファイルの lock ハッシュ・スナップショットを
+**payload（新版）の内容**を基にして記録していた。ローカルが既に payload と同一内容（＝
+`init` 直後に `sync` を導入する通常ケース）なら問題ないが、本リポジトリのようにローカルが
+**古いまま長期間 sync 未導入だった**場合、2回目の `sync` 実行時に `base（=1回目に記録した
+payload内容）` と `other（=今回の payload 内容、変化なし）` が完全一致するため「上流に変更なし」
+と誤判定され、ローカルの古い内容が更新されないまま取り残される。
+
+**修正**: `initial_sync()` を、対象ファイルが `$ROOT` に既に存在する場合は**ローカルの現状**を
+基準点（lock hash・snapshot）として記録するよう変更（存在しない新規ファイルは従来通り payload
+基準）。回帰テスト `tests/integration/test_sync_stale_adoption.sh` を追加（修正前でREDを確認
+→ 修正後にGREenを確認）。
+
+### バグ2: `init` 後に新設されたパッチが `sync` では一度も適用されない
+
+`apply_blocks()` は、対象ファイルにマーカーブロックが**存在しない場合は無条件で `continue`**
+しており、「まだ一度もそのパッチが適用されていないファイル」に対して何もしない実装だった。
+本リポジトリの `.claude/skills/kiro-spec-init/SKILL.md` は `ensure-agreement-log.sh`
+パッチ追加（PR #10）後に一度も `init`/`sync` を経ておらず、`sync` を何度実行してもこのパッチが
+永遠に適用されないことが判明した。
+
+**修正**: `apply_blocks()` で、`stype=patch` のエントリについてマーカーが見つからない場合、
+`init.sh` と同じパッチスクリプトをそのまま `$ROOT` に対して実行（冪等・末尾追記のみ）してから
+再抽出し、新規適用として lock・snapshot に記録・レポートに `新規適用` として明記するよう変更。
+回帰テスト `tests/integration/test_sync_new_patch.sh` を追加（実際の `ensure-agreement-log.sh`
+パッチと `sync.sh` を通しで実行して検証）。
+
+### 副次対応: `sdd-base-update-report.md` の gitignore 化
+
+自己適用中に、実行のたびに上書きされる `.kiro/sdd-base-update-report.md` が誤ってコミット対象に
+入りそうになった（design.md では「実行結果の唯一のログ」と位置づけており、`.sdd-backup/` 等と
+同様に履歴として残す性質のものではない）。`payload/overlay/gitignore.snippet` と本リポジトリ自身の
+`.gitignore` の両方に除外パターンを追加した（`.kiro/sdd-base.lock`・`.kiro/sdd-base-snapshot/` は
+3-wayマージの基準点としてコミットが必須のため、引き続きコミット対象）。
+
+### 結果
+- `tests/run.sh` は 55件 → **63件**（新規8件）に増加、全PASS。
+- 本リポジトリ自身に `sync` を実行し、`docs/sdd/`・`CLAUDE.md`/`AGENTS.md` の SDD-BASE ブロック・
+  3パッチすべて（IMPL-POLICY / DESIGN-TECHREQ / ENSURE-AGREEMENT-LOG）が最新化されたことを
+  `node bin/cli.js validate post` で確認（`.kiro/sdd-base.lock`・`.kiro/sdd-base-snapshot/` を
+  新規にコミットし、以降はこのリポジトリ自身も `sync` で運用する）。
+- 既知の残存事項（本修正のスコープ外）: `docs/specs/env-boundary-policy/`（`.kiro/specs/` 統合前の
+  旧レイアウトの遺構）は post 検証で `NG` のまま。これは PR #9 由来の既知の別課題であり
+  （引き継ぎ元 `.kiro/specs/sdd-base-upstream-fix/agreement-log.md` §5 に記載済み）、
+  本タスクでは対応しない。
+
+---
+
 ## 変更履歴
 
 | 日付 | 変更内容 | 変更者 |
