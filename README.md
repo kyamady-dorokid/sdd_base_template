@@ -145,6 +145,25 @@ npx -y github:kyamady-dorokid/sdd_base_template init --on-existing=compare     #
 
 <br>
 
+### 展開済みリポジトリへ上流の更新を反映する — `sync`
+
+`init` 済みのリポジトリで、テンプレート側の更新（ルール改訂・パッチ追加など）を安全に取り込みます。
+`init` の再実行（無条件上書き）とは異なり、**ローカルでの独自カスタマイズを壊さずに更新分だけ反映**します。
+
+```bash
+npx -y github:kyamady-dorokid/sdd_base_template sync --yes
+```
+
+- 初回実行時に基準点（`.kiro/sdd-base.lock` / `.kiro/sdd-base-snapshot/`）を作成します。
+- 2回目以降は、ローカルで変更していないファイルは新版でそのまま更新、**ローカルで変更したファイルは
+  3-wayマージ**（`git merge-file` 相当）で取り込みます。
+- **コンフリクトした場合は既存ファイルを一切書き換えず**、`<file>.new` として結果を出力します
+  （サイレント上書きはしません。手動で確認・反映してください）。
+- 実行結果は毎回 `.kiro/sdd-base-update-report.md` に出力されます。自動コミットは行いません。
+- `.kiro/specs/`・`.kiro/steering/` などプロジェクト固有の記録は管理対象外で、`sync` では一切変更されません。
+
+<br>
+
 ### 🛠 開発者向け機能
 
 以下は、このテンプレート（`sdd_base_template`）自体をメンテ・改修する人向けです。通常の利用では不要です。
@@ -190,6 +209,7 @@ npx github:kyamady-dorokid/sdd_base_template update   # clone元で git pull --f
 | | `--on-existing <overwrite\|keep\|compare>` | `overwrite` | 既存 `CLAUDE.md`/`AGENTS.md` 等がある場合の扱い。`overwrite`=対比して上書き（バックアップ取得）／`keep`=温存（マージ）／`compare`=差分のみ（インストールしない） |
 | | `--yes`, `-y` | off | 確認注記を抑止（非対話）。**既存環境がある場合は `--on-existing` の明示が必須**（無ければ安全のため停止） |
 | `install` | `--copy` / `--link` | `--copy` | 個人環境へスキルを設置。`--copy`=コピー ／ 🛠`--link`=clone元へsymlink（開発者向け） |
+| `sync` | `--yes` | off | init 済みリポジトリへ上流の更新を安全反映（lock+3-wayマージ）。コンフリクトは `<file>.new` に出力しサイレント上書きしない |
 | `validate` | `pre` / `post` | `pre` | 🛠展開結果の検証のみ（開発者向け） |
 | `update` | — | — | 🛠（clone＋`--link`運用）clone元で `git pull --ff-only`（開発者向け） |
 
