@@ -6,13 +6,13 @@
 
 - [x] 1. テスト基盤の新設
   - `tests/run.sh`（最小限のテストランナー: 各 `test_*.sh` を実行し pass/fail 集計）
-  - `tests/test_hash.sh` の雛形のみ作成（中身は 2.1 で書く）
+  - `tests/unit/test_hash.sh` の雛形のみ作成（中身は 2.1 で書く）
   - 観測可能な完了条件: `bash tests/run.sh` が実行でき、テストなしで exit 0 する
   - _Requirements: 4.2_
 
 - [x] 2. `sync_lib/hash.sh`（ハッシュ計算ラッパー）
 - [x] 2.1 テスト作成（RED）
-  - `tests/test_hash.sh`: 同一内容ファイルから同一ハッシュ、異なる内容から異なるハッシュを
+  - `tests/unit/test_hash.sh`: 同一内容ファイルから同一ハッシュ、異なる内容から異なるハッシュを
     返すことを assert
   - `sha256sum` 不在環境を模擬し `shasum -a 256` へフォールバックすることを assert
     （`PATH` 操作 or 関数モックで環境分岐をテスト）
@@ -24,7 +24,7 @@
 
 - [x] 3. `sync_lib/lock.sh`（lock ファイルの読み書き）
 - [x] 3.1 テスト作成（RED）
-  - `tests/test_lock.sh`: `template_commit`/`template_repo`/`file:`/`block:` 各行の
+  - `tests/unit/test_lock.sh`: `template_commit`/`template_repo`/`file:`/`block:` 各行の
     書き込み→読み込みが往復一致することを assert
   - `git rev-parse HEAD` 失敗時に固定リポジトリURL定数へフォールバックすることを assert
   - _Requirements: 1.2, 1.3, 2.1_
@@ -36,7 +36,7 @@
 
 - [x] 4. `sync_lib/merge.sh`（3-wayマージ）
 - [x] 4.1 テスト作成（RED）
-  - `tests/test_merge.sh`: ファイル全体3-wayマージのクリーンケース（current/base/other が
+  - `tests/unit/test_merge.sh`: ファイル全体3-wayマージのクリーンケース（current/base/other が
     非重複の変更）で正しくマージされることを assert
   - コンフリクトケースで `<file>.new` が生成され、元ファイルが無変更のままであることを assert
   - マーカーブロック抽出3-wayマージで、ブロック外の周囲コンテンツが変更されないことを assert
@@ -49,7 +49,7 @@
 
 - [x] 5. `sync.sh`（オーケストレーション: 初回化ルート）
 - [x] 5.1 テスト作成（RED）
-  - `tests/test_sync_init.sh`: lock 不在の空リポジトリで `sync.sh` を実行し、
+  - `tests/integration/test_sync_init.sh`: lock 不在の空リポジトリで `sync.sh` を実行し、
     `.kiro/sdd-base.lock` と `.kiro/sdd-base-snapshot/` が生成されること、既存ファイルが
     無変更であることを assert
   - _Requirements: 1.1, 1.4_
@@ -61,7 +61,7 @@
 
 - [x] 6. `sync.sh`（オーケストレーション: 差分適用ルート）
 - [x] 6.1 テスト作成（RED）
-  - `tests/test_sync_apply.sh`: lock 有り状態で以下4ケースを assert
+  - `tests/integration/test_sync_apply.sh`: lock 有り状態で以下4ケースを assert
     - ローカル未変更ファイル → 新版でそのまま更新
     - ローカル変更・非コンフリクト → クリーンマージが適用されレポートに記載
     - ローカル変更・コンフリクト → `<file>.new` 生成、既存ファイルは無変更
@@ -77,7 +77,7 @@
 
 - [x] 7. 実行結果レポート出力
 - [x] 7.1 テスト作成（RED）
-  - `tests/test_sync_report.sh`: `.kiro/sdd-base-update-report.md` に4カテゴリ
+  - `tests/integration/test_sync_report.sh`: `.kiro/sdd-base-update-report.md` に4カテゴリ
     （新規適用/クリーンマージ/コンフリクト/上流削除）の見出しが含まれることを assert
   - 自動コミットが一切発生しないことを assert（`git status` の差分がステージされていないことを確認）
   - _Requirements: 3.1, 3.2, 3.3, 3.4_

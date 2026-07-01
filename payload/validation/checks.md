@@ -65,7 +65,7 @@
 - [ ] `sync` 実行後、`.kiro/sdd-base-update-report.md` に「新規適用/そのまま更新/クリーンマージ/
       コンフリクト/上流削除」の各カテゴリが出力される
 - [ ] `sync` 実行はいかなる場合も自動コミット（git add/commit）を行わない
-- [ ] `tests/run.sh` の全テストが PASS する（`hash`/`lock`/`merge`/`sync` の単体・結合テスト）
+- [ ] `tests/run.sh` の全テストが PASS する（`tests/unit/` の単体テスト、`tests/integration/` の結合テスト）
 
 ## F. ライセンス注意（設計変更時のゲート）
 - [ ] **cc-sdd の生成物をテンプレ（payload）へ同梱する設計変更を行う場合**、MIT条項により

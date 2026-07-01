@@ -75,6 +75,41 @@ Part A/C（PR #10, マージ済み）で、消失していた独自ルールを 
 `install` バンドル生成（`buildSkillBundle`）に `tests/` が含まれなくなったことをスクリプトで検証し、
 移動後も `bash tests/run.sh` 全55件PASS・`init`/`sync` の回帰なしを確認した。
 
+### 指摘2: テストのレビュー可読性・spec との紐付け、単体/結合の分離、記録の分割、恒久ルール化
+
+**指摘**: (a) `tests/` がリポジトリ直下だとレビューしにくい。本来 spec に紐づくべきでは、
+(b) `tests/` 配下は単体/結合をディレクトリで分けるべき、(c) `test-results.md` は単体/結合をセクション
+分けるべき、(d) これらを開発・改修時のルールとして残すべき、という4点の指摘。妥当性と既存規約との
+バッティングを検討した上で報告するよう指示された。
+
+**検討結果**（ユーザーへ報告し判断を仰いだ）:
+- (a) `.kiro/specs/<id>/tests/` への移動は**却下**。`docs/sdd/workflow.md`「タスクディレクトリ構成」が
+  `.kiro/specs/<id>/` をプロセス記録専用の場所として定義しており、実行コードの置き場は想定していない。
+  `payload/scripts/sync_lib/*.sh` は特定タスクに紐づかない永続的なプロダクトコードであり、将来別タスクが
+  このコードを改修する際にテストの所在が spec 単位で分散し追跡困難になる懸念がある。ユーザーへ
+  `AskUserQuestion` で確認し、**「直下 tests/ を維持」を選択**（決定確定）。
+- (b) 単体/結合のディレクトリ分割は妥当・既存規約との衝突なし。採用。
+- (c) `test-results.md` のセクション分割は妥当・衝突なし。採用。
+- (d) 恒久ルールは `payload/overlay/`（downstream配布用の汎用SDDルール）ではなく、
+  `sdd_base_template` 自身の開発規約である `CLAUDE.md`/`AGENTS.md`「必須ルール」に追加するのが適切と
+  判断（downstream repo は言語・フレームワークが多様であり、「テストは spec 直下」という規約を
+  一律に押し付けられないため）。
+
+**対応**:
+- `tests/test_hash.sh`/`test_lock.sh`/`test_merge.sh` → `tests/unit/`、
+  `tests/test_sync_init.sh`/`test_sync_apply.sh`/`test_sync_report.sh` → `tests/integration/` へ移動。
+  相対パス参照を1階層深く修正（`$DIR/../../payload/scripts/...`）。
+- `tests/run.sh` を `unit/` → `integration/` の順に走査するよう変更。
+  **この修正過程で、`run.sh` 自身の走査用変数 `DIR` が、source されたテストファイル側の
+  `DIR`（自身のパス解決用）と同名で衝突し、2グループ目（integration）が誤ったパスを参照して
+  0件実行になる不具合を発見**。`run.sh` 側の変数名を `RUNNER_DIR` に変更して解消し、55件全PASSを再確認。
+- `test-results.md` を「単体テスト」「結合テスト」のセクションに分割（小計・合計を明記）。
+- `CLAUDE.md`/`AGENTS.md`「必須ルール」に7項目目としてテスト資産の配置規約（`payload/`外・
+  `.kiro/specs/`外・`tests/unit`・`tests/integration`分離）を同一内容で追加。「動作確認」節にも
+  `bash tests/run.sh` の実行を追記。
+- `design.md`「Modified Files」節に配置根拠（`.kiro/specs/<id>/` に置かない理由）を追記し、
+  「Directory Structure」を unit/integration 構成に更新。
+
 ---
 
 ## フェーズゲート承認記録

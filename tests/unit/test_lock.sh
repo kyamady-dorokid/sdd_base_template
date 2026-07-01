@@ -1,6 +1,6 @@
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$DIR/../payload/scripts/sync_lib/hash.sh"
-source "$DIR/../payload/scripts/sync_lib/lock.sh"
+source "$DIR/../../payload/scripts/sync_lib/hash.sh"
+source "$DIR/../../payload/scripts/sync_lib/lock.sh"
 
 TMP="$(mktemp -d)"
 LOCK="$TMP/sdd-base.lock"

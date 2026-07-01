@@ -29,9 +29,21 @@
 
 6. **`main` への直接コミット禁止。** ブランチ→PR で反映する。
 
+7. **`payload/scripts/` のテスト資産はリポジトリ直下 `tests/` に置き、単体/結合で分ける。**
+   - `payload/` は `install`（`buildSkillBundle`）と `package.json` の `files` により丸ごと配布されるため、
+     `init.sh`/`sync.sh`/`validate.sh` が実行時に参照しないテストコードを `payload/` 配下に置かない
+     （`scripts/install.sh` と同じく、開発者専用資産は `payload/` の外＝リポジトリ直下に置く）。
+   - `.kiro/specs/<id>/` は `docs/sdd/workflow.md` が定めるプロセス記録専用の場所（`agreement-log.md`等）
+     であり、実行コードの置き場ではない。`payload/scripts/` のコードは特定タスクに紐づかない永続的な
+     プロダクトコードのため、そのテストも特定の spec フォルダではなく `tests/` に置く。
+   - `tests/unit/`（外部副作用を持たない純粋ロジック）と `tests/integration/`（`sync.sh` 等を実際に
+     起動するエンドツーエンドのテスト）にディレクトリを分ける。
+   - テストランナー: `bash tests/run.sh`（`tests/unit/` → `tests/integration/` の順に実行、集計）。
+
 ## 動作確認
 - 変更後は空ディレクトリで `node bin/cli.js init` を実行し、検証(pre/post)が通ることを確認。
 - `install` 後に `diff -qr ~/.claude/skills/sdd-init ~/.codex/skills/sdd-init` で設置物の同一性を確認。
+- `payload/scripts/` を変更した場合は `bash tests/run.sh` で単体・結合テストが全て PASS することを確認。
 
 <!-- SDD-BASE:START (このブロックは sdd_base_template が管理。手動編集は再生成で上書きされる可能性あり) -->
 ## SDD 開発の進め方（このリポジトリの基本ルール）

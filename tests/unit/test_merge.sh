@@ -1,6 +1,6 @@
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$DIR/../payload/scripts/sync_lib/hash.sh"
-source "$DIR/../payload/scripts/sync_lib/merge.sh"
+source "$DIR/../../payload/scripts/sync_lib/hash.sh"
+source "$DIR/../../payload/scripts/sync_lib/merge.sh"
 
 TMP="$(mktemp -d)"
 

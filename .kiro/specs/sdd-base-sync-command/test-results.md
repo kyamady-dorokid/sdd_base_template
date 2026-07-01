@@ -1,18 +1,37 @@
 # 実行テスト記録: sdd-base-sync-command（Part B）
 
-## 単体・結合テスト（`tests/run.sh`）
+## 単体テスト（`tests/unit/`）
 
-TDD（RED→GREEN）で実装した各コンポーネントのテスト結果。
+TDD（RED→GREEN）で実装した各コンポーネントのテスト結果。`sync_lib/*.sh` を直接 source し、
+外部への副作用（ファイルシステム上の一時ディレクトリ以外）を持たない純粋なロジックを検証する。
 
 | テストファイル | 内容 | 件数 | 結果 |
 |---|---|---|---|
 | `test_hash.sh` | `hash.sh`（sha256計算・ファイル/文字列） | 5 | PASS |
 | `test_lock.sh` | `lock.sh`（lock読み書き・冪等上書き・commit解決フォールバック） | 11 | PASS |
 | `test_merge.sh` | `merge.sh`（ファイル全体3-wayマージ・コンフリクト非破壊・マーカーブロック抽出/置換） | 14 | PASS |
+| **小計** | | **30** | **PASS** |
+
+## 結合テスト（`tests/integration/`）
+
+`sync.sh` を実際に起動し、複数コンポーネント（hash/lock/merge）を組み合わせた
+エンドツーエンドの挙動を検証する。
+
+| テストファイル | 内容 | 件数 | 結果 |
+|---|---|---|---|
 | `test_sync_init.sh` | `sync.sh` 初回化ルート | 8 | PASS |
 | `test_sync_apply.sh` | `sync.sh` 差分適用ルート（未変更更新/クリーンマージ/コンフリクト非破壊/保護領域不可侵/上流削除検出） | 11 | PASS |
 | `test_sync_report.sh` | 実行結果レポート・自動コミットなし | 6 | PASS |
-| **合計** | | **55** | **PASS**（`bash tests/run.sh` exit 0） |
+| **小計** | | **25** | **PASS** |
+
+## 合計
+
+**55件 PASS**（`bash tests/run.sh` exit 0。unit → integration の順に実行）。
+
+> レビュー指摘により `tests/unit/` `tests/integration/` への分割を行った際、
+> `run.sh` の走査変数 `DIR` が sourced されたテストファイル側の `DIR`（自身のパス解決用）と
+> 同名で衝突し、2グループ目（integration）が誤ったパスを参照して 0 件実行になる不具合を発見・修正した
+> （`run.sh` 側の変数名を `RUNNER_DIR` に変更して解消）。修正後、55件すべて PASS を再確認済み。
 
 ## E2E 通し確認（実リポジトリ・実 CLI 経由）
 
@@ -27,7 +46,8 @@ TDD（RED→GREEN）で実装した各コンポーネントのテスト結果。
 
 ## 結論
 
-TDDで実装した5コンポーネント（hash/lock/merge/sync初回化/sync差分適用+レポート）は単体・結合テスト55件すべてPASS。
+TDDで実装した5コンポーネント（hash/lock/merge/sync初回化/sync差分適用+レポート）は
+単体テスト30件・結合テスト25件、合計55件すべてPASS。
 実リポジトリでの通し実行でも、非破壊性（コンフリクト時のサイレント上書き禁止）・保護領域不可侵
 （`.kiro/specs`・`.kiro/steering`）・自動コミット無しの3点を実地で確認。
 
