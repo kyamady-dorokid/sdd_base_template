@@ -54,3 +54,21 @@ TDDで実装した5コンポーネント（hash/lock/merge/sync初回化/sync差
 （`.kiro/specs`・`.kiro/steering`）・自動コミット無しの3点を実地で確認。
 
 tasks.md の全タスク（1〜9）完了。
+
+## マージ後の追補: ドッグフーディングで発見した2件のバグの回帰テスト
+
+| テストファイル | 内容 | 件数 | 結果 |
+|---|---|---|---|
+| `test_sync_stale_adoption.sh` | 初回化の基準点バグ（payload内容ではなくローカル現状を基準にすべき） | 3 | PASS（修正前REDを確認済み） |
+| `test_sync_new_patch.sh` | 未適用パッチが sync 経由で新規適用されるか（`ensure-agreement-log.sh` 実物で検証） | 5 | PASS |
+
+**合計（更新後）**: 単体30件 + 結合25件 + 追加8件 = **63件 PASS**。
+
+**実リポジトリ（sdd_base_template 自身）への適用結果**:
+- `node bin/cli.js sync --yes` を2回実行（1回目: 現状を基準点として記録／2回目: 差分適用）。
+- `docs/sdd/` が payload と完全一致（`diff -rq` で差分なし）。
+- `CLAUDE.md`/`AGENTS.md` の SDD-BASE ブロックに `security-policy.md`・`environment-boundary-policy.md`
+  へのリンクが追加。
+- 3パッチ（`IMPL-POLICY`/`DESIGN-TECHREQ`/`ENSURE-AGREEMENT-LOG`）すべて適用済み
+  （`node bin/cli.js validate post` で確認）。
+- `docs/specs/env-boundary-policy/`（旧レイアウトの遺構、PR #9由来）の残存 `NG` のみ既知・対応外。
