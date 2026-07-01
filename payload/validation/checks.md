@@ -28,6 +28,8 @@
       `SDD-OVERLAY:IMPL-POLICY` ブロックが1つ注入されている（自動commit無効・main直禁止・branch→PR・記録は.kiro/specs）
 - [ ] `fix-design-template.sh`: `.kiro/settings/templates/specs/design.md` に
       `SDD-OVERLAY:DESIGN-TECHREQ` 節が注入されている（技術要件を design.md へ一本化）
+- [ ] `ensure-agreement-log.sh`: `.claude/` と `.agents/` 両方の `kiro-spec-init/SKILL.md` に
+      `SDD-OVERLAY:ENSURE-AGREEMENT-LOG` ブロックが1つ注入されている（spec初期化時に agreement-log.md を実在させる）
 - [ ] 冪等性: 再 init で重複注入されない（マーカー検出でスキップ）
 
 ## D. バージョン整合
@@ -38,6 +40,8 @@
 ## E. overlay 適用後の再検証
 - [ ] `CLAUDE.md` / `AGENTS.md` に `<!-- SDD-BASE:START -->`〜`END` ブロックが1つだけ存在（重複挿入なし）
 - [ ] `docs/sdd/` 一式が存在
+- [ ] `docs/sdd/rules/security-policy.md` が存在（秘密情報ハードコード禁止ポリシー）
+- [ ] `docs/sdd/workflow.md` に「非コーディング作業のドキュメント化」節が存在
 - [ ] `.gitignore` に SDD base スニペット（`.kiro/specs/*/outputs/`）が追記済み
 - [ ] `docs/sdd/` 内のリンク切れがない
 
