@@ -65,6 +65,8 @@ if [ "$PHASE" = "post" ]; then
     [ "$n" = 1 ] && ok "$f の SDD-BASE ブロックは1つ" || ng "$f の SDD-BASE ブロックが $n 個（重複/欠落）"
   done
   [ -f "$ROOT/docs/sdd/workflow.md" ] && ok "docs/sdd/ 展開済み" || ng "docs/sdd/ が無い"
+  [ -f "$ROOT/docs/sdd/rules/security-policy.md" ] && ok "security-policy.md 展開済み" || ng "docs/sdd/rules/security-policy.md が無い"
+  grep -q '非コーディング作業のドキュメント化' "$ROOT/docs/sdd/workflow.md" 2>/dev/null && ok "workflow.md に非コーディング節あり" || ng "workflow.md に非コーディング節が無い"
   grep -q '\.kiro/specs/\*/outputs/' "$ROOT/.gitignore" 2>/dev/null && ok ".gitignore 追記済み(.kiro/specs)" || ng ".gitignore 未追記(.kiro/specs/*/outputs/)"
 
   say "== 検証(post): 独自パッチの注入確認 =="
@@ -75,6 +77,9 @@ if [ "$PHASE" = "post" ]; then
   if [ -f "$DT" ]; then
     grep -q 'SDD-OVERLAY:DESIGN-TECHREQ' "$DT" && ok "design テンプレに技術要件節 注入済み" || ng "design テンプレに技術要件節 未注入"
   fi
+  for f in ".claude/skills/kiro-spec-init/SKILL.md" ".agents/skills/kiro-spec-init/SKILL.md"; do
+    grep -q 'SDD-OVERLAY:ENSURE-AGREEMENT-LOG' "$ROOT/$f" 2>/dev/null && ok "$f に ENSURE-AGREEMENT-LOG 注入済み" || ng "$f に ENSURE-AGREEMENT-LOG 未注入"
+  done
 
   say "== 検証(post): 記録レイアウト統一（docs/specs 不使用・重複排除） =="
   [ -d "$ROOT/.kiro/specs" ] && ok ".kiro/specs/ 存在" || ng ".kiro/specs/ が無い"

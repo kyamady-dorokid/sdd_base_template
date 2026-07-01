@@ -23,6 +23,7 @@
 - コミット方針: [docs/sdd/rules/commit-policy.md](docs/sdd/rules/commit-policy.md)
 - ブランチ方針: [docs/sdd/rules/branching-policy.md](docs/sdd/rules/branching-policy.md)
 - 環境越境ポリシー（Windows×WSL）: [docs/sdd/rules/environment-boundary-policy.md](docs/sdd/rules/environment-boundary-policy.md)
+- 秘密情報ポリシー（ハードコード禁止）: [docs/sdd/rules/security-policy.md](docs/sdd/rules/security-policy.md)
 - 各テンプレート: [docs/sdd/templates/](docs/sdd/templates/)
 
 ### エージェント整合
