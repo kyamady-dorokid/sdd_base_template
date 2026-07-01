@@ -51,6 +51,26 @@
 - [ ] `docs/sdd/templates/tech-requirements.md` が存在しない（design.md へ統合済み）
 - [ ] 承認状態は `spec.json` を正本とし、agreement-log に承認ブール値を二重管理していない
 
+## G. sync コマンド（安全な更新機構）
+- 設計: `.kiro/specs/sdd-base-sync-command/design.md`。lock（`.kiro/sdd-base.lock`）+
+  スナップショット（`.kiro/sdd-base-snapshot/`）による3-wayマージ台帳。いかなる場合も
+  ローカルファイルをサイレント上書きしない。
+- [ ] 初回 `sync` 実行で `.kiro/sdd-base.lock` / `.kiro/sdd-base-snapshot/` が生成され、
+      既存ファイルは無変更のまま
+- [ ] ローカル未変更ファイル（lockのhashと現在のhashが一致）は新版でそのまま更新される
+- [ ] ローカル変更ファイルは `git merge-file` による3-wayマージを試行し、クリーンマージは適用される
+- [ ] コンフリクト時は `<file>.new` を出力し、既存ローカルファイルは一切変更しない
+- [ ] `.kiro/specs/`・`.kiro/steering/` 等の保護領域は管理対象に含まれず、`sync` 実行後も無変更
+- [ ] 上流で削除されたファイルはローカルから自動削除されず、レポートにのみ記載される
+- [ ] `sync` 実行後、`.kiro/sdd-base-update-report.md` に「新規適用/そのまま更新/クリーンマージ/
+      コンフリクト/上流削除」の各カテゴリが出力される
+- [ ] `sync` 実行はいかなる場合も自動コミット（git add/commit）を行わない
+- [ ] `tests/run.sh` の全テストが PASS する（`tests/unit/` の単体テスト、`tests/integration/` の結合テスト）
+- [ ] **`init` の sync 管理下ガード**: `.kiro/sdd-base.lock` が存在するリポジトリで `init` を再実行しても、
+      `docs/sdd/` は無条件上書きされず（sync 管理下である旨のメッセージのみ表示）、ローカルの
+      カスタマイズが保護される。`.kiro/sdd-base.lock` が存在しない（未 sync）リポジトリでは
+      従来通り `docs/sdd/` が展開される（回帰なし）
+
 ## F. ライセンス注意（設計変更時のゲート）
 - [ ] **cc-sdd の生成物をテンプレ（payload）へ同梱する設計変更を行う場合**、MIT条項により
       ライセンス全文・著作権表示（`Copyright (c) 2025 gotalab`）の保持が必要であることを

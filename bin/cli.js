@@ -6,6 +6,7 @@
  *   init [--lang ja] [--yes] [--on-existing keep|overwrite|compare]
  *                            現在のリポジトリに SDD ベースを展開（cc-sdd取得→検証→overlay→再検証）
  *   validate [pre|post]      検証のみ実行
+ *   sync [--yes]             init 済みリポジトリへ上流テンプレの更新を安全反映（3-wayマージ+lock）
  *   update                   clone元なら git pull（symlink運用の更新）
  *   help
  */
@@ -78,6 +79,11 @@ function validate(args) {
   const r = sh("bash", [path.join(PAYLOAD, "scripts", "validate.sh"), root, PAYLOAD, phase]);
   process.exit(r.status || 0);
 }
+function sync(args) {
+  const root = process.cwd();
+  const r = sh("bash", [path.join(PAYLOAD, "scripts", "sync.sh"), root, PAYLOAD, ...args]);
+  process.exit(r.status || 0);
+}
 function update() {
   // clone元（PKG_ROOT が git 管理下）なら pull
   const g = sh("git", ["-C", PKG_ROOT, "pull", "--ff-only"]);
@@ -92,6 +98,9 @@ function help() {
                                                               現リポジトリに SDD ベースを展開
                                                               （既存 CLAUDE.md/AGENTS.md 等があれば扱いを選択。既定 overwrite=対比して上書き・バックアップ取得）
   npx github:<org>/sdd_base_template validate [pre|post]       検証のみ
+  npx github:<org>/sdd_base_template sync [--yes]               init 済みリポジトリへ上流テンプレの
+                                                              更新を安全反映（lock+3-wayマージ。
+                                                              コンフリクトは <file>.new に出力しサイレント上書きしない）
   npx github:<org>/sdd_base_template update                    （clone運用）git pull
 `);
 }
@@ -101,6 +110,7 @@ switch (cmd) {
   case "install": install(rest.find(a => a === "--link") || "--copy"); break;
   case "init": init(rest); break;
   case "validate": validate(rest); break;
+  case "sync": sync(rest); break;
   case "update": update(); break;
   case undefined:
   case "help":
