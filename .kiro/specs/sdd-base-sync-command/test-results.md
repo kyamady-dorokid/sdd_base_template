@@ -1,6 +1,6 @@
 # 実行テスト記録: sdd-base-sync-command（Part B）
 
-## 単体・結合テスト（`payload/tests/run.sh`）
+## 単体・結合テスト（`tests/run.sh`）
 
 TDD（RED→GREEN）で実装した各コンポーネントのテスト結果。
 
@@ -12,7 +12,7 @@ TDD（RED→GREEN）で実装した各コンポーネントのテスト結果。
 | `test_sync_init.sh` | `sync.sh` 初回化ルート | 8 | PASS |
 | `test_sync_apply.sh` | `sync.sh` 差分適用ルート（未変更更新/クリーンマージ/コンフリクト非破壊/保護領域不可侵/上流削除検出） | 11 | PASS |
 | `test_sync_report.sh` | 実行結果レポート・自動コミットなし | 6 | PASS |
-| **合計** | | **55** | **PASS**（`bash payload/tests/run.sh` exit 0） |
+| **合計** | | **55** | **PASS**（`bash tests/run.sh` exit 0） |
 
 ## E2E 通し確認（実リポジトリ・実 CLI 経由）
 

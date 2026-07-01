@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# run.sh — payload/tests/test_*.sh を実行する最小限のテストランナー。
+# run.sh — tests/test_*.sh を実行する最小限のテストランナー。
 # 各テストファイルは source され、同一プロセス内で assert.sh のグローバルカウンタを共有する。
 set -uo pipefail
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

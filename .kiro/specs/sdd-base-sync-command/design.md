@@ -114,6 +114,11 @@ payload/
 └── validation/
     └── checks.md                  # 変更: lock整合性・ローカル変更保持のチェック項目を追加
 
+tests/                              # 新規: テストランナー・テスト本体（payload/ の外に配置）
+├── run.sh
+├── lib/assert.sh
+└── test_*.sh
+
 <対象リポジトリ側（sync実行後に生成・コミットされる）>
 .kiro/
 ├── sdd-base.lock                  # 新規: lock ファイル（行指向）
@@ -125,6 +130,12 @@ payload/
 - `bin/cli.js` — `sync` サブコマンド追加（`init`/`validate` と同じ `sh()` 経由で `sync.sh` を呼ぶ）。
 - `payload/validation/checks.md` — lock整合性・ローカル変更保持のチェック項目を追加（新セクション）。
 - `README.md` — 「その他の使い方」節に `sync` の説明を追加。
+
+> **`tests/` を `payload/` の外に置く理由**: `payload/` は `install`（`buildSkillBundle`）と
+> `package.json` の `files` により丸ごと配布される。`init.sh`/`sync.sh`/`validate.sh` はテストを
+> 実行時に参照しないため、`payload/` 配下に置くと利用者環境（`~/.claude/skills/sdd-init/payload/` 等）
+> へ無用に同梱されてしまう。既存の `scripts/install.sh`（開発者向け、`files` 対象外）と同じく、
+> 開発者専用資産はリポジトリ直下に置き `payload/` には含めない方針を踏襲する。
 
 ## System Flows
 

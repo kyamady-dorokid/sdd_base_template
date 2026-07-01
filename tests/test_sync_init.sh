@@ -1,5 +1,5 @@
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SYNC_SH="$DIR/../scripts/sync.sh"
+SYNC_SH="$DIR/../payload/scripts/sync.sh"
 
 TMP="$(mktemp -d)"
 ROOT="$TMP/repo"
@@ -26,7 +26,7 @@ assert_eq "workflow content v1" "$(cat "$ROOT/docs/sdd/workflow.md")" "初回化
 assert_file_exists "$ROOT/.kiro/sdd-base-update-report.md" "初回 sync でもレポートが出力される"
 
 # 冪等性: lock 済みの状態で管理対象ファイルのハッシュが記録されている
-source "$DIR/../scripts/sync_lib/lock.sh"
+source "$DIR/../payload/scripts/sync_lib/lock.sh"
 h="$(sdd_lock_get_file "$ROOT/.kiro/sdd-base.lock" "docs/sdd/workflow.md")"
 assert_ne "" "$h" "lock に workflow.md のハッシュが記録される"
 

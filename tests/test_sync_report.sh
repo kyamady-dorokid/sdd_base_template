@@ -1,5 +1,5 @@
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SYNC_SH="$DIR/../scripts/sync.sh"
+SYNC_SH="$DIR/../payload/scripts/sync.sh"
 
 TMP="$(mktemp -d)"
 ROOT="$TMP/repo"

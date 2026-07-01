@@ -43,6 +43,40 @@ Part A/C（PR #10, マージ済み）で、消失していた独自ルールを 
 
 ---
 
+## レビュー指摘と対応（PR #11 マージ前の修正）
+
+### 指摘1: `payload/tests/` の配置
+
+**指摘**: `payload/` は `install`（`bin/cli.js` の `buildSkillBundle`）で丸ごと
+`~/.claude/skills/sdd-init/payload/` 等へコピーされ、`package.json` の `files` でも配布対象に
+含まれる。一方 `init.sh`/`sync.sh`/`validate.sh` は `payload/tests/*` を一切参照しない。
+実行時に使われない開発者専用のテスト資産を配布物に混在させてよいか、という指摘。
+
+**水平展開調査**: `payload/` 配下の全ファイルについて実行時参照の有無を確認した結果、
+問題があったのは `payload/tests/`（`run.sh`/`lib/assert.sh`/`test_*.sh` 計8ファイル）のみ。
+
+| 対象 | 実行時参照 | 判定 |
+|---|---|---|
+| `payload/scripts/*.sh`（init/sync/validate/sync_lib） | `bin/cli.js` から起動、相互参照あり | 配布物として正しい |
+| `payload/validation/known-parity-diffs.txt` / `KNOWN_GOOD_CCSDD_VERSION` | `validate.sh` が読み込む | 配布物として正しい |
+| `payload/validation/checks.md` | プログラムからは読まれないが `validate.sh` の検証仕様書として小容量・実行リスクなし | 問題なし（現状維持） |
+| `payload/validation/patches/README.md` | `init.sh` の patch glob（`*.sh`）に掛からず実行されない、小容量 | 問題なし（現状維持） |
+| `payload/overlay/**` | 展開・sync 対象の中身そのもの | 配布物として正しい |
+| `payload/tests/**` | **どこからも参照されない** | **誤配置。修正対象** |
+
+**根拠となる既存の前例**: リポジトリ直下の `scripts/install.sh`（開発者向け `--link` 運用）が
+`package.json` の `files`（`bin/`, `payload/`, `skills/`, `README.md`, `LICENSE`）に含まれず
+配布対象外という、「`payload/` = 配布物・直下 = 開発者専用ツール」の構造が既に確立していた。
+
+**対応**: `payload/tests/` をリポジトリ直下の `tests/`（`payload/` 外）へ移動。
+内部の相対パス参照（`$DIR/../scripts/...` → `$DIR/../payload/scripts/...`）と、
+`checks.md`/`tasks.md`/`test-results.md` 中のパス表記を追随修正。
+`init`/`sync`/`validate` は元々 `payload/tests` を参照していないため機能的な影響はない。
+`install` バンドル生成（`buildSkillBundle`）に `tests/` が含まれなくなったことをスクリプトで検証し、
+移動後も `bash tests/run.sh` 全55件PASS・`init`/`sync` の回帰なしを確認した。
+
+---
+
 ## フェーズゲート承認記録
 
 > 承認状態の正本は `.kiro/specs/sdd-base-sync-command/spec.json` の

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# assert.sh — 最小限のアサーションヘルパー。payload/tests/run.sh が source する。
+# assert.sh — 最小限のアサーションヘルパー。tests/run.sh が source する。
 # TESTS_TOTAL / TESTS_FAILED はグローバルカウンタ（run.sh がテストファイルを source するため
 # サブシェルにならず、そのまま加算できる）。
 

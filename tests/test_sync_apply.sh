@@ -1,7 +1,7 @@
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SYNC_SH="$DIR/../scripts/sync.sh"
-source "$DIR/../scripts/sync_lib/hash.sh"
-source "$DIR/../scripts/sync_lib/lock.sh"
+SYNC_SH="$DIR/../payload/scripts/sync.sh"
+source "$DIR/../payload/scripts/sync_lib/hash.sh"
+source "$DIR/../payload/scripts/sync_lib/lock.sh"
 
 TMP="$(mktemp -d)"
 ROOT="$TMP/repo"
