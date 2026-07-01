@@ -43,6 +43,8 @@ TDD（RED→GREEN）で実装した各コンポーネントのテスト結果。
 | 2回目 `sync`（ローカル未変更） | 同上（再実行） | `lock 検出 → 差分適用` ルートに入り、正常終了。既存ファイルへの再上書きなし（内容同一） |
 | コンフリクトシナリオ | ローカル `docs/sdd/workflow.md` に追記 ＋ `payload/overlay/docs/sdd/workflow.md`（本体）にも別途追記 → `sync --yes` | 「コンフリクトが1件あります」を表示。`docs/sdd/workflow.md` は**ローカル追記のまま無変更**、`docs/sdd/workflow.md.new` が生成されコンフリクトマーカー入り。**payload本体は sync 実行後も `git status --short` でクリーン**（誤って書き換えていないことを確認） |
 | 自動コミット無し | 全シナリオ共通 | `git status --porcelain` でステージ済み変更（`M`/`A`等）が発生しないことを確認（未追跡ファイルの `??` のみ） |
+| **`init` の sync 管理下ガード**（レビュー指摘） | `init` → `sync --yes`（lock作成）→ `docs/sdd/workflow.md` にローカル追記 → `init --yes --on-existing=keep` で再実行 | `init` は「sync 管理下（.kiro/sdd-base.lock 検出）のため上書きしません」と表示し、`docs/sdd/workflow.md` のローカル追記が**保護される**（修正前のコードで同シナリオを再現すると無条件 `cp -R` により追記が消えることを確認済み） |
+| 上記ガードの回帰確認 | lock が存在しない新規リポジトリで `init` のみ実行 | 従来通り `docs/sdd/` が展開される（lock 未作成時は影響なし） |
 
 ## 結論
 

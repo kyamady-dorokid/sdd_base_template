@@ -142,9 +142,19 @@ fi
 
 say "[5/6] overlay 適用（冪等）"
 # 5-1: docs/sdd 一式
-mkdir -p "$ROOT/docs/sdd"
-cp -R "$PAYLOAD/overlay/docs/sdd/." "$ROOT/docs/sdd/"
-echo "  docs/sdd/ 展開"
+#   ガードレール: このリポジトリが sync 管理下（.kiro/sdd-base.lock 検出）の場合、
+#   init による無条件上書きはローカルカスタマイズを破壊し、かつ lock のハッシュ記録を
+#   更新しないため次回 sync が破壊に気づけない。sync 管理下では docs/sdd の上書きをスキップし、
+#   更新は sync に委ねる（サイレント上書き厳禁の原則を init 側にも適用）。
+if [ -f "$ROOT/.kiro/sdd-base.lock" ]; then
+  echo "  docs/sdd/: sync 管理下（.kiro/sdd-base.lock 検出）のため init では上書きしません。"
+  echo "    ローカルの変更を保護したまま更新を反映するには 'sync' を使ってください:"
+  echo "      npx -y github:kyamady-dorokid/sdd_base_template sync --yes"
+else
+  mkdir -p "$ROOT/docs/sdd"
+  cp -R "$PAYLOAD/overlay/docs/sdd/." "$ROOT/docs/sdd/"
+  echo "  docs/sdd/ 展開"
+fi
 # 5-2: specs 置き場（記録は .kiro/specs/<id>/ に集約。docs/specs は使わない）
 mkdir -p "$ROOT/.kiro/specs"
 [ -f "$ROOT/.kiro/specs/.gitkeep" ] || touch "$ROOT/.kiro/specs/.gitkeep"

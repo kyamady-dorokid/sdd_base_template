@@ -66,6 +66,10 @@
       コンフリクト/上流削除」の各カテゴリが出力される
 - [ ] `sync` 実行はいかなる場合も自動コミット（git add/commit）を行わない
 - [ ] `tests/run.sh` の全テストが PASS する（`tests/unit/` の単体テスト、`tests/integration/` の結合テスト）
+- [ ] **`init` の sync 管理下ガード**: `.kiro/sdd-base.lock` が存在するリポジトリで `init` を再実行しても、
+      `docs/sdd/` は無条件上書きされず（sync 管理下である旨のメッセージのみ表示）、ローカルの
+      カスタマイズが保護される。`.kiro/sdd-base.lock` が存在しない（未 sync）リポジトリでは
+      従来通り `docs/sdd/` が展開される（回帰なし）
 
 ## F. ライセンス注意（設計変更時のゲート）
 - [ ] **cc-sdd の生成物をテンプレ（payload）へ同梱する設計変更を行う場合**、MIT条項により

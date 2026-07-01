@@ -161,6 +161,8 @@ npx -y github:kyamady-dorokid/sdd_base_template sync --yes
   （サイレント上書きはしません。手動で確認・反映してください）。
 - 実行結果は毎回 `.kiro/sdd-base-update-report.md` に出力されます。自動コミットは行いません。
 - `.kiro/specs/`・`.kiro/steering/` などプロジェクト固有の記録は管理対象外で、`sync` では一切変更されません。
+- 一度でも `sync` を実行した（`.kiro/sdd-base.lock` がある）リポジトリでは、その後 `init` を再実行しても
+  `docs/sdd/` は上書きされません（sync 管理下である旨のメッセージのみ表示）。更新は必ず `sync` を使ってください。
 
 <br>
 

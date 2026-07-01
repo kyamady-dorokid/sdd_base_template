@@ -32,8 +32,25 @@
 - 3-wayマージ判定ロジックとマーカーブロック単位マージ、差分レポート（`.kiro/sdd-base-update-report.md`）。
 
 ### Out of Boundary
-- `init.sh`/`validate.sh`/`update`（テンプレ開発者向け）の既存ロジック変更。
+- `init.sh`/`validate.sh`/`update`（テンプレ開発者向け）の既存ロジックの大部分の変更
+  （下記「init との境界」に記載する `.kiro/sdd-base.lock` ガードのみ例外的に本 spec が所有する）。
 - `.kiro/specs/`, `.kiro/steering/`, `docs/architecture/` 等のプロジェクト固有ファイルへの一切の関与。
+
+### init との境界（レビュー指摘により追加）
+
+**問題**: `init.sh` の overlay 適用ステップ（[5/6]）は、`docs/sdd/` 一式を
+`ON_EXISTING`（keep/overwrite/compare）の値に関わらず**常に無条件で `cp -R` 上書き**していた
+（`CLAUDE.md`/`AGENTS.md` へのマーカー注入・`.gitignore` 追記は元々マーカー検出でスキップする
+冪等設計だったが、`docs/sdd/` のコピーだけは例外的に非冪等だった）。sync 導入後にこのリポジトリへ
+`init` を再実行すると、sync が保護しているはずのローカルカスタマイズが**サイレントに上書き**され、
+かつ `.kiro/sdd-base.lock` のハッシュは更新されないため、次回 `sync` 実行時にこの破壊に気づけない
+（sync の非破壊性の保証がすり抜けてしまう）。
+
+**対応**: `init.sh` の docs/sdd 上書きステップに、`.kiro/sdd-base.lock` の存在チェックを追加。
+lock が存在する（sync 管理下の）リポジトリでは `docs/sdd/` の上書きをスキップし、`sync` の使用を
+案内するメッセージを表示する。lock が存在しない（未 sync）リポジトリでは従来通り動作し、回帰はない。
+これは sync の非破壊性の保証を成立させるために不可欠な、init 側への最小限のガードであるため、
+「`init.sh` の既存ロジックには触れない」という原則の例外として本 spec のスコープに含める。
 
 ### Allowed Dependencies
 - `payload/scripts/init.sh` が定義する overlay 適用対象ファイル一覧・マーカー規約
