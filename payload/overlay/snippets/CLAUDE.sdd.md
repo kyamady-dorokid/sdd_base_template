@@ -10,8 +10,10 @@
 2. 単体テストは実装とセット。**TDD（テスト先行）** で進める。
 3. **コミットは自動で行わない。** 区切りで推奨提示し、人間が判断・実行する（希望時は自動コミットへ切替可）。
 4. 1タスクの記録は **`.kiro/specs/<id>/` に集約**する（`docs/specs/` は使わない）。合意は `agreement-log.md`、
-   承認状態の正本は `spec.json`。
+   承認状態の正本は `spec.json`。**二次成果物**（PDF/Word/PPT 等）はビルド出力として **`outputs/<id>/`**、
+   **PII を含む成果物**は **`.kiro/specs/<id>/outputs/`**（いずれも git 管理外）に置く。
 5. 技術要件は独立ファイルにせず `design.md` の「技術要件・制約チェック」節で確認する。
+   一次成果物(md)が正本で、二次成果物は一次から**一方向で再生成**する（手編集禁止・承認は一次側）。詳細は [docs/sdd/deliverables-policy.md](docs/sdd/deliverables-policy.md)。
 6. 実行テスト結果は `.kiro/specs/<id>/test-results.md` に記録する。
 7. 結合試験項目は `.kiro/specs/<id>/integration-test-checklist.md` に残す。
 8. **`main` への直接コミット禁止。** ブランチ→push→PR。詳細は [docs/sdd/rules/branching-policy.md](docs/sdd/rules/branching-policy.md)。
@@ -24,6 +26,7 @@
 - ブランチ方針: [docs/sdd/rules/branching-policy.md](docs/sdd/rules/branching-policy.md)
 - 環境越境ポリシー（Windows×WSL）: [docs/sdd/rules/environment-boundary-policy.md](docs/sdd/rules/environment-boundary-policy.md)
 - 秘密情報ポリシー（ハードコード禁止）: [docs/sdd/rules/security-policy.md](docs/sdd/rules/security-policy.md)
+- 成果物二層化ポリシー（一次=正本/二次=派生ビュー）: [docs/sdd/deliverables-policy.md](docs/sdd/deliverables-policy.md)
 - 各テンプレート: [docs/sdd/templates/](docs/sdd/templates/)
 
 ### エージェント整合

@@ -132,14 +132,28 @@ Tier は入口に依存しない。軽量入口でも Tier L を選べるし、�
   ├── research.md            … gap分析（任意 / /kiro-validate-gap）
   ├── agreement-log.md       … 合意形成記録（決定理由・却下/保留の経緯）
   ├── test-results.md        … 実行テスト記録
-  └── integration-test-checklist.md … 結合試験項目（人間確認用）
+  ├── integration-test-checklist.md … 結合試験項目（人間確認用）
+  └── outputs/                … PII を含む再生成可能な成果物（git 管理外）
 
 .kiro/steering/              … 永続プロジェクトメモリ（product/tech/structure ほか）
+outputs/<id>/                … 二次成果物（PDF/Word/PPT 等のビルド出力・git 管理外）
 ```
 
 - 記録テンプレートは `docs/sdd/templates/` を参照（雛形ライブラリ）。実体は上記 `.kiro/specs/<id>/` に作る。
 - 技術要件は独立ファイルにせず `design.md` の各節（Technology Stack / Testing Strategy /
   Existing Architecture / Modified Files ＋ 技術要件・制約チェック）に一本化する。
+
+---
+
+## 成果物の二層化（一次=正本 / 二次=派生ビュー）
+
+一次成果物(md)を唯一の正本(Source of Truth)とし、人間の検証・共有用の二次成果物(PDF/Word/PPT 等)は
+一次から**一方向で再生成**する。詳細は [deliverables-policy.md](deliverables-policy.md) を参照。
+
+- **承認・差分レビューは常に一次(md)側**で行う。二次成果物は手編集禁止・再生成可能なビルド成果物。
+- 正本 `design.md` は**物理分割しない**。監査対象別の人間向け文書は「二次生成（節スライス）」で満たす。
+- 二次成果物の出力先: ビルド成果物=リポジトリ直下 `outputs/<id>/`、PII 含有=`.kiro/specs/<id>/outputs/`。
+- 横断規約は `.kiro/steering/steering-custom/`、機能別設計は `design.md` の節に置く（DRY・肥大化防止）。
 
 ---
 
