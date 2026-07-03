@@ -41,6 +41,14 @@ Concretely, this OVERRIDES the commit/branch behavior described above in this sk
 3. **No destructive history ops** (`--amend`, `reset --hard`, force push) inside the loop.
 4. **Records go to `.kiro/specs/<id>/`** (test-results.md, integration-test-checklist.md,
    agreement-log.md). Do not create a separate `docs/specs/` tree.
+5. **Design-scope deviations require a HUMAN GATE — do not decide them yourself.** If during
+   implementation you find the approved requirements/design was wrong, an assumption breaks, or
+   you need to add a **public interface not in the approved design** (a new CLI command, API,
+   file format, contract, or dependency), STOP the loop and return to the human with the gap and
+   options for **re-approval**. After approval, reflect it into requirements/design and update
+   `spec.json` before resuming. `agreement-log` is for rationale, NOT for smuggling in
+   unapproved design changes; logging alone is acceptable only for trivial, non-design details.
+   Test: "Is this within the design the human approved? If not, stop and go back."
 
 Everything else in this skill (TDD, independent review, bounded debug, validate-impl gate)
 still applies. After the validate-impl GO, a human integration-test gate remains
