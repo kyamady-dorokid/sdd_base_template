@@ -155,6 +155,23 @@ else
   cp -R "$PAYLOAD/overlay/docs/sdd/." "$ROOT/docs/sdd/"
   echo "  docs/sdd/ 展開"
 fi
+# 5-1b: overlay 配布スキル（doc-export 等）を .claude/.agents 双方へバイト同一設置
+#   docs/sdd と同じく sync 管理下（lock 検出）では上書きせず sync に委ねる。
+if [ -d "$PAYLOAD/overlay/skills" ]; then
+  if [ -f "$ROOT/.kiro/sdd-base.lock" ]; then
+    echo "  overlay skills: sync 管理下のため init では上書きしません（'sync' に委ねます）。"
+  else
+    for agent in .claude .agents; do
+      for skdir in "$PAYLOAD"/overlay/skills/*/; do
+        [ -d "$skdir" ] || continue
+        skname="$(basename "$skdir")"
+        mkdir -p "$ROOT/$agent/skills/$skname"
+        cp -R "$skdir." "$ROOT/$agent/skills/$skname/"
+      done
+    done
+    echo "  overlay skills 展開（.claude/.agents 双方）"
+  fi
+fi
 # 5-2: specs 置き場（記録は .kiro/specs/<id>/ に集約。docs/specs は使わない）
 mkdir -p "$ROOT/.kiro/specs"
 [ -f "$ROOT/.kiro/specs/.gitkeep" ] || touch "$ROOT/.kiro/specs/.gitkeep"

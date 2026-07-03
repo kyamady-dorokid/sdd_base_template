@@ -53,39 +53,39 @@
   - manifest 解釈→slice→Mermaid 画像化（mmdc 可用時）→renderer 判定→出力先分岐→生成レポート
   - _Requirements: 2.1, 2.5, 2.6, 3.4, 4.1, 4.4, 5.3_
 
-- [ ] 6. doc-export スキルの新規配布機構（init 設置）
-- [ ] 6.1 `payload/overlay/skills/doc-export/SKILL.md` を新規作成（エージェント向け手順・export.sh 呼出）
+- [x] 6. doc-export スキルの新規配布機構（init 設置）
+- [x] 6.1 `payload/overlay/skills/doc-export/SKILL.md` を新規作成（エージェント向け手順・export.sh 呼出）
   - _Requirements: 6.1_
-- [ ] 6.2 `payload/scripts/init.sh` [5/6] に doc-export スキル設置ステップを追加
+- [x] 6.2 `payload/scripts/init.sh` [5/6] に doc-export スキル設置ステップを追加
   - `.claude/skills/doc-export/` と `.agents/skills/doc-export/` へ**バイト同一**設置。
     sync 管理下（`.kiro/sdd-base.lock` 検出）では docs/sdd 同様に上書きスキップし sync に委ねる
   - 観測可能な完了条件: 空リポジトリ init 後 `diff -qr .claude/skills/doc-export .agents/skills/doc-export` 差分ゼロ
   - _Requirements: 6.1, 6.2, 6.3, 9.3_
-- [ ] 6.3 `gitignore.snippet` に `outputs/` を追記（既存 `.kiro/specs/*/outputs/` に加算）
+- [x] 6.3 `gitignore.snippet` に `outputs/` を追記（既存 `.kiro/specs/*/outputs/` に加算）
   - _Requirements: 2.2_
 
-- [ ] 7. sync への配布統合（`managed_skills`）
-- [ ] 7.1 テスト作成（RED）`tests/integration/test_sync_skills.sh`
+- [x] 7. sync への配布統合（`managed_skills`）
+- [x] 7.1 テスト作成（RED）`tests/integration/test_sync_skills.sh`
   - doc-export スキルツリーが sync で `.claude`/`.agents` 双方へ配布・3-way され、ローカル変更の
     サイレント上書きが起きず（コンフリクトは `<file>.new`）、未変更は新版反映、初回化は基準点記録のみ
   - _Requirements: 9.2_
-- [ ] 7.2 実装（GREEN）`payload/scripts/sync.sh` に `managed_skills()` を追加
+- [x] 7.2 実装（GREEN）`payload/scripts/sync.sh` に `managed_skills()` を追加
   - `managed_docs` と同型（whole-file 3-way）。overlay の doc-export ツリーを両エージェントへ。
     初回化ルート・差分適用ルート・レポート集計に組み込む
   - _Requirements: 9.2_
 
-- [ ] 8. CLI（`install-renderers`）
-- [ ] 8.1 `bin/cli.js` に `install-renderers` サブコマンドを追加
+- [x] 8. CLI（`install-renderers`）
+- [x] 8.1 `bin/cli.js` に `install-renderers` サブコマンドを追加
   - レンダラ opt-in 取得手順の案内/実行（本体は再配布しない）。help 更新
   - 観測可能な完了条件: `node bin/cli.js install-renderers` が動作し help に表示
   - _Requirements: 5.2_
 
-- [ ] 9. validate（post）への二層化検証
-- [ ] 9.1 `payload/scripts/validate.sh`(post) に検証を追加
+- [x] 9. validate（post）への二層化検証
+- [x] 9.1 `payload/scripts/validate.sh`(post) に検証を追加
   - `outputs/` の gitignore 追記、`deliverables-policy.md` の存在、workflow の二層化節、
     doc-export スキルが `.claude`/`.agents` 双方に存在し差分ゼロ、snippets 記録集約ルールのパリティ
   - _Requirements: 9.1_
-- [ ] 9.2 `payload/validation/checks.md` に二層化検証項目（H 節）を追加
+- [x] 9.2 `payload/validation/checks.md` に二層化検証項目（H 節）を追加
   - _Requirements: 9.1_
 
 - [ ] 10. 既存方針の保全（不採用事項の担保・回帰）

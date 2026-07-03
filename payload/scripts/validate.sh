@@ -85,6 +85,21 @@ if [ "$PHASE" = "post" ]; then
   [ -d "$ROOT/.kiro/specs" ] && ok ".kiro/specs/ 存在" || ng ".kiro/specs/ が無い"
   [ -e "$ROOT/docs/specs" ] && ng "docs/specs/ が残存（.kiro/specs へ集約のはず）" || ok "docs/specs/ 不使用"
   [ -e "$ROOT/docs/sdd/templates/tech-requirements.md" ] && ng "tech-requirements.md が残存（design.md へ統合済みのはず）" || ok "tech-requirements.md 不在（design.md へ統合）"
+
+  say "== 検証(post): 成果物の二層化 =="
+  [ -f "$ROOT/docs/sdd/deliverables-policy.md" ] && ok "deliverables-policy.md 展開済み" || ng "docs/sdd/deliverables-policy.md が無い"
+  grep -q '成果物の二層化' "$ROOT/docs/sdd/workflow.md" 2>/dev/null && ok "workflow.md に二層化節あり" || ng "workflow.md に二層化節が無い"
+  grep -q '^outputs/' "$ROOT/.gitignore" 2>/dev/null && ok ".gitignore 追記済み(outputs/)" || ng ".gitignore 未追記(outputs/)"
+  for f in ".claude/skills/doc-export/SKILL.md" ".agents/skills/doc-export/SKILL.md"; do
+    [ -f "$ROOT/$f" ] && ok "$f 設置済み" || ng "$f が無い（doc-export スキル未設置）"
+  done
+  if [ -d "$ROOT/.claude/skills/doc-export" ] && [ -d "$ROOT/.agents/skills/doc-export" ]; then
+    diff -qr "$ROOT/.claude/skills/doc-export" "$ROOT/.agents/skills/doc-export" >/dev/null 2>&1 \
+      && ok "doc-export スキルは Claude/Codex 同一（パリティ）" || ng "doc-export スキルが両エージェントで差分あり"
+  fi
+  for f in CLAUDE.md AGENTS.md; do
+    grep -q 'outputs/<id>/' "$ROOT/$f" 2>/dev/null && ok "$f に二次成果物の記録集約ルールあり" || ng "$f に二次成果物の記録集約ルールが無い"
+  done
 fi
 
 if [ "$WARN" = 0 ]; then say "==> 検証 PASS"; exit 0; else say "==> 検証で要確認あり（人間の判断を推奨）"; exit 2; fi

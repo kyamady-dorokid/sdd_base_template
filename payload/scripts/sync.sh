@@ -36,6 +36,12 @@ managed_docs(){
   ( cd "$PAYLOAD/overlay/docs/sdd" && find . -type f | sed 's#^\./##' )
 }
 
+# overlay 配布スキル（doc-export 等）。各ファイルは .claude/.agents 双方へ配布する。
+managed_skills(){
+  [ -d "$PAYLOAD/overlay/skills" ] || return 0
+  ( cd "$PAYLOAD/overlay/skills" && find . -type f | sed 's#^\./##' )
+}
+
 # "target_relpath|marker|source_type|source_arg"
 #   source_type=snippet: source_arg は payload 相対パス（ブロック自体が SDD-BASE:START/END を内包）
 #   source_type=patch  : source_arg は payload/validation/patches/ 配下のパッチ名
@@ -134,6 +140,21 @@ initial_sync(){
     NEW_LIST+=("docs/sdd/$rel")
   done < <(managed_docs)
 
+  # 配布スキル（doc-export 等）を .claude/.agents 双方の基準点として記録
+  local srel snewsrc sagent starget sbase sh2
+  while IFS= read -r srel; do
+    [ -n "$srel" ] || continue
+    snewsrc="$PAYLOAD/overlay/skills/$srel"
+    for sagent in .claude .agents; do
+      starget="$ROOT/$sagent/skills/$srel"
+      sbase="$SNAPSHOT/$sagent/skills/$srel"
+      mkdir -p "$(dirname "$sbase")"
+      if [ -f "$starget" ]; then cp "$starget" "$sbase"; sh2="$(sdd_hash_file "$starget")"; else cp "$snewsrc" "$sbase"; sh2="$(sdd_hash_file "$snewsrc")"; fi
+      sdd_lock_set_file "$LOCK" "$sagent/skills/$srel" "$sh2"
+      NEW_LIST+=("$sagent/skills/$srel")
+    done
+  done < <(managed_skills)
+
   local entry f m stype sarg tf content bh safe
   for entry in "${MANAGED_BLOCKS[@]}"; do
     IFS='|' read -r f m stype sarg <<< "$entry"
@@ -210,6 +231,46 @@ apply_docs(){
       DELETED_LIST+=("docs/sdd/$srel")
     done < <( cd "$SNAPSHOT/docs/sdd" && find . -type f | sed 's#^\./##' )
   fi
+}
+
+# 単一ファイルの 3-way 適用（apply_docs と同一ロジック。skills 等の whole-file 対象で再利用）。
+#   <relpath>=repo 相対パス, <newsrc>=新版ファイルの絶対パス
+sdd_apply_file(){
+  local relpath="$1" newsrc="$2"
+  local target="$ROOT/$relpath" base="$SNAPSHOT/$relpath" cur_hash lock_hash out
+  if [ ! -f "$target" ]; then
+    mkdir -p "$(dirname "$target")"; cp "$newsrc" "$target"
+    NEW_LIST+=("$relpath"); sdd_lock_set_file "$LOCK" "$relpath" "$(sdd_hash_file "$newsrc")"
+    mkdir -p "$(dirname "$base")"; cp "$newsrc" "$base"; return 0
+  fi
+  cur_hash="$(sdd_hash_file "$target")"; lock_hash="$(sdd_lock_get_file "$LOCK" "$relpath")"
+  if [ -z "$lock_hash" ]; then
+    sdd_lock_set_file "$LOCK" "$relpath" "$cur_hash"; mkdir -p "$(dirname "$base")"; cp "$newsrc" "$base"; return 0
+  fi
+  if [ "$cur_hash" = "$lock_hash" ]; then
+    cp "$newsrc" "$target"; UPDATED_LIST+=("$relpath")
+    sdd_lock_set_file "$LOCK" "$relpath" "$(sdd_hash_file "$target")"; mkdir -p "$(dirname "$base")"; cp "$newsrc" "$base"
+  else
+    out="$TMPWORK/merged.$$"
+    if [ -f "$base" ] && sdd_merge_file "$target" "$base" "$newsrc" "$out"; then
+      mv "$out" "$target"; MERGED_LIST+=("$relpath")
+      sdd_lock_set_file "$LOCK" "$relpath" "$(sdd_hash_file "$target")"; cp "$newsrc" "$base"
+    else
+      [ -f "$out" ] && mv "$out" "${target}.new"; CONFLICT_LIST+=("$relpath")
+    fi
+  fi
+}
+
+# --- 差分適用ルート: 配布スキル（.claude/.agents 双方へ） ---
+apply_skills(){
+  local rel newsrc agent
+  while IFS= read -r rel; do
+    [ -n "$rel" ] || continue
+    newsrc="$PAYLOAD/overlay/skills/$rel"
+    for agent in .claude .agents; do
+      sdd_apply_file "$agent/skills/$rel" "$newsrc"
+    done
+  done < <(managed_skills)
 }
 
 # --- 差分適用ルート: マーカーブロック ---
@@ -303,6 +364,7 @@ if [ ! -f "$LOCK" ]; then
 else
   say "sync: lock 検出 → 差分適用"
   apply_docs
+  apply_skills
   apply_blocks
   apply_gitignore
   write_report
