@@ -18,7 +18,7 @@
 7. 結合試験項目は `.kiro/specs/<id>/integration-test-checklist.md` に残す。
 8. **`main` への直接コミット禁止。** ブランチ→push→PR。詳細は [docs/sdd/rules/branching-policy.md](docs/sdd/rules/branching-policy.md)。
 9. **環境越境（Windows × WSL）の確認。** 実行環境が Windows で、かつ作業対象が WSL パス（`\\wsl.localhost\...` / `\\wsl$\...`）の場合は、**そのセッションで最初の自動操作を行う直前に1回だけ**、差分懸念の警告と「WSL内ターミナルから `claude` を起動して作業する」回避策を提示し、このまま続行してよいか確認する。詳細は [docs/sdd/rules/environment-boundary-policy.md](docs/sdd/rules/environment-boundary-policy.md)。（越境でない／非Windowsでは何もしない）
-10. **承認後に設計から外れるときは人間の確認に戻る。** 実装フェーズ（tasks 承認後）でも、承認済み要件・設計の前提崩れや、設計に無い公開インターフェース追加（CLI・API・ファイル形式・契約・依存）が必要になったら、実装を止めて再承認を得る。事後の記録だけで進めない。詳細は [docs/sdd/workflow.md](docs/sdd/workflow.md) の「承認ゲートの原則」。
+10. **【絶対軸】設計・実装などの実作業には、いかなる状況でも人間の許可なしに着手しない。** 標準ルートでも逸脱・例外・緊急・手戻りでも、「壁打ち→承認→設計→承認→実装」の承認ゲートを安全の基本軸として外さない。実装フェーズ（tasks 承認後）でも、承認済み要件・設計の前提崩れや、設計に無い公開インターフェース追加（CLI・API・ファイル形式・契約・依存）が必要になったら実装を止めて再承認を得る。**逸脱ルートからのリカバリーは必ず「人間への状況共有→確認→承認」を経てから修正の設計・実装に入る**（黙って修正しない・事後記録だけで進めない）。前段の誤りが判明したら前段ゲートに戻り `spec.json` の該当 approvals を false に戻して再承認。ただし承認済みスコープ内の実行はその承認で許可済み（些末な実装詳細に新ゲートは不要）。詳細は [docs/sdd/workflow.md](docs/sdd/workflow.md) の「承認ゲートの原則」。
 
 ### ベースルールの所在
 - ワークフロー: [docs/sdd/workflow.md](docs/sdd/workflow.md)
