@@ -1,0 +1,34 @@
+title: sdd_base_template
+description: SDDベース（cc-sdd + 独自overlay）を任意リポジトリへ展開するインストーラ/スキル配布ツール
+theme: minima
+
+# GitHub Pages 既定サポートのプラグイン:
+#  - jekyll-readme-index : README.md をサイトの index（トップ）にする
+#  - jekyll-relative-links: md 内の相対リンク（[...](docs/sdd/...md)）を公開ページ間で .html へ解決する
+plugins:
+  - jekyll-relative-links
+  - jekyll-readme-index
+
+# front-matter の無い md にレイアウトを自動適用する。
+# → docs/sdd/**（overlay 配布物の sync コピー）の md 本文を一切改変せずに HTML レンダリングできる。
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: page
+
+# 非ドキュメント（コード・配布物・記録・エージェント設定）をサイトから除外する。
+exclude:
+  - payload/
+  - .kiro/
+  - tests/
+  - bin/
+  - scripts/
+  - skills/
+  - .agents/
+  - .claude/
+  - .codex/
+  - node_modules/
+  - package.json
+  - AGENTS.md
+  - CLAUDE.md

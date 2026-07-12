@@ -1,5 +1,7 @@
 # sdd_base_template
 
+[ドキュメントサイトを見る](https://kyamady-dorokid.github.io/sdd_base_template/)
+
 任意のリポジトリに **SDD（Spec-Driven Development）開発ベース** をワンステップで展開するための、インストーラ兼スキル配布リポジトリです。
 
 Claude Code / Codex の両方に同一の環境を構築します。内部で **[cc-sdd](https://github.com/gotalab/cc-sdd)** を実行し、その上に独自の運用 overlay（`docs/sdd/` のルール・テンプレート、`CLAUDE.md`/`AGENTS.md` のSDD節、specs配置）を重ねます。
