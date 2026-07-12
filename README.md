@@ -123,7 +123,7 @@ SDD ベース構築後、Claude Code（または Codex）を起動したら、�
 
 > **共通（どちらの入口でも必須）:** 人間の承認ゲート / TDD（テスト先行） / 自動コミットしない（区切りで提案・人間が実行） / `main` 直コミット禁止・ブランチ → PR / 1タスクの記録は `.kiro/specs/<id>/` に集約。
 >
-> 詳細フロー・Tier 定義・ディレクトリ構成は、展開先の [`docs/sdd/workflow.md`](payload/overlay/docs/sdd/workflow.md) を参照してください。
+> 詳細フロー・Tier 定義・ディレクトリ構成は、展開先の [`docs/sdd/workflow.md`](docs/sdd/workflow.md) を参照してください。
 
 <br>
 
