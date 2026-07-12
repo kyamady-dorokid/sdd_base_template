@@ -59,6 +59,14 @@ SDD テンプレート（`sdd_base_template`）を適用して開発したユー
 
 ---
 
+## 実装中に確定した設計追加
+
+| # | 追加内容 | 理由 | 決定日 |
+|---|---|---|---|
+| A | `bin/cli.js` に `doc-export` サブコマンドを追加（当初 tasks は `install-renderers` のみ想定） | ターゲットリポジトリには `payload/scripts/` が展開されず、doc-export の実行手段が無かった。cc-sdd 非同梱と同じく「実行はパッケージ経由」に統一し、スキルは `npx ... doc-export <id>` を案内する形に修正 | 2026-07-03（PR2 実装時） |
+
+---
+
 ## フェーズゲート承認記録
 
 > 承認状態の正本は `spec.json` の `approvals.{requirements,design,tasks}.approved`（決定#7）。

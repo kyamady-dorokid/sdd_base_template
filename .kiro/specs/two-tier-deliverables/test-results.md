@@ -28,6 +28,29 @@ TDD（RED→GREEN）で実装。`bash tests/run.sh` で単体・結合を一括�
   他成果物の処理を継続。レンダラ本体は payload に同梱していないことを assert。
 - **bash 3.2 互換**: `mapfile` 不使用（while-read で配列化）等を徹底。
 
-### 残（PR2 以降）
-- タスク6〜9（doc-export スキル配布・init/sync/validate 統合・CLI `install-renderers`）
-- タスク10〜11（既存方針の保全・回帰・E2E・README）
+## PR2（タスク6〜9: 配布・統合）
+
+### 実装
+- doc-export スキル本体 `payload/overlay/skills/doc-export/SKILL.md`（エージェント向け手順）
+- `init.sh` [5/6] に overlay skills 設置ステップ（`.claude`/`.agents` 双方・sync ガード付き）
+- `sync.sh` に `managed_skills()`＋`sdd_apply_file()`（whole-file 3-way・両エージェント）
+- `bin/cli.js` に `doc-export` / `install-renderers` サブコマンド、`install-renderers.sh`（opt-in 案内）
+- `validate.sh`(post) に二層化検証、`checks.md` に H 節
+
+### テスト・E2E
+| 項目 | 結果 |
+|---|---|
+| `tests/run.sh` | **110件 全PASS**（PR1 105 + `test_sync_skills.sh` 5件） |
+| 空リポジトリ init → doc-export スキル設置＋パリティ | `diff -qr` 差分ゼロ |
+| `validate post` 二層化項目 | 全 OK |
+| `sync` 初回化→再実行 | 作業ツリー差分ゼロ（収束・outputs 系は gitignore） |
+| CLI `doc-export`（レンダラ未導入） | 「未生成（要 install-renderers）」を明示・正本不変 |
+| CLI `install-renderers` | レンダラ状態と取得手順を案内（本体非同梱） |
+
+### 設計中に判明した必要追加（記録）
+- ターゲットリポジトリには `payload/scripts/` が展開されないため、doc-export の実行は**CLI サブコマンド経由**が必要。
+  当初 tasks では `install-renderers` のみ想定だったが、`doc-export` サブコマンドも追加した（`bin/cli.js`）。
+  スキル SKILL.md は `npx ... doc-export <id>` を案内する形に修正。
+
+### 残（PR3）
+- タスク10〜11（既存方針の保全・回帰の明文検証・E2E 記録・README）

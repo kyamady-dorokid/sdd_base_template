@@ -70,6 +70,21 @@
       `docs/sdd/` は無条件上書きされず（sync 管理下である旨のメッセージのみ表示）、ローカルの
       カスタマイズが保護される。`.kiro/sdd-base.lock` が存在しない（未 sync）リポジトリでは
       従来通り `docs/sdd/` が展開される（回帰なし）
+- [ ] `sync` は overlay 配布スキル（`payload/overlay/skills/**`）を `.claude`/`.agents` 双方へ
+      whole-file 3-way で配布し、コンフルクト時は `<file>.new`（サイレント上書きしない）
+
+## H. 成果物の二層化（two-tier-deliverables）
+- 設計: `.kiro/specs/two-tier-deliverables/design.md`。一次(md)=正本から二次成果物を
+  一方向・opt-in・非破壊で再生成する。
+- [ ] `docs/sdd/deliverables-policy.md` が展開され、`workflow.md` に二層化節と参照がある
+- [ ] `.gitignore` に `outputs/`（二次ビルド成果物）が追記されている
+- [ ] doc-export スキルが `.claude/skills/doc-export/` と `.agents/skills/doc-export/` の双方に
+      **バイト同一**で設置されている（`diff -qr` 差分ゼロ）
+- [ ] `CLAUDE.md`/`AGENTS.md` の記録集約ルールに二次成果物（`outputs/<id>/`／PII は
+      `.kiro/specs/<id>/outputs/`）が明記され、両者が同一
+- [ ] doc-export の生成は正本(md)を書き換えず、未導入レンダラは「未生成（要 install-renderers）」と
+      明示して他成果物の生成を継続する（サイレント欠落しない）
+- [ ] レンダラ本体（pandoc/mmdc 等）を `payload/` に同梱していない（検出のみ）
 
 ## F. ライセンス注意（設計変更時のゲート）
 - [ ] **cc-sdd の生成物をテンプレ（payload）へ同梱する設計変更を行う場合**、MIT条項により

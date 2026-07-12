@@ -89,6 +89,18 @@ function update() {
   const g = sh("git", ["-C", PKG_ROOT, "pull", "--ff-only"]);
   process.exit(g.status || 0);
 }
+function docExport(args) {
+  const root = process.cwd();
+  const specId = args.find(a => !a.startsWith("-"));
+  if (!specId) { console.error("使い方: doc-export <spec-id> [--manifest <path>]"); process.exit(1); }
+  const passthru = args.filter(a => a !== specId);
+  const r = sh("bash", [path.join(PAYLOAD, "scripts", "doc-export", "export.sh"), root, specId, ...passthru]);
+  process.exit(r.status || 0);
+}
+function installRenderers(args) {
+  const r = sh("bash", [path.join(PAYLOAD, "scripts", "doc-export", "install-renderers.sh"), ...args]);
+  process.exit(r.status || 0);
+}
 function help() {
   console.log(`sdd-base — SDDベース構築ツール (内部で cc-sdd[MIT, (c)2025 gotalab] を利用)
 
@@ -101,6 +113,12 @@ function help() {
   npx github:<org>/sdd_base_template sync [--yes]               init 済みリポジトリへ上流テンプレの
                                                               更新を安全反映（lock+3-wayマージ。
                                                               コンフリクトは <file>.new に出力しサイレント上書きしない）
+  npx github:<org>/sdd_base_template doc-export <spec-id> [--manifest <path>]
+                                                              一次(md)から二次成果物(PDF/Word/PPT)を再生成
+                                                              （出力先: outputs/<id>/、PII は .kiro/specs/<id>/outputs/）
+  npx github:<org>/sdd_base_template install-renderers [name...]
+                                                              二次成果物のレンダラ(pandoc/mmdc 等)を opt-in 取得
+                                                              （本体は再配布せず取得手順を案内）
   npx github:<org>/sdd_base_template update                    （clone運用）git pull
 `);
 }
@@ -111,6 +129,8 @@ switch (cmd) {
   case "init": init(rest); break;
   case "validate": validate(rest); break;
   case "sync": sync(rest); break;
+  case "doc-export": docExport(rest); break;
+  case "install-renderers": installRenderers(rest); break;
   case "update": update(); break;
   case undefined:
   case "help":
