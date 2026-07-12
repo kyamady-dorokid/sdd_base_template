@@ -28,8 +28,16 @@
 - 二次成果物生成エンジン（`payload/scripts/doc-export/`）とレンダラ・レジストリ、マニフェスト解釈。
 - doc-export スキル（`payload/overlay/skills/doc-export/`）の**新規配布機構**（init 設置・sync 管理）。
 - `outputs/` の gitignore・出力先分岐・明示メッセージ。
-- `bin/cli.js` の `install-renderers` サブコマンド追加。
+- `bin/cli.js` の `doc-export` および `install-renderers` サブコマンド追加。
 - `validate.sh`(post) の二層化検証項目。
+
+> **doc-export 壁打ち（2026-07-03）で確定した設計（リカバリー・再承認対象）**:
+> 実装中に承認済み設計に無い `doc-export` CLI を先行追加した逸脱を、正規の壁打ち→再承認で設計に反映する。
+> - **A1**: `doc-export` を CLI サブコマンドとして正式化（スキルはこのコマンドの実行を案内。本体は非複製）。
+> - **B-1b**: 終了コードは3分類（成功／未生成=想定内=0／エラー=非0）。**B-2a**: レポートは `outputs/<id>/`（gitignore）＋stdout。**B-3a**: spec-id 不在は exit 1。
+> - **C-2**: マニフェスト不在時の既定は、存在する `requirements.md`/`design.md`/`tasks.md` を各1本・docx 全文（プロセス記録は既定対象外）。
+> - **D-1a**: Mermaid 前処理を実装（mmdc で画像化→埋込）。mmdc 未導入時は元コードを残し「未変換」を明示（graceful）。
+> - **導入導線**: 欠けたレンダラ固有の導入コマンドを提示。**対話端末では「今すぐ導入？[y/N] 既定N」を確認し、human 同意時のみ実行**（非対話は提示のみ・自動実行しない）。レンダラ→導入コマンドは `renderers.sh` に一元化（DRY）。
 
 ### Out of Boundary
 - cc-sdd 生成物の内部ロジック改変（最小パッチのみ・Requirement 8.3）。
@@ -148,30 +156,33 @@ outputs/<spec-id>/                        # ビルド成果物（.gitignore 対�
 ### 二次成果物生成（export.sh）
 ```mermaid
 flowchart TD
-    A["export.sh <spec-id> [--manifest F]"] --> B{"manifest あり?"}
-    B -- なし --> D["既定: 正本全文 → Word or PDF"]
+    A["doc-export <spec-id> [--manifest F]"] --> B{"manifest あり?"}
+    B -- なし --> D["既定(C-2): 存在する<br>requirements/design/tasks を各1本 docx"]
     B -- あり --> C["manifest 各行を解釈<br>(source#section -> format [@pii])"]
     C --> E{"section 指定?"}
     E -- あり --> F["slice.sh で節抽出"]
     E -- なし(*) --> G["全文を使用"]
     F --> H{"見出し/アンカー存在?"}
-    H -- なし --> Z["エラー報告・当該成果物は生成しない"]
+    H -- なし --> Z["エラー報告(非0要因)・空生成しない"]
     H -- あり --> I
-    G --> I["Mermaid ブロックを mmdc で画像化(可用時)"]
+    G --> I["mermaid.sh 前処理<br>(mmdc可用:画像化 / 未導入:元コード残し+未変換明示)"]
     D --> I
-    I --> J{"必要レンダラ available?<br>(renderers.sh 検出)"}
-    J -- なし --> K["レポート: 未生成(要 install-renderers)<br>他成果物は継続"]
+    I --> J{"必要レンダラ available?"}
+    J -- なし --> P{"対話端末?"}
+    P -- あり --> Q["今すぐ導入?[y/N]既定N<br>y:導入コマンド実行→再判定 / N:提示のみ"]
+    P -- なし --> K["未生成(要install)+固有導入コマンド提示<br>他成果物は継続"]
+    Q --> J
     J -- あり --> L{"@pii?"}
     L -- yes --> M[".kiro/specs/<id>/outputs/ へ出力<br>+ PII隔離メッセージ明示"]
     L -- no --> N["outputs/<id>/ へ出力 + 出力先メッセージ"]
-    M --> O["生成レポート"]
+    M --> O["生成レポート + 終了コード(B-1b)"]
     N --> O
     K --> O
     Z --> O
 ```
 
-補足: レンダラ未導入は**エラーではなく想定内スキップ**（プロセスは継続し、他フォーマットを生成）。
-`slice` の見出し不在は**エラー**（空ファイルを作らない・Requirement 4.3）。
+補足: レンダラ/mmdc 未導入は**想定内スキップ（exit 0 要因）**、見出し不在・レンダリング失敗は**エラー（非0 要因）**。
+対話端末では導入を人間同意のもと実行、非対話では提示のみ（自動導入しない）。
 
 ## Requirements Traceability
 
@@ -192,35 +203,52 @@ flowchart TD
 
 | Component | Layer | Intent | Req | Contracts |
 |-----------|-------|--------|-----|-----------|
-| `renderers.sh` | Script | フォーマット→レンダラ対応と PATH 可用性検出 | 5.1,5.3,3.4 | Batch |
-| `manifest.sh` | Script | `deliverables.manifest` パース＋既定値 | 5.4,5.5 | Batch |
+| `renderers.sh` | Script | フォーマット→レンダラ対応・PATH 可用性検出・**導入コマンドのレジストリ（DRY 一元化）** | 5.1,5.2,5.3,3.4 | Batch |
+| `manifest.sh` | Script | `deliverables.manifest` パース＋既定値（C-2） | 5.5,5.6 | Batch |
 | `slice.sh` | Script | 見出し/アンカーで節抽出（不在はエラー） | 4.2,4.3 | Batch |
-| `export.sh` | Script | 統括: 宣言→スライス→図画像化→レンダラ→出力先分岐→レポート | 2,4,5 | Batch |
-| doc-export `SKILL.md` | Skill | エージェント向け実行手順（export.sh を呼ぶ） | 6.1 | — |
-| `install-renderers`(cli) | CLI | レンダラ opt-in 取得手順の案内/実行 | 5.2 | Batch |
+| `mermaid.sh` | Script | **正本内 ```mermaid ブロックを mmdc で画像化し参照へ差し替え（D-1a）** | 3.4,3.5 | Batch |
+| `export.sh` | Script | 統括: 宣言→スライス→Mermaid前処理→レンダラ→出力先分岐→レポート→終了コード | 2,3,4,5,11 | Batch |
+| doc-export `SKILL.md` | Skill | エージェント向け実行手順（`doc-export` CLI を案内） | 6.1 | — |
+| `doc-export`(cli) | CLI | `doc-export <id>` サブコマンド（export.sh を起動・A1） | 11 | Batch |
+| `install-renderers`(cli/sh) | CLI | レンダラ状態と導入コマンドの案内、**対話端末では同意時に導入実行** | 5.2,5.4 | Batch |
 | init/sync/validate 拡張 | Script | 配布・同期・検証統合 | 6,9 | Batch |
 
-### `renderers.sh`（レジストリ）
-- 対応表（行指向）例: `docx|pandoc|core` / `pdf|pandoc|core` / `pptx|pandoc|limited` /
-  `mermaid|mmdc|optional` / `xlsx|<ext-pkg>|external`。
+### `renderers.sh`（レジストリ・導入コマンドの単一ソース）
+- 対応表（行指向）: `<format>|<renderer-cmd>|<class>`。例 `docx|pandoc|core` / `mermaid|mmdc|optional` / `xlsx|<ext>|external`。
 - `sdd_renderer_available <format>` … 対応レンダラの実行体が PATH にあれば 0、無ければ非0。
+- `sdd_renderer_install_hint <cmd>` … レンダラ実行体名 → 用途・**導入コマンド**を返す（`export.sh` と
+  `install-renderers.sh` が共にここを参照＝DRY。導入コマンドの二重管理・食い違いを防ぐ）。
 - 重い本体は同梱しない（検出のみ）。
 
-### `manifest.sh`
-- 形式（行指向・`#` コメント可）: `<source-md>#<section-anchor|*> -> <format> [@pii]`
-  - 例: `design.md#api-contract -> docx` / `design.md -> pdf` / `requirements.md#* -> pptx @pii`
-- `manifest` 不在時は既定 1 行 `＜spec 内の主要 md＞ -> docx`（無ければ pdf）にフォールバック（Requirement 5.5）。
+### `manifest.sh`（C-2 既定）
+- 形式（行指向・`#` コメント可）: `<source-md>#<section-anchor|*> -> <format> [@pii]`。
+- `manifest` 不在時の既定（`sdd_manifest_default`）は、対象 spec に**存在する** `requirements.md`/`design.md`/`tasks.md`
+  を各1行 `-> docx`（全文）で返す（プロセス記録 md は対象外）。Requirement 5.6。
 
 ### `slice.sh`
-- `sdd_slice <md> <anchor>` … 見出しテキスト or 明示アンカーに対応する節を stdout。存在しなければ非0＋stderr。
-- `*` は全文（フォールバック）。
+- `sdd_slice <md> <anchor>` … 見出し/明示アンカーに対応する節を stdout。存在しなければ非0＋stderr。`*` は全文。
+
+### `mermaid.sh`（D-1a・新規）
+- `sdd_mermaid_preprocess <in-md> <out-md> <asset-dir>` … 入力 md 内の ```mermaid フェンスブロックを走査し:
+  - mmdc 可用時: 各ブロックを PNG（`<asset-dir>/mermaid-N.png`）へレンダリングし、md 内を `![](...)` 画像参照へ差し替える。
+  - mmdc 未導入時: **ブロックを元のまま残し**（pandoc がコードブロックとして描画）、未変換件数を返す。**サイレント欠落しない**。
+- 図が1件以上あり mmdc 未導入なら、呼び出し元がレポートに「未変換 N 件＋mmdc 導入コマンド」を明示する。
 
 ### `export.sh`（統括）
-- 引数: `export.sh <spec-id> [--manifest <path>]`。
-- 各宣言行につき: slice → Mermaid 画像化（mmdc 可用時）→ `renderer_available` 判定 →
-  可用なら出力（`@pii` は `.kiro/specs/<id>/outputs/`、それ以外は `outputs/<id>/`）、
-  不可用なら「未生成（要 install-renderers）」をレポート。**サイレント欠落しない**。
-- 出力ごとに**出力先を明示するメッセージ**（PII 隔離時は特に明示）。
+- 引数: `export.sh <repo_root> <spec-id> [--manifest <path>]`。
+- 各宣言行: slice → **`mermaid.sh` で前処理** → `sdd_renderer_available` 判定 →
+  可用なら出力（`@pii`=`.kiro/specs/<id>/outputs/`、他=`outputs/<id>/`）、不可用なら「未生成（要 install）」＋
+  **欠けたレンダラ固有の導入コマンド**をレポート。**サイレント欠落しない**。
+- 出力ごとに**出力先を明示**（PII 隔離は特に明示）。
+- レンダラ/mmdc 未導入を検出し**対話端末がある**場合は「今すぐ導入？[y/N] 既定N」を確認、**human 同意時のみ導入実行**
+  （`install-renderers.sh` を経由）→ 成功なら同一実行内で生成/画像化を継続。非対話では実行せず提示のみ。
+- **終了コード（B-1b）**: 生成成功／未生成（レンダラ未導入＝想定内）のみ → 0。見出し不在・レンダリング失敗等の
+  エラーを1件でも含む → 非0。`spec-id` 不在（`.kiro/specs/<id>/` なし）→ 即時 exit 1（B-3a）。
+
+### `install-renderers.sh`（対話実行対応）
+- `install-renderers [name...]` … 各レンダラの導入状態と、`renderers.sh` のレジストリから引いた**具体導入コマンド**を表示。
+- **対話端末（TTY）がある場合のみ**、未導入レンダラごとに「導入する？[y/N]（既定 N）」を確認し、**human が y の場合だけ**
+  導入コマンドを実行（実行前にコマンドを表示）。非対話では実行せず提示に留める（自動導入しない）。
 
 ## Data Models
 
@@ -238,10 +266,13 @@ flowchart TD
 
 ## Error Handling
 
-### Error Strategy
-- **レンダラ未導入**: 想定内スキップ（exit 0）。当該フォーマットのみ未生成としてレポート、他は継続（Requirement 5.3）。
-- **節スライスの見出し不在**: エラー報告（当該成果物を空生成しない・Requirement 4.3）。プロセス全体は継続し他成果物は処理。
-- **レンダラ実行時エラー（pandoc 失敗等）**: 当該成果物を失敗としてレポートし、他成果物は継続。既存の一次(md)は不変。
+### Error Strategy（終了コードは B-1b の3分類）
+- **レンダラ/mmdc 未導入**: 想定内スキップ。当該フォーマット/図を未生成としてレポート＋導入コマンド提示、他は継続。
+  **これ自体は exit 0**（Requirement 5.3・3.5）。Mermaid 未変換も同様（文書は生成・図はコードのまま残す）。
+- **節スライスの見出し不在**: **エラー**（当該成果物を空生成しない・Requirement 4.3）。他成果物は継続するが、
+  この実行は**エラーを含む → 非0終了**（B-1b）。
+- **レンダラ実行時エラー（pandoc 失敗等）**: 当該成果物を失敗としてレポート、他は継続。**エラー扱い → 非0終了**。既存の一次(md)は不変。
+- **spec-id 不在**: 即時 exit 1（B-3a）。
 
 ### 非破壊性の担保
 - doc-export は**正本(md)を読むのみ・書き換えない**。二次成果物は再生成物として `outputs/` 系にのみ書く。
@@ -251,16 +282,20 @@ flowchart TD
 
 - **Unit（`tests/unit/`）**:
   1. `test_doc_slice.sh` — 見出し/アンカー抽出の一致、不在時の非0＋空生成しないこと。
-  2. `test_doc_manifest.sh` — 宣言行のパース、`@pii` フラグ、manifest 不在時の既定フォールバック。
-  3. `test_doc_renderers.sh` — レジストリ検出（存在/不在で available 判定が切替）、本体非同梱の確認。
+  2. `test_doc_manifest.sh` — 宣言行のパース、`@pii` フラグ、**manifest 不在の既定＝存在する requirements/design/tasks を各1本 docx（C-2）**。
+  3. `test_doc_renderers.sh` — レジストリ検出（存在/不在で available 判定が切替）、本体非同梱、**`sdd_renderer_install_hint` が導入コマンドを返す（DRY）**。
+  4. `test_doc_mermaid.sh`（新規）— mmdc 未導入時に ```mermaid ブロックが**元のまま残り**未変換件数が返ること、
+     可用時は画像参照へ差し替わること（mmdc はモック/スタブで検証）。
 - **Integration（`tests/integration/`）**:
-  1. `test_doc_export.sh` — レンダラ不在環境で「未生成（要install）」がレポートされ他処理継続、
-     `@pii` 宣言が `.kiro/specs/<id>/outputs/` に、通常宣言が `outputs/<id>/` に向くこと（実ファイル生成は
-     レンダラ可用時のみ・不在時は宛先メッセージとレポートで検証）、正本 md が不変であること。
-  2. `test_sync_skills.sh` — doc-export スキルツリーが sync の `managed_skills` で `.claude`/`.agents`
-     双方に配布・3-way され、ローカル変更のサイレント上書きが起きないこと。
-- **E2E/CLI**: 空リポジトリで `init` → doc-export スキルが両エージェントに設置され `diff -qr` 差分ゼロ、
-  `validate post` の二層化項目が OK、`sync` 再実行で差分ゼロ（収束）。
+  1. `test_doc_export.sh` — レンダラ不在で「未生成（要install）＋導入コマンド」がレポートされ他処理継続、
+     出力先分岐（PII/非PII）の明示、正本 md 不変、**Mermaid 未変換の明示**、**終了コード（見出し不在等のエラーで非0・未生成のみなら0）**、
+     **spec-id 不在で exit 1**。
+  2. `test_sync_skills.sh` — doc-export スキルが sync の `managed_skills` で両エージェントへ 3-way 配布・非破壊。
+  3. `test_install_renderers.sh`（新規）— 非対話では導入コマンドを提示するのみで**自動実行しない**こと、レジストリ由来の
+     コマンドが表示されること（対話実行の y 分岐は実導入せずモックで確認）。
+- **E2E/CLI**: 空リポジトリで `init` → doc-export スキル両エージェント設置＋`diff -qr` 差分ゼロ、`doc-export <id>`（既定 C-2）
+  がレンダラ不在で未生成明示＋非0/0 の適切な終了、`validate post` OK、`sync` 再実行で差分ゼロ（収束）。
+  ※ **実装・テスト中に実際の `npm i -g`／`brew install` は実行しない**（対話実行分岐はモックで検証）。
 
 <!-- SDD-OVERLAY:DESIGN-TECHREQ:START (sdd_base_template が付加。手動編集は再 init で再付与される) -->
 ## 技術要件・制約チェック（SDD overlay / 初回実装時）

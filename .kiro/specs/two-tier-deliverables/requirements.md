@@ -55,6 +55,7 @@
 2. The SDD ルールドキュメント shall Excel および高品質作図（PlantUML 等）を opt-in（別 pkg）対応と定義する。
 3. The SDD ルールドキュメント shall 各フェーズの論理成果物（要件・基本設計・詳細設計の各節）から推奨フォーマットへの対応表を含む。
 4. Where 図（ER・クラス・シーケンス・構成）を二次成果物に含める場合, the 生成プロセス shall 正本内の Mermaid 記法を画像（SVG または PNG）へレンダリングして二次成果物に埋め込む。
+5. If Mermaid 画像化レンダラ（mmdc）が未導入の場合, then the 生成プロセス shall 正本内の Mermaid ブロックを元のまま残して文書生成を継続し、当該図が未変換である旨と導入方法をレポート・出力に明示する（サイレントに欠落させない）。
 
 ### Requirement 4: 生成粒度（全文変換 / 節スライス）
 **Objective:** 利用者として、正本を分割せずに監査対象別の文書を得たい。そうすれば単一の正本を保ちつつ担当別に配布できる。
@@ -70,10 +71,11 @@
 
 #### Acceptance Criteria
 1. The 二次成果物生成基盤 shall フォーマットとレンダラの対応を登録・切替できる仕組みを持ち、重い依存（Excel 変換器・PlantUML・mermaid-cli・PDF エンジン等）の本体を同梱しない。
-2. When 利用者がレンダラ取得（install）を実行した場合, the `sdd-base` ツール shall 指定されたレンダラを opt-in で取得する（重いバイナリ本体は再配布せず、取得手順に従う）。
-3. Where 生成に必要なレンダラ依存が未導入の場合, the 生成ステップ shall 当該フォーマットを「未生成（要 install）」としてレポートに明記し、かつ生成可能な他の成果物の処理を継続する。
-4. The spec shall 希望する二次成果物を「論理成果物 → フォーマット」のマニフェストとして宣言でき、the 生成ステップ shall そのマニフェストの宣言に従って生成対象を決定する。
-5. If マニフェストが存在しない場合, then the 生成ステップ shall 全文変換の既定フォーマット（Word または PDF）のみを生成する。
+2. When 利用者がレンダラ取得（`install-renderers`）を実行した場合, the `sdd-base` ツール shall 各レンダラの導入状態と**具体的な導入コマンド**を案内する（重いバイナリ本体は再配布しない）。レンダラ→導入コマンドの対応は単一のレジストリで一元管理する。
+3. Where 生成に必要なレンダラ依存が未導入の場合, the 生成ステップ shall 当該フォーマット/図を「未生成（要 install）」としてレポート・出力に明記し、**欠けているレンダラ固有の導入コマンド**を提示し、かつ生成可能な他の成果物の処理を継続する。
+4. Where レンダラ未導入を検出し、かつ**対話端末が利用可能**な場合, the 生成/取得プロセス shall 「今すぐ導入するか」を人間に確認し（既定は「導入しない」）、**人間が同意した場合にのみ**導入コマンドを実行する。非対話（CI 等）ではその場実行せず導入コマンドの提示に留める。
+5. The spec shall 希望する二次成果物を「論理成果物 → フォーマット」のマニフェストとして宣言でき、the 生成ステップ shall そのマニフェストの宣言に従って生成対象を決定する。
+6. If マニフェストが存在しない場合, then the 生成ステップ shall 対象 spec に存在する主要成果物 md（`requirements.md` / `design.md` / `tasks.md`）を各1本、既定フォーマット（既定 Word）で全文生成する（プロセス記録 md は既定対象外）。
 
 ### Requirement 6: doc-export 機能の配布と Claude/Codex パリティ
 **Objective:** 両エージェント利用者として、二次成果物生成機能が Claude・Codex の両方で同一に使えてほしい。そうすればどちらの環境でも運用が揃う。
@@ -115,3 +117,13 @@
 1. The 本 spec の承認状態 shall `spec.json` の `approvals.{requirements,design,tasks}.{generated,approved}` を唯一の正本として管理する。
 2. The `agreement-log.md` shall 承認ブール値を再掲せず、合意の経緯・理由のみを記録する。
 3. Where 本リポジトリのドッグフーディングで新規 spec を作成する場合, the 運用 shall `spec.json` を作成し承認状態の正本とする（決定#7）。
+
+### Requirement 11: doc-export コマンドの契約（CLI 正式化）
+**Objective:** 利用者として、二次成果物生成をどの環境でも同じコマンドで実行でき、結果の成否が明確であってほしい。そうすれば運用と自動化（CI）に組み込める。
+
+#### Acceptance Criteria
+1. The `sdd-base` ツール shall `doc-export <spec-id> [--manifest <path>]` を CLI サブコマンドとして提供する（スキルはこのコマンドの実行を案内する）。生成ロジック本体はパッケージ側に置き、ターゲットリポジトリへ複製しない。
+2. When 生成が完了した場合, the `doc-export` shall 終了コードを次の3分類で返す: すべて生成成功または未生成（レンダラ未導入＝想定内）のみ → 0／見出し不在・レンダリング失敗等の**エラーを含む** → 非0。
+3. When `doc-export` を実行した場合, the 生成プロセス shall 実行結果レポートを `outputs/<spec-id>/export-report.md`（`.gitignore` 対象・再生成可能）に出力し、あわせて標準出力へサマリを表示する。
+4. If 指定した `<spec-id>` に対応する `.kiro/specs/<spec-id>/` が存在しない場合, then the `doc-export` shall エラーメッセージを表示して非0で終了する。
+5. The `doc-export` shall いかなる場合も自動コミットせず、正本 md を書き換えない。

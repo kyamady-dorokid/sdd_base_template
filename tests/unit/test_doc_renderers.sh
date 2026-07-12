@@ -31,6 +31,14 @@ assert_eq "0" "$?" "PATH にある実行体は available（0）"
 sdd_renderer_available_cmd definitely_not_a_real_binary_xyz
 assert_ne "0" "$?" "PATH に無い実行体は unavailable（非0）"
 
+# 導入コマンドレジストリ（DRY）: sdd_renderer_install_hint <cmd> が用途と導入コマンドを返す
+hint_pandoc="$(sdd_renderer_install_hint pandoc)"
+assert_true "printf '%s' \"\$hint_pandoc\" | grep -q pandoc" "pandoc の導入ヒントに pandoc を含む"
+hint_mmdc="$(sdd_renderer_install_hint mmdc)"
+assert_true "printf '%s' \"\$hint_mmdc\" | grep -q 'mermaid-cli'" "mmdc の導入ヒントに mermaid-cli を含む"
+assert_ne "" "$(sdd_renderer_install_hint plantuml)" "plantuml の導入ヒストが非空"
+assert_eq "" "$(sdd_renderer_install_hint no_such_renderer)" "未知レンダラのヒントは空"
+
 # 重い本体を同梱していないこと（レジストリは検出のみ・payload にバイナリを置かない）
 assert_true "! find '$DIR/../../payload' -type f -name 'pandoc' | grep -q ." "payload に pandoc 本体を同梱していない"
 assert_true "! find '$DIR/../../payload' -type f -name 'mmdc' | grep -q ." "payload に mmdc 本体を同梱していない"

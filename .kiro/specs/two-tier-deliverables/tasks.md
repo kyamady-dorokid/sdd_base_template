@@ -88,6 +88,55 @@
 - [x] 9.2 `payload/validation/checks.md` に二層化検証項目（H 節）を追加
   - _Requirements: 9.1_
 
+## doc-export 壁打ち（A〜D）確定後の追加実装
+
+> 2026-07-03 の壁打ちで確定した A〜D を反映。TDD（RED→GREEN）。実装/テスト中に実 `npm i -g`／`brew install` は走らせない。
+
+- [x] 12. `manifest.sh` の既定を C-2 化
+- [x] 12.1 テスト更新（RED）`tests/unit/test_doc_manifest.sh`
+  - `sdd_manifest_default <spec-dir>` が、存在する `requirements.md`/`design.md`/`tasks.md` を各1行 `-> docx`(全文) で返し、
+    存在しない md は含めないことを assert（プロセス記録 md は対象外）
+  - _Requirements: 5.6_
+- [x] 12.2 実装（GREEN）`manifest.sh` の既定生成を単一primary→主要3成果物に変更
+  - _Requirements: 5.6_
+
+- [x] 13. `renderers.sh` に導入コマンドレジストリ（DRY）
+- [x] 13.1 テスト更新（RED）`tests/unit/test_doc_renderers.sh`
+  - `sdd_renderer_install_hint <cmd>` が用途と導入コマンドを返す（pandoc/mmdc/pdf/plantuml）ことを assert
+  - _Requirements: 5.2_
+- [x] 13.2 実装（GREEN）`renderers.sh` に `sdd_renderer_install_hint` を追加（`install-renderers.sh` の表を移設）
+  - _Requirements: 5.2_
+
+- [x] 14. `mermaid.sh`（D-1a・Mermaid 前処理）
+- [x] 14.1 テスト作成（RED）`tests/unit/test_doc_mermaid.sh`
+  - mmdc 未導入時に ```mermaid ブロックが**元のまま残り**未変換件数が返ること、mmdc 可用時（スタブ）は画像参照へ差し替わること
+  - _Requirements: 3.4, 3.5_
+- [x] 14.2 実装（GREEN）`payload/scripts/doc-export/mermaid.sh`（`sdd_mermaid_preprocess`）
+  - _Requirements: 3.4, 3.5_
+
+- [x] 15. `export.sh` 改修（C-2既定・B-1b終了コード・Mermaid統合・導入導線）
+- [x] 15.1 テスト更新（RED）`tests/integration/test_doc_export.sh`
+  - 既定(manifest無)で requirements/design/tasks が対象になること、終了コード（見出し不在等エラーで非0・未生成のみ0・spec-id不在で1）、
+    未生成時に**欠けたレンダラ固有の導入コマンド**が提示されること、Mermaid 未変換が明示されること、正本 md 不変
+  - _Requirements: 3.5, 4.3, 5.3, 5.6, 11.2, 11.3, 11.4_
+- [x] 15.2 実装（GREEN）`export.sh`
+  - C-2 既定 / B-1b 終了コード / `mermaid.sh` 前処理呼出 / 未生成時に `install_hint` を提示 /
+    対話端末では「今すぐ導入?[y/N]既定N」を確認し human 同意時のみ `install-renderers.sh` 経由で導入→再判定（非対話は提示のみ）
+  - _Requirements: 3.4, 3.5, 4.4, 5.3, 5.4, 5.6, 11.1, 11.2, 11.3, 11.5_
+
+- [x] 16. `install-renderers.sh` 対話実行対応
+- [x] 16.1 テスト作成（RED）`tests/integration/test_install_renderers.sh`
+  - 非対話では導入コマンドを**提示するのみで自動実行しない**こと、レジストリ由来のコマンドが表示されること
+    （対話 y 分岐は実導入せずモックで確認）
+  - _Requirements: 5.2, 5.4_
+- [x] 16.2 実装（GREEN）`install-renderers.sh`
+  - `renderers.sh` のレジストリを参照。TTY 時のみ未導入レンダラごとに同意を確認し、y のときだけ導入コマンドを実行
+  - _Requirements: 5.2, 5.4_
+
+- [x] 17. CLI `doc-export`（A1）の整合確認
+- [x] 17.1 `bin/cli.js` の `doc-export` サブコマンドと help が確定契約（引数・終了コード）に整合していることを確認・微修正
+  - _Requirements: 11.1_
+
 - [ ] 10. 既存方針の保全（不採用事項の担保・回帰）
 - [ ] 10.1 既存回帰の確認
   - `design.md` テンプレを変更していないこと、`validate.sh` の `tech-requirements.md` NG 判定が
@@ -97,8 +146,9 @@
 
 - [ ] 11. E2E 通し確認・ドキュメント・記録
 - [ ] 11.1 空リポジトリで `init` → doc-export 設置・パリティ・`validate post` OK、`sync` 再実行で差分ゼロ（収束）
-  - manifest あり/なし、`@pii` あり/なし、レンダラ不在時の未生成明示を通しで確認し `test-results.md` に記録
+  - `doc-export <id>` を manifest あり/なし（C-2 既定）・`@pii` あり/なし・レンダラ/mmdc 不在時の未生成明示＋導入コマンド提示・
+    終了コード（0/非0/1）を通しで確認し `test-results.md` に記録（実導入は行わない）
   - _Requirements: 全要件_
   - _Boundary: doc-export/*, init.sh, sync.sh, validate.sh_
-- [ ] 11.2 README「その他の使い方」に doc-export と `install-renderers` の説明を追加
-  - _Requirements: 5.2_
+- [ ] 11.2 README「その他の使い方」に `doc-export`（既定 C-2・出力先・終了コード）と `install-renderers`（導入導線）の説明を追加
+  - _Requirements: 5.2, 11.1_

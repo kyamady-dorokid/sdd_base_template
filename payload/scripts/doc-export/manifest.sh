@@ -59,8 +59,12 @@ sdd_manifest_field(){
   esac
 }
 
-# manifest 不在時の既定: <primary-md> 全文 → docx
+# manifest 不在時の既定（C-2）: 対象 spec に存在する主要成果物 md
+#   （requirements.md / design.md / tasks.md）を各1行、全文 → docx で返す。
+#   agreement-log.md / test-results.md 等のプロセス記録は既定対象外。
 sdd_manifest_default(){
-  local primary="${1:?primary md required}"
-  printf '%s|*|docx|\n' "$primary"
+  local spec_dir="${1:?spec-dir required}" f
+  for f in requirements.md design.md tasks.md; do
+    [ -f "$spec_dir/$f" ] && printf '%s|*|docx|\n' "$f"
+  done
 }

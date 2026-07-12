@@ -59,11 +59,36 @@ SDD テンプレート（`sdd_base_template`）を適用して開発したユー
 
 ---
 
-## 実装中に確定した設計追加
+## 実装中に確定した設計追加（→ 後に逸脱として正規リカバリー）
 
 | # | 追加内容 | 理由 | 決定日 |
 |---|---|---|---|
-| A | `bin/cli.js` に `doc-export` サブコマンドを追加（当初 tasks は `install-renderers` のみ想定） | ターゲットリポジトリには `payload/scripts/` が展開されず、doc-export の実行手段が無かった。cc-sdd 非同梱と同じく「実行はパッケージ経由」に統一し、スキルは `npx ... doc-export <id>` を案内する形に修正 | 2026-07-03（PR2 実装時） |
+| A | `bin/cli.js` に `doc-export` サブコマンドを追加（当初 tasks は `install-renderers` のみ想定） | ターゲットリポジトリには `payload/scripts/` が展開されず、doc-export の実行手段が無かった | 2026-07-03（PR2 実装時） |
+
+> **注記**: 上記 A は承認済み設計に無い公開インターフェースの追加であり、本来は実装前に人間の再承認を要する
+> **設計レベルの逸脱**だった（当時これを「実装詳細」と誤分類）。この事象が `impl-deviation-gate`（PR #17）の
+> ルール明文化の契機となり、下記のとおり正規の壁打ち→再承認でリカバリーした。
+
+## doc-export の正規壁打ちとリカバリー（2026-07-03）
+
+PR #17 で確立した「逸脱ルートからのリカバリーは人間の確認→承認を経る」に則り、doc-export まわりの未合意・未達点を
+正規に壁打ちし、要件・設計へ反映した。
+
+| 論点 | 決定 | 種別 |
+|---|---|---|
+| A | `doc-export` を CLI サブコマンドとして正式化（スキルは実行を案内・本体は非複製） | 既存逸脱の追認（正規化） |
+| B | 終了コード3分類（成功/未生成=想定内=0/エラー=非0）・レポートは `outputs/<id>/`(gitignore)＋stdout・spec-id 不在は exit 1 | 契約の確定 |
+| C | マニフェスト不在の既定＝存在する requirements/design/tasks を各1本・docx 全文（プロセス記録は対象外） | 既定挙動の確定（従来の design.md 優先から変更） |
+| D | Mermaid 前処理を実装（mmdc 画像化・埋込）。mmdc 未導入時は元コードを残し「未変換」を明示（graceful）。**Requirement 3.4 の未達を解消** | 要件未達の解消 |
+| 導線 | 欠けたレンダラ固有の導入コマンドを提示。**対話端末では「今すぐ導入?[y/N]既定N」を確認し human 同意時のみ実行**、非対話は提示のみ（自動導入しない）。レンダラ→導入コマンドは `renderers.sh` に一元化（DRY） | 安全設計込みで確定 |
+
+**リカバリー手順の記録**:
+- requirements.md: Req 3.5（Mermaid graceful）・Req 5.2〜5.6（導入導線・C-2 既定）を精緻化、Req 11（doc-export コマンド契約）を追加。
+  軸（一次=正本・一方向・非破壊・opt-in）は不変で追記のみのため requirements.approved は維持。
+- design.md: CLI スコープに doc-export 追加、`mermaid.sh` 新規、`renderers.sh` に導入コマンドレジストリ（DRY）、
+  export のフロー・終了コード・対話導入導線・Testing を反映。
+- spec.json: リカバリー手順に従い **design/tasks の approved を false に戻し再承認待ち**（`recovery_note` 付記）。
+- 実装は design 再承認後に着手（勝手に実装しない）。実装/テスト中に実際の `npm i -g`／`brew install` は走らせない。
 
 ---
 

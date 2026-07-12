@@ -28,6 +28,20 @@ sdd_renderer_class(){
   esac
 }
 
+# レンダラ実行体名 → "用途|導入手順(表示用)|自動実行コマンド(空=手動のみ)"。
+# 導入コマンドの単一ソース＝DRY。export.sh / install-renderers.sh がともにここを参照する。
+# 自動実行コマンドは、環境非依存で安全に実行できるもの（npm グローバル導入等）のみ設定する。
+# 環境依存（brew/apt 等）や手動手順のものは空（＝提示のみ・自動実行しない）。
+sdd_renderer_install_hint(){
+  case "$1" in
+    pandoc)   echo "Word/PDF/PPT 変換（コア）|brew install pandoc（macOS）/ apt-get install pandoc（Debian系）/ https://pandoc.org/installing.html|" ;;
+    mmdc)     echo "Mermaid 図の画像化（opt-in）|npm i -g @mermaid-js/mermaid-cli|npm i -g @mermaid-js/mermaid-cli" ;;
+    wkhtmltopdf) echo "PDF エンジン（pandoc の PDF 出力に利用）|https://wkhtmltopdf.org/ もしくは TeX(LaTeX) を導入|" ;;
+    plantuml) echo "厳密 UML 図（opt-in・別pkg）|https://plantuml.com/starting （Java 必須）|" ;;
+    *)        echo "" ;;
+  esac
+}
+
 # 実行体名が PATH にあれば 0、無ければ非0
 sdd_renderer_available_cmd(){
   command -v "$1" >/dev/null 2>&1
