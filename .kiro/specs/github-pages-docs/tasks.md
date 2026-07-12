@@ -25,10 +25,10 @@
 - [ ] 4. コミット・PR（人間承認で実行）
 - [ ] 4.1 `_config.yml`・README 変更・spec 記録をコミット提案 → 承認後コミット・push・PR
 
-- [ ] 5. Pages 有効化と検証（PR マージ後・外部公開操作は直前確認）
-- [ ] 5.1 `gh api` で Pages 有効化（source=main / path=/）
+- [x] 5. Pages 有効化と検証（PR マージ後・外部公開操作は直前確認）
+- [x] 5.1 `gh api` で Pages 有効化（source=main / path=/）
   - _Requirements: 4.1_
-- [ ] 5.2 ビルド状態 `built` を確認し、公開 URL でトップ(README)・`docs/sdd` 代表ページ・相対リンク解決を検証
+- [x] 5.2 ビルド状態 `built` を確認し、公開 URL でトップ(README)・`docs/sdd` 代表ページ・相対リンク解決を検証
   - _Requirements: 1.1, 1.2, 1.3, 3.1, 3.3, 4.2_
-- [ ] 5.3 `test-results.md` に検証結果を記録。README が index にならない等の問題時はフォールバック（最小 `index.md`）を検討
-  - _Requirements: 4.2_
+- [x] 5.3 `test-results.md` に検証結果を記録。README が index にならない等の問題時はフォールバック（最小 `index.md`）を検討
+  - _Requirements: 4.2_（フォールバック不要。詳細は `test-results.md`）
