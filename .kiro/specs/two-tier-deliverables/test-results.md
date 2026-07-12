@@ -73,3 +73,30 @@ TDD（RED→GREEN）。`bash tests/run.sh` = **141件 全PASS**（PR2 の 110 + 
 
 ### 残（PR-β）
 - タスク10（既存方針の保全・回帰）・タスク11（E2E 通し・README）
+
+## PR-β（タスク10・11: 既存方針の保全・回帰／E2E・README）
+
+### タスク10: 既存方針の保全・回帰
+| 項目 | 結果 |
+|---|---|
+| design.md テンプレ非分割（DESIGN-TECHREQ ブロック維持・独立分割ファイルなし） | OK |
+| validate.sh の `tech-requirements.md` NG 判定 維持 | OK |
+| `payload/` にレンダラ本体（pandoc/mmdc/plantuml/wkhtmltopdf）を同梱していない | OK |
+| `payload/` に cc-sdd 生成物を同梱していない | OK |
+| doc-export のテストは `tests/`（payload 外）配置 | OK |
+| `bash tests/run.sh` | 141件 全PASS |
+
+### タスク11: E2E 通し確認（空リポジトリ・実 CLI）
+| シナリオ | 結果 |
+|---|---|
+| `init` → doc-export スキル `.claude`/`.agents` 設置＋`diff -qr` 差分ゼロ | OK |
+| `validate post` 二層化項目（OK 22件、既知の docs/specs 以外 NG なし） | OK |
+| `doc-export`（C-2 既定）→ requirements/design/tasks の3件対象・exit 0 | OK |
+| `@pii` 宣言 → `.kiro/specs/<id>/outputs/` へルーティング | OK |
+| `sync` 初回化→再実行で作業ツリー差分ゼロ（収束） | OK |
+| ※ mermaid 未変換の明示は「pandoc 可用時のみ図変換が走る」設計のため、pandoc 未導入の E2E では docx 自体が未生成でスキップ（正常）。図変換は `test_doc_mermaid.sh`／`test_doc_export.sh`(pandoc スタブ) で検証済み |
+
+### ドキュメント
+- README「その他の使い方」に `doc-export`（C-2 既定・出力先・Mermaid・終了コード）と `install-renderers`（導入導線）を追加。コマンド・オプション表にも追加。
+
+**two-tier-deliverables spec 完了。** 全タスク（1〜17）完了・141件 全PASS。実 `npm i -g`／`brew install` は未実行。

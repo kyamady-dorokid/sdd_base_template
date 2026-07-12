@@ -137,18 +137,18 @@
 - [x] 17.1 `bin/cli.js` の `doc-export` サブコマンドと help が確定契約（引数・終了コード）に整合していることを確認・微修正
   - _Requirements: 11.1_
 
-- [ ] 10. 既存方針の保全（不採用事項の担保・回帰）
-- [ ] 10.1 既存回帰の確認
+- [x] 10. 既存方針の保全（不採用事項の担保・回帰）
+- [x] 10.1 既存回帰の確認
   - `design.md` テンプレを変更していないこと、`validate.sh` の `tech-requirements.md` NG 判定が
     維持されていること、`payload/` に cc-sdd 生成物・重いレンダラ本体を同梱していないこと
   - `bash tests/run.sh` 既存テスト（63件）＋新規テストが全 PASS
   - _Requirements: 8.1, 8.2, 8.3, 8.4_
 
-- [ ] 11. E2E 通し確認・ドキュメント・記録
-- [ ] 11.1 空リポジトリで `init` → doc-export 設置・パリティ・`validate post` OK、`sync` 再実行で差分ゼロ（収束）
+- [x] 11. E2E 通し確認・ドキュメント・記録
+- [x] 11.1 空リポジトリで `init` → doc-export 設置・パリティ・`validate post` OK、`sync` 再実行で差分ゼロ（収束）
   - `doc-export <id>` を manifest あり/なし（C-2 既定）・`@pii` あり/なし・レンダラ/mmdc 不在時の未生成明示＋導入コマンド提示・
     終了コード（0/非0/1）を通しで確認し `test-results.md` に記録（実導入は行わない）
   - _Requirements: 全要件_
   - _Boundary: doc-export/*, init.sh, sync.sh, validate.sh_
-- [ ] 11.2 README「その他の使い方」に `doc-export`（既定 C-2・出力先・終了コード）と `install-renderers`（導入導線）の説明を追加
+- [x] 11.2 README「その他の使い方」に `doc-export`（既定 C-2・出力先・終了コード）と `install-renderers`（導入導線）の説明を追加
   - _Requirements: 5.2, 11.1_

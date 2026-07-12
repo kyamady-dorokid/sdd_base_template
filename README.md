@@ -175,6 +175,40 @@ npx -y github:kyamady-dorokid/sdd_base_template sync --yes
 
 <br>
 
+### 設計書などを Word/PDF で出力する — `doc-export`
+
+一次成果物（`.kiro/specs/<id>/*.md`＝正本）から、人間の検証・共有用の二次成果物（Word/PDF/PowerPoint 等）を
+**一方向で再生成**します。正本は書き換えません（二次成果物は手編集禁止・再生成可能なビルド出力）。
+
+```bash
+npx -y github:kyamady-dorokid/sdd_base_template doc-export <spec-id> [--manifest <path>]
+```
+
+- **既定（マニフェスト無し）**: その spec に存在する `requirements.md` / `design.md` / `tasks.md` を各1本、**Word (.docx)** で全文出力します。
+- **出力先**: ビルド成果物は直下 `outputs/<id>/`、PII を含む成果物は `.kiro/specs/<id>/outputs/`（いずれも `.gitignore` 対象）。実行時に出力先を明示します。
+- **細かく指定したい場合**は `.kiro/specs/<id>/deliverables.manifest` に宣言します（1行1宣言）:
+  ```
+  design.md#API Contract -> docx     # 見出し「API Contract」節だけを docx に
+  requirements.md -> pdf             # 全文を pdf に
+  design.md -> docx @pii             # @pii を付けると PII 隔離先へ
+  ```
+- **図**: 正本内の Mermaid 記法は、`mmdc`（mermaid-cli）が導入されていれば画像化して埋め込みます。未導入なら図はコードのまま残し「未変換」と明示します（サイレントに欠けません）。
+- **レンダラは同梱していません**（pandoc / mmdc 等）。未導入フォーマットは「未生成（要 install）」として、**その場で具体的な導入コマンドを提示**します。実行結果は `outputs/<id>/export-report.md` に出力（`.gitignore` 対象）。
+- **終了コード**: すべて生成成功または未生成（レンダラ未導入＝想定内）のみなら 0、見出し不在・レンダリング失敗などのエラーを含むと非0を返します（CI に組み込めます）。自動コミットはしません。
+
+### レンダラを導入する — `install-renderers`
+
+二次成果物のレンダラ（pandoc / mermaid-cli 等）の導入状態と取得コマンドを案内します。
+
+```bash
+npx -y github:kyamady-dorokid/sdd_base_template install-renderers [name...]
+```
+
+- 各レンダラの導入状態と**具体的な導入コマンド**を表示します（本体は同梱・再配布しません）。
+- 対話端末で実行すると、未導入レンダラごとに「今すぐ導入しますか？ [y/N]（既定 N）」と確認し、**同意した場合のみ**導入コマンドを実行します。非対話（CI 等）では提示のみで自動実行しません。
+
+<br>
+
 ### 🛠 開発者向け機能
 
 以下は、このテンプレート（`sdd_base_template`）自体をメンテ・改修する人向けです。通常の利用では不要です。
@@ -221,6 +255,8 @@ npx github:kyamady-dorokid/sdd_base_template update   # clone元で git pull --f
 | | `--yes`, `-y` | off | 確認注記を抑止（非対話）。**既存環境がある場合は `--on-existing` の明示が必須**（無ければ安全のため停止） |
 | `install` | `--copy` / `--link` | `--copy` | 個人環境へスキルを設置。`--copy`=コピー ／ 🛠`--link`=clone元へsymlink（開発者向け） |
 | `sync` | `--yes` | off | init 済みリポジトリへ上流の更新を安全反映（lock+3-wayマージ）。コンフリクトは `<file>.new` に出力しサイレント上書きしない |
+| `doc-export` | `<spec-id>` / `--manifest <path>` | — | 一次(md)から二次成果物(Word/PDF/PPT)を再生成。既定は requirements/design/tasks を docx。出力先=`outputs/<id>/`（PII は spec 直下）。エラー時は非0終了 |
+| `install-renderers` | `[name...]` | 全件 | レンダラ(pandoc/mmdc 等)の導入状態と取得コマンドを案内。対話端末では同意時のみ導入実行（本体は非同梱） |
 | `validate` | `pre` / `post` | `pre` | 🛠展開結果の検証のみ（開発者向け） |
 | `update` | — | — | 🛠（clone＋`--link`運用）clone元で `git pull --ff-only`（開発者向け） |
 
