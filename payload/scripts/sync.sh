@@ -349,7 +349,9 @@ apply_gitignore(){
   local line added=0
   while IFS= read -r line; do
     [ -n "$line" ] || continue
-    grep -qF -- "$line" "$ROOT/.gitignore" 2>/dev/null && continue
+    # 完全一致で既存判定する（grep -qxF）。部分一致(-qF)だと、例えば新規行 `outputs/` が
+    # 既存の `.kiro/specs/*/outputs/` に部分一致して誤スキップされ、パターンが追加されない不具合が出る。
+    grep -qxF -- "$line" "$ROOT/.gitignore" 2>/dev/null && continue
     printf '%s\n' "$line" >> "$ROOT/.gitignore"
     added=1
   done < "$snippet"
