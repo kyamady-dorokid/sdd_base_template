@@ -20,6 +20,21 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/renderers.sh"
 source "$SCRIPT_DIR/manifest.sh"
 source "$SCRIPT_DIR/slice.sh"
+source "$SCRIPT_DIR/mermaid.sh"
+
+# 欠けたレンダラ固有の導入コマンドを提示する文字列（DRY レジストリ由来）
+install_hint_line(){
+  local cmd="$1" hint steps
+  hint="$(sdd_renderer_install_hint "$cmd")"; steps="${hint#*|}"; steps="${steps%%|*}"
+  [ -n "$steps" ] && printf '導入: %s' "$steps" || printf 'install-renderers を参照'
+}
+# 対話端末なら install-renderers 経由で導入を試み、再判定して 0/非0 を返す
+try_interactive_install(){
+  local cmd="$1"
+  [ -t 0 ] || return 1               # 非対話ではその場実行しない
+  bash "$SCRIPT_DIR/install-renderers.sh" "$cmd" || true
+  sdd_renderer_available_cmd "$cmd"
+}
 
 SPEC_DIR="$ROOT/.kiro/specs/$SPEC_ID"
 BUILD_OUT="$ROOT/outputs/$SPEC_ID"                 # ビルド成果物
@@ -38,9 +53,8 @@ records=()
 if [ -n "$MANIFEST" ] && [ -f "$MANIFEST" ]; then
   while IFS= read -r r; do [ -n "$r" ] && records+=("$r"); done < <(sdd_manifest_parse "$MANIFEST")
 else
-  primary="design.md"
-  [ -f "$SPEC_DIR/design.md" ] || primary="requirements.md"
-  while IFS= read -r r; do [ -n "$r" ] && records+=("$r"); done < <(sdd_manifest_default "$primary")
+  # C-2: マニフェスト不在時は spec 内の主要成果物（requirements/design/tasks）を各1本 docx 全文
+  while IFS= read -r r; do [ -n "$r" ] && records+=("$r"); done < <(sdd_manifest_default "$SPEC_DIR")
 fi
 
 # レポート初期化
@@ -76,23 +90,35 @@ for rec in ${records[@]+"${records[@]}"}; do
     rm -f "$sliced"; ERR=$((ERR+1)); continue
   fi
 
-  # レンダラ可用性
+  # レンダラ可用性（不可用なら固有の導入コマンドを提示。対話端末では導入を試みて再判定）
   cmd="$(sdd_renderer_for "$fmt")"
   if [ -z "$cmd" ] || ! sdd_renderer_available_cmd "$cmd"; then
-    emit "未生成（要 install-renderers）: $label → $fmt（レンダラ '${cmd:-未定義}' が見つかりません）／予定出力先: $desttag"
-    rm -f "$sliced"; SKIP=$((SKIP+1)); continue
+    if [ -n "$cmd" ] && try_interactive_install "$cmd"; then
+      : # 導入成功 → 続行
+    else
+      emit "未生成（要 install-renderers）: $label → $fmt（レンダラ '${cmd:-未定義}' 未導入。$(install_hint_line "${cmd:-}")）／予定出力先: $desttag"
+      rm -f "$sliced"; SKIP=$((SKIP+1)); continue
+    fi
+  fi
+
+  # Mermaid 前処理（mmdc 可用時は画像化、未導入時は元コードを残し未変換件数を得る）
+  assetdir="$(mktemp -d)"
+  processed="$(mktemp)"
+  unconv="$(sdd_mermaid_preprocess "$sliced" "$processed" "$assetdir")"
+  if [ "${unconv:-0}" -gt 0 ]; then
+    emit "注記: $label に Mermaid 図 ${unconv} 件（mmdc 未導入のため未変換・コードのまま）。$(install_hint_line mmdc)"
   fi
 
   # 生成
   mkdir -p "$destdir"
-  if "$cmd" "$sliced" -o "$destdir/$fname" >/dev/null 2>&1; then
+  if "$cmd" "$processed" -o "$destdir/$fname" >/dev/null 2>&1; then
     emit "生成済み: $label → $destdir/$fname ／ 出力先: $desttag"
     GEN=$((GEN+1))
   else
     emit "失敗: $label → $fmt のレンダリングに失敗（レンダラ実行時エラー）／予定出力先: $desttag"
     ERR=$((ERR+1))
   fi
-  rm -f "$sliced"
+  rm -f "$sliced" "$processed"; rm -rf "$assetdir"
 done
 
 {
@@ -104,4 +130,6 @@ done
 } >> "$REPORT"
 
 echo "doc-export 完了: 生成 $GEN / 未生成 $SKIP / エラー $ERR （レポート: $REPORT）"
+# B-1b: エラーを含む → 非0。未生成(想定内)のみ or 成功 → 0。
+[ "$ERR" -gt 0 ] && exit 1
 exit 0

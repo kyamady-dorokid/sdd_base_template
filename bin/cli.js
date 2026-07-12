@@ -91,9 +91,15 @@ function update() {
 }
 function docExport(args) {
   const root = process.cwd();
-  const specId = args.find(a => !a.startsWith("-"));
+  // 最初の位置引数（--manifest の値ではない、先頭が "-" でない引数）を spec-id とする
+  let specId = null, idx = -1;
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "--manifest") { i++; continue; }      // 次はフラグ値
+    if (args[i].startsWith("--manifest=")) { continue; }
+    if (!args[i].startsWith("-")) { specId = args[i]; idx = i; break; }
+  }
   if (!specId) { console.error("使い方: doc-export <spec-id> [--manifest <path>]"); process.exit(1); }
-  const passthru = args.filter(a => a !== specId);
+  const passthru = args.filter((_, i) => i !== idx);       // spec-id の位置だけ除去
   const r = sh("bash", [path.join(PAYLOAD, "scripts", "doc-export", "export.sh"), root, specId, ...passthru]);
   process.exit(r.status || 0);
 }

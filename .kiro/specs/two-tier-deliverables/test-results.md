@@ -54,3 +54,22 @@ TDD（RED→GREEN）で実装。`bash tests/run.sh` で単体・結合を一括�
 
 ### 残（PR3）
 - タスク10〜11（既存方針の保全・回帰の明文検証・E2E 記録・README）
+
+## PR-α（タスク12〜17: doc-export 壁打ち A〜D の実装）
+
+TDD（RED→GREEN）。`bash tests/run.sh` = **141件 全PASS**（PR2 の 110 + 新規/更新 31）。
+
+| 項目 | 決定 | テスト |
+|---|---|---|
+| C-2 既定生成（manifest不在→requirements/design/tasks 各1本 docx） | C | `test_doc_manifest.sh`（既定=存在する主要3成果物・記録は対象外）／`test_doc_export.sh` Part2 |
+| 導入コマンドレジストリ（DRY） | 導線 | `test_doc_renderers.sh`（`sdd_renderer_install_hint`） |
+| Mermaid 前処理（mmdc 画像化／未導入は元コード残し未変換件数） | D-1a | `test_doc_mermaid.sh`（未導入=元コード残し2件・可用=画像参照差替え） |
+| B-1b 終了コード3分類 | B | `test_doc_export.sh`（エラー含む→非0・未生成のみ→0・spec-id不在→1） |
+| 具体導入コマンド提示（欠けたレンダラ固有） | 導線 | `test_doc_export.sh`（docx=pandoc/uml=plantuml の案内） |
+| 対話導入（TTY時同意実行・非対話は提示のみ・自動導入しない） | 導線 | `test_install_renderers.sh`（非対話=提示のみ／y=DRYRUN で実導入せず／n=スキップ／手動のみは実行分岐に入らない） |
+| doc-export CLI 契約（A1・引数・終了コード透過・manifest値誤除去バグ修正） | A1 | CLI 実行で exit 0/1 透過・`--manifest` 値誤除去なしを確認 |
+
+**安全**: 実装・テスト中に実際の `npm i -g`／`brew install` は実行していない（対話 y 分岐は DRYRUN で検証）。
+
+### 残（PR-β）
+- タスク10（既存方針の保全・回帰）・タスク11（E2E 通し・README）
