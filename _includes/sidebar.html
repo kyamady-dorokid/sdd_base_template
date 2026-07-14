@@ -1,0 +1,50 @@
+<nav class="doc-sidebar" aria-label="ドキュメントナビゲーション">
+  {% comment %}
+    docs/sdd/** は md 本文を無改変にする制約があるため、front-matter によるナビ定義は使わない。
+    site.pages を page.dir でグルーピングし、ディレクトリ構造からナビを自動生成する。
+    未知のディレクトリが増えてもこのロジックだけでフォールバック表示される (Req 1.4)。
+  {% endcomment %}
+  {% assign group_order = "/,/docs/sdd/,/docs/sdd/rules/,/docs/sdd/templates/" | split: "," %}
+  {% assign group_labels = "トップ,SDD ワークフロー,ルール,テンプレート" | split: "," %}
+
+  {% assign nav_pages = site.pages | where_exp: "p", "p.dir != nil" %}
+  {% assign grouped = nav_pages | group_by: "dir" %}
+
+  {% for dir in group_order %}
+    {% assign found = false %}
+    {% for group in grouped %}
+      {% if group.name == dir %}
+        {% assign found = true %}
+        {% assign label_index = forloop.index0 %}
+        <div class="doc-sidebar-group">
+          <p class="doc-sidebar-group-label">{{ group_labels[label_index] | default: dir }}</p>
+          <ul class="doc-sidebar-list">
+            {% assign sorted_items = group.items | sort: "title" %}
+            {% for item in sorted_items %}
+              <li class="doc-sidebar-item{% if item.url == page.url %} doc-sidebar-item-active{% endif %}">
+                <a href="{{ item.url | relative_url }}"{% if item.url == page.url %} aria-current="page"{% endif %}>{{ item.title | default: item.name }}</a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+    {% endfor %}
+  {% endfor %}
+
+  {% comment %} 対応表に無いディレクトリのフォールバック表示 {% endcomment %}
+  {% for group in grouped %}
+    {% unless group_order contains group.name %}
+      <div class="doc-sidebar-group">
+        <p class="doc-sidebar-group-label">{{ group.name }}</p>
+        <ul class="doc-sidebar-list">
+          {% assign sorted_items = group.items | sort: "title" %}
+          {% for item in sorted_items %}
+            <li class="doc-sidebar-item{% if item.url == page.url %} doc-sidebar-item-active{% endif %}">
+              <a href="{{ item.url | relative_url }}"{% if item.url == page.url %} aria-current="page"{% endif %}>{{ item.title | default: item.name }}</a>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endunless %}
+  {% endfor %}
+</nav>
