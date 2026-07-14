@@ -7,7 +7,13 @@
   {% assign group_order = "/,/docs/sdd/,/docs/sdd/rules/,/docs/sdd/templates/" | split: "," %}
   {% assign group_labels = "トップ,SDD ワークフロー,ルール,テンプレート" | split: "," %}
 
+  {% comment %}
+    本サイトのナビ対象は README（トップ）と docs/sdd/** のみ（design.md Boundary Commitments）。
+    site.pages には exclude 対象外の他コンテンツ（例: assets/main.scss のビルド出力、docs/specs/** 等の
+    旧形式spec記録）も含まれるため、ここで明示的に絞り込む。
+  {% endcomment %}
   {% assign nav_pages = site.pages | where_exp: "p", "p.dir != nil" %}
+  {% assign nav_pages = nav_pages | where_exp: "p", "p.url == '/' or p.dir contains '/docs/sdd'" %}
   {% assign grouped = nav_pages | group_by: "dir" %}
 
   {% for dir in group_order %}
