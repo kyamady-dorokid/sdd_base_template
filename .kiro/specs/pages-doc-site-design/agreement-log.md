@@ -21,11 +21,14 @@
 | 1 | 方向性は「ドキュメントサイト風に整える」（サイドバーナビ・見出しの視認性重視） | ユーザー選択。just-the-docs風の見た目を目指すが、front-matter依存は避ける | 2026-07-13 |
 | 2 | 実現方式は minimaベースのCSS/layoutカスタマイズ、または front-matter不要な代替手段を検討する（要件定義で具体化） | `docs/sdd/**` 無改変・重い依存を持ち込まない、という `github-pages-docs` spec の制約を継承 | 2026-07-13 |
 
+| 3 | 実サイト検証（タスク5.2）で判明したナビ混入（`docs/specs/env-boundary-policy/`＝旧形式spec記録、`/assets/`＝main.scssビルド出力自身）を、`_includes/sidebar.html` 側でREADME＋`docs/sdd/**`への明示フィルタを追加して修正 | design.mdは「`exclude`済み外は`site.pages`に含まれないので追加フィルタ不要」という誤った前提だった。`_config.yml`のexclude変更はこのspecの管轄外（`github-pages-docs` spec所有）のため、sidebar側での絞り込みが妥当と判断。実装前にユーザーへ状況共有し、対応方針の承認を得た | 2026-07-14 |
+
 ## 却下・保留事項
 
 | 内容 | 理由 |
 |---|---|
 | just-the-docs等front-matter依存テーマへの丸ごと差し替え | `github-pages-docs` specのagreement-logで既に却下済み（`docs/sdd/**`無改変の制約と衝突） |
+| `_config.yml`のexcludeに`docs/specs/`・`assets/`を追加する方式 | `_config.yml`は`github-pages-docs` specの所有物であり本specの境界外。ユーザー選択によりsidebar.html側での絞り込みを採用 |
 
 ---
 

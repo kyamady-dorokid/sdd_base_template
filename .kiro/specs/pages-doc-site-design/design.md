@@ -187,8 +187,11 @@ assets/
 | Requirements | 1.1, 1.2, 1.3, 1.4, 3.4 |
 
 **Responsibilities & Constraints**
-- `site.pages` から対象ページ（README＋`docs/sdd/**`。`exclude` 済みディレクトリは `site.pages` に
-  含まれないため追加のフィルタは最小限でよい）を抽出する。
+- `site.pages` から対象ページ（README＋`docs/sdd/**`）を抽出する。`_config.yml` の `exclude` に
+  無いディレクトリ（例: `docs/specs/**`＝旧形式spec記録、`assets/main.scss` 自身のビルド出力）も
+  `site.pages` には含まれるため、`page.url == '/'` または `page.dir` が `/docs/sdd` を含む、という
+  明示的な条件でナビ対象を絞り込む（実装検証で判明した差分を反映。2026-07-14 修正、
+  `agreement-log.md` 参照）。
 - `page.dir` でグルーピングし、ディレクトリ→表示ラベルの対応表（`/`＝トップ、`/docs/sdd/`、
   `/docs/sdd/rules/`、`/docs/sdd/templates/`）でセクション見出しを付ける。対応表に無いディレクトリは
   ディレクトリ名をそのままラベルとして表示する（フォールバック、Req 1.4 を将来のディレクトリ追加にも対応させる）。
