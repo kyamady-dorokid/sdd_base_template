@@ -10,10 +10,11 @@
   {% comment %}
     本サイトのナビ対象は README（トップ）と docs/sdd/** のみ（design.md Boundary Commitments）。
     site.pages には exclude 対象外の他コンテンツ（例: assets/main.scss のビルド出力、docs/specs/** 等の
-    旧形式spec記録）も含まれるため、ここで明示的に絞り込む。
+    旧形式spec記録）も含まれる。where_exp は単純な単一条件のみに留め（"or" 等の複合条件は
+    Liquid構文エラーの原因になるため使わない）、docs/sdd 以外の絞り込みはグルーピング後に
+    group.name の文字列判定（下記フォールバック表示部）で行う。
   {% endcomment %}
   {% assign nav_pages = site.pages | where_exp: "p", "p.dir != nil" %}
-  {% assign nav_pages = nav_pages | where_exp: "p", "p.url == '/' or p.dir contains '/docs/sdd'" %}
   {% assign grouped = nav_pages | group_by: "dir" %}
 
   {% for dir in group_order %}
@@ -37,20 +38,26 @@
     {% endfor %}
   {% endfor %}
 
-  {% comment %} 対応表に無いディレクトリのフォールバック表示 {% endcomment %}
+  {% comment %}
+    対応表に無い docs/sdd/** 配下ディレクトリのフォールバック表示。
+    README（トップ）と docs/sdd/** 以外（assets/main.scss のビルド出力・docs/specs/** の
+    旧形式spec記録等）はここで除外する（design.md Boundary Commitments）。
+  {% endcomment %}
   {% for group in grouped %}
     {% unless group_order contains group.name %}
-      <div class="doc-sidebar-group">
-        <p class="doc-sidebar-group-label">{{ group.name }}</p>
-        <ul class="doc-sidebar-list">
-          {% assign sorted_items = group.items | sort: "title" %}
-          {% for item in sorted_items %}
-            <li class="doc-sidebar-item{% if item.url == page.url %} doc-sidebar-item-active{% endif %}">
-              <a href="{{ item.url | relative_url }}"{% if item.url == page.url %} aria-current="page"{% endif %}>{{ item.title | default: item.name }}</a>
-            </li>
-          {% endfor %}
-        </ul>
-      </div>
+      {% if group.name contains '/docs/sdd' %}
+        <div class="doc-sidebar-group">
+          <p class="doc-sidebar-group-label">{{ group.name }}</p>
+          <ul class="doc-sidebar-list">
+            {% assign sorted_items = group.items | sort: "title" %}
+            {% for item in sorted_items %}
+              <li class="doc-sidebar-item{% if item.url == page.url %} doc-sidebar-item-active{% endif %}">
+                <a href="{{ item.url | relative_url }}"{% if item.url == page.url %} aria-current="page"{% endif %}>{{ item.title | default: item.name }}</a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
     {% endunless %}
   {% endfor %}
 </nav>
