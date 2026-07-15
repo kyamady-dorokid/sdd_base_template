@@ -3,14 +3,17 @@
 > 設定・スタイル中心のため自動テストは追加しない。検証は実確認（tests/run.sh 非影響・sync 安全性・
 > 実サイトでのナビ/視認性/自動反映確認）。各ゲートで人間承認、自動コミットしない、ブランチ→PR。
 
-> **中断状態（2026-07-14）**: タスク1〜4は完了・PR #24（初期実装）とPR #25（サイドバーのナビ対象を
-> README＋docs/sdd/**へ絞り込む修正、docs/specs/**・assets/自身の混入を解消）はいずれもmainへマージ済み。
-> タスク5（実サイト検証）はPR #25マージ後の GitHub Pages ビルドが `building` のまま長時間
-> （30分以上・`updated_at` 不変）進まず未完了のため、ユーザー判断で**保留・後日再開**とした。
-> 再開時は `gh api repos/kyamady-dorokid/sdd_base_template/pages/builds/latest` でビルド状態を確認し、
-> `built` かつ `curl -sI https://kyamady-dorokid.github.io/sdd_base_template/` の `last-modified` が
-> PR #25 のマージ時刻（2026-07-14 11:23 UTC 以降）になっていることを確認してから 5.2 以降を実施する
-> （CDNキャッシュ `max-age=600` があるため、ビルド完了直後は数分キャッシュが残る場合がある）。
+> **障害対応履歴（2026-07-14）**: PR #25マージ後、`gh api .../pages/builds/latest` が `building` から
+> 変化せず「詰まっている」ように見えたため一旦保留にしたが、実際には `gh run list`（GitHub Actions の
+> `pages build and deployment` ワークフロー）で確認したところ、ビルドは30〜40秒で完了し**失敗**していた
+> （`pages/builds/latest` API のステータス表示が更新されない不具合があった。真の状態確認には
+> `gh run list` / `gh run view --log-failed` を使うこと）。
+> 失敗原因は `_includes/sidebar.html` の `where_exp` フィルタ引数に `"p.url == '/' or p.dir contains '/docs/sdd'"`
+> という複合条件（`or`）を書いたことによる Liquid 構文エラー（`Expected end_of_string but found id included`）。
+> `where_exp` は単一の単純条件のみをサポートするため、フィルタ側の絞り込みをやめ、グルーピング後の
+> `{% if group.name contains '/docs/sdd' %}` という単純な `if` 判定に置き換えて修正した（PR #27）。
+> ローカルに `liquid` gem（4.0.4、GitHub Pages と同バージョン）を導入し `Liquid::Template.parse` で
+> 構文エラーが再現しないことを確認済み。
 
 - [x] 1. サイドバーナビゲーションの実装
 - [x] 1.1 `_includes/sidebar.html` を新規作成し、`site.pages` をディレクトリ単位でグルーピングして
@@ -67,17 +70,20 @@
   - 実績: PR #24（初期実装）・PR #25（サイドバー対象の絞り込み修正）ともにmainへマージ済み
   - _Requirements: —（プロセス）_
 
-- [ ] 5. 実サイトでの検証（PRマージ後・外部公開への反映のため実行前に確認）**保留中（2026-07-14、後日再開）**
-- [ ] 5.1 Pages ビルド状態が `built` になることを確認する
-  - 観測可能な完了条件: `gh api .../pages/builds/latest` の `status` が `built`
-  - 状態: PR #25 マージ後のビルド（commit 7a72967）が `building` のまま30分以上進捗せず。
-    手動再トリガー（`gh api -X POST .../pages/builds`）も試したが同様に停滞。ユーザー判断で保留
+- [ ] 5. 実サイトでの検証（PRマージ後・外部公開への反映のため実行前に確認）
+- [ ] 5.1 Pages ビルド状態が `built`（成功）になることを確認する
+  - 観測可能な完了条件: `gh run list`（`pages build and deployment`）の最新実行が `success`
+  - 状態: PR #25 マージ後のビルドは実際には30〜40秒で完了していたが**失敗**していた
+    （`_includes/sidebar.html` の `where_exp` に `or` を使ったことによる Liquid 構文エラー）。
+    `pages/builds/latest` API が `building` のまま更新されない不具合で発覚が遅れた。
+    PR #27 で `where_exp` の複合条件をやめて修正済み。PR #27 マージ後の再確認が必要
   - _Requirements: 4.1_
 - [ ] 5.2 代表ページ（README・`docs/sdd/workflow`・`docs/sdd/rules` 配下1件・
       `docs/sdd/templates` 配下1件）でサイドバー表示・現在地ハイライト・リンク遷移（404無し）を確認する
   - 観測可能な完了条件: 4ページすべてで 200 応答・サイドバー表示・代表リンクのクリック遷移を確認できる
   - 状態: PR #24 反映時点では確認済み（4ページとも200・サイドバー表示・遷移OK）だが、
-    その際に `docs/specs/**`・`assets/` の混入を発見（PR #25 で修正）。PR #25 反映後の再確認が未実施
+    その際に `docs/specs/**`・`assets/` の混入を発見（PR #25 で修正を試みたがビルド自体が
+    失敗していたため未反映）。PR #27 反映後の再確認が必要
   - _Requirements: 1.1, 1.2, 1.3, 4.2_
 - [ ] 5.3 一時的なダミー md を `docs/sdd/` 配下に追加してサイドバーへの自動反映を確認し、
       確認後に削除する
