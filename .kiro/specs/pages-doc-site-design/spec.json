@@ -1,9 +1,9 @@
 {
   "feature_name": "pages-doc-site-design",
   "created_at": "2026-07-13T00:00:00Z",
-  "updated_at": "2026-07-14T00:00:00Z",
+  "updated_at": "2026-07-17T00:00:00Z",
   "language": "ja",
-  "phase": "implementation-fix-in-progress",
+  "phase": "implemented",
   "approvals": {
     "requirements": {
       "generated": true,
