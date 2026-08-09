@@ -30,6 +30,13 @@
       `SDD-OVERLAY:DESIGN-TECHREQ` 節が注入されている（技術要件を design.md へ一本化）
 - [ ] `ensure-agreement-log.sh`: `.claude/` と `.agents/` 両方の `kiro-spec-init/SKILL.md` に
       `SDD-OVERLAY:ENSURE-AGREEMENT-LOG` ブロックが1つ注入されている（spec初期化時に agreement-log.md を実在させる）
+- [ ] `fix-ears-plain-japanese.sh`: `.claude/` と `.agents/` 両方の
+      `kiro-spec-requirements/rules/ears-format.md` に `SDD-OVERLAY:EARS-PLAIN-JA` ブロックが1つ
+      注入されている（Objective節・可変部分を平易な日本語にする）
+- [ ] `fix-plain-japanese-output.sh`: 直接ドキュメントを生成する11スキル（kiro-spec-requirements/
+      design/tasks/init, kiro-validate-design/gap/impl, kiro-discovery, kiro-steering,
+      kiro-steering-custom, kiro-impl）の SKILL.md（`.claude/`・`.agents/` 両方、計22ファイル）に
+      `SDD-OVERLAY:PLAIN-JAPANESE-OUTPUT` ブロックが1つ注入されている
 - [ ] 冪等性: 再 init で重複注入されない（マーカー検出でスキップ）
 
 ## D. バージョン整合

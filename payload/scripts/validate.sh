@@ -80,6 +80,14 @@ if [ "$PHASE" = "post" ]; then
   for f in ".claude/skills/kiro-spec-init/SKILL.md" ".agents/skills/kiro-spec-init/SKILL.md"; do
     grep -q 'SDD-OVERLAY:ENSURE-AGREEMENT-LOG' "$ROOT/$f" 2>/dev/null && ok "$f に ENSURE-AGREEMENT-LOG 注入済み" || ng "$f に ENSURE-AGREEMENT-LOG 未注入"
   done
+  for f in ".claude/skills/kiro-spec-requirements/rules/ears-format.md" ".agents/skills/kiro-spec-requirements/rules/ears-format.md"; do
+    grep -q 'SDD-OVERLAY:EARS-PLAIN-JA' "$ROOT/$f" 2>/dev/null && ok "$f に EARS-PLAIN-JA 注入済み" || ng "$f に EARS-PLAIN-JA 未注入"
+  done
+  for s in kiro-spec-requirements kiro-spec-design kiro-spec-tasks kiro-spec-init kiro-validate-design kiro-validate-gap kiro-validate-impl kiro-discovery kiro-steering kiro-steering-custom kiro-impl; do
+    for f in ".claude/skills/$s/SKILL.md" ".agents/skills/$s/SKILL.md"; do
+      grep -q 'SDD-OVERLAY:PLAIN-JAPANESE-OUTPUT' "$ROOT/$f" 2>/dev/null && ok "$f に PLAIN-JAPANESE-OUTPUT 注入済み" || ng "$f に PLAIN-JAPANESE-OUTPUT 未注入"
+    done
+  done
 
   say "== 検証(post): 記録レイアウト統一（docs/specs 不使用・重複排除） =="
   [ -d "$ROOT/.kiro/specs" ] && ok ".kiro/specs/ 存在" || ng ".kiro/specs/ が無い"

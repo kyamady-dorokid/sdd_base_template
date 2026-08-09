@@ -27,6 +27,7 @@
 - ブランチ方針: [docs/sdd/rules/branching-policy.md](docs/sdd/rules/branching-policy.md)
 - 環境越境ポリシー（Windows×WSL）: [docs/sdd/rules/environment-boundary-policy.md](docs/sdd/rules/environment-boundary-policy.md)
 - 秘密情報ポリシー（ハードコード禁止）: [docs/sdd/rules/security-policy.md](docs/sdd/rules/security-policy.md)
+- 日本語の書き方ルール（平易な日本語）: [docs/sdd/rules/japanese-writing-style.md](docs/sdd/rules/japanese-writing-style.md)
 - 成果物二層化ポリシー（一次=正本/二次=派生ビュー）: [docs/sdd/deliverables-policy.md](docs/sdd/deliverables-policy.md)
 - 各テンプレート: [docs/sdd/templates/](docs/sdd/templates/)
 
