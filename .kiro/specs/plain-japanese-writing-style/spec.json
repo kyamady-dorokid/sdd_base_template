@@ -1,0 +1,23 @@
+{
+  "feature_name": "plain-japanese-writing-style",
+  "created_at": "2026-08-09T00:00:00Z",
+  "updated_at": "2026-08-09T00:00:00Z",
+  "language": "ja",
+  "phase": "implemented",
+  "approvals": {
+    "requirements": {
+      "generated": true,
+      "approved": true
+    },
+    "design": {
+      "generated": true,
+      "approved": true
+    },
+    "tasks": {
+      "generated": true,
+      "approved": true
+    }
+  },
+  "ready_for_implementation": true,
+  "recovery_note": "cyclox2_docker側セッションでの壁打ちに基づき起票。sync自動マージ機能は別スペックへ切り出し、本スペックのスコープ外とした。"
+}
