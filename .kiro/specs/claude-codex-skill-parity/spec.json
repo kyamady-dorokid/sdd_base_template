@@ -1,0 +1,108 @@
+{
+  "feature_name": "claude-codex-skill-parity",
+  "created_at": "2026-08-15T17:45:47+09:00",
+  "updated_at": "2026-08-15T22:15:49+09:00",
+  "language": "ja",
+  "phase": "design-tasks-approved-awaiting-implementation-authorization",
+  "tier": "L",
+  "approvals": {
+    "requirements": {
+      "generated": true,
+      "approved": true,
+      "approved_at": "2026-08-15T20:02:04+09:00",
+      "input_hash": "e324353449e9ddd686273eb264c0e7467d2b0168"
+    },
+    "design": {
+      "generated": true,
+      "approved": true,
+      "approved_at": "2026-08-15T22:15:49+09:00",
+      "input_hash": "976e31b0ee0f0a9d70db4cd212749a991a5a238a"
+    },
+    "tasks": {
+      "generated": true,
+      "approved": true,
+      "approved_at": "2026-08-15T22:15:49+09:00",
+      "input_hash": "7456b1c63bdfc0b23820c02e44b5ff4b4e56c563"
+    }
+  },
+  "reviews": {
+    "requirements": {
+      "status": "passed",
+      "input_hash": "e324353449e9ddd686273eb264c0e7467d2b0168",
+      "input_hash_kind": "git-blob-manifest-v1",
+      "input_files": [
+        "brief.md",
+        "requirements.md"
+      ],
+      "reviewed_at": "2026-08-15T20:00:33+09:00",
+      "reviewer_model": {
+        "id": "gpt-5.6-sol",
+        "family": "Sol",
+        "environment": "Codex",
+        "selection_reason": "approved latest available Sol-class reasoning/code-review model"
+      },
+      "report": "reviews/requirements.md"
+    },
+    "design": {
+      "status": "passed",
+      "input_hash": "976e31b0ee0f0a9d70db4cd212749a991a5a238a",
+      "input_hash_kind": "git-blob-manifest-v1",
+      "input_files": [
+        "requirements.md",
+        "research.md",
+        "design.md"
+      ],
+      "reviewed_at": "2026-08-15T21:17:00+09:00",
+      "reviewer_model": {
+        "id": "gpt-5.6-sol",
+        "family": "Sol",
+        "environment": "Codex",
+        "selection_reason": "same independent reviewer used for convergence"
+      },
+      "convergence": "passed",
+      "repair_batches": 5,
+      "max_repair_batches": 10,
+      "report": "reviews/design.md"
+    },
+    "tasks": {
+      "status": "passed",
+      "input_hash": "7456b1c63bdfc0b23820c02e44b5ff4b4e56c563",
+      "input_hash_kind": "git-blob-manifest-v1",
+      "input_files": [
+        "requirements.md",
+        "design.md",
+        "tasks.md"
+      ],
+      "reviewed_at": "2026-08-15T21:34:00+09:00",
+      "reviewer_model": {
+        "id": "gpt-5.6-sol",
+        "family": "Sol",
+        "environment": "Codex",
+        "selection_reason": "same independent reviewer used for convergence"
+      },
+      "stale": false,
+      "convergence": "passed",
+      "repair_batches": 2,
+      "max_repair_batches": 10,
+      "report": "reviews/tasks.md"
+    },
+    "implementation": {
+      "status": "pending",
+      "input_hash": null,
+      "reviewed_at": null,
+      "report": "reviews/implementation.md"
+    }
+  },
+  "approval_mode": {
+    "design_tasks": "combined_once",
+    "authorized_at": "2026-08-15T20:11:04+09:00",
+    "completed_at": "2026-08-15T22:15:49+09:00",
+    "implementation_included": false
+  },
+  "implementation_authorization": {
+    "authorized": false,
+    "required": true
+  },
+  "ready_for_implementation": false,
+  "issue": 32
+}
