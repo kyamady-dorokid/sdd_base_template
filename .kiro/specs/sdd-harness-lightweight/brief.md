@@ -58,6 +58,27 @@
 - cc-sdd `kiro-impl`のtask単位subagent dispatchと本契約が衝突する場合は、overlayで既知節を明示的に
   置換・無効化する。upstream変更で安全に適用できない場合はfail-closedとし、Claude Code/Codex双方で検証する。
 
+#### 採用するmodel routing
+
+- model名ではなく、最低能力要件として`Standard / Critical / Mechanical`の3 classを定義する。
+  実modelはprovider別の更新可能な対応表で解決し、特定versionをpolicy本文へ永久固定しない。
+- 想定対応はClaude Codeで`Standard = Sonnet 5`、`Critical = Opus 5または適格な特化model`、
+  `Mechanical = Haiku`、Codexで`Standard = 5.6-terra`、`Critical = 5.6-solまたは適格な特化model`、
+  `Mechanical = 5.6-luna`とする。利用できないmodelは将来候補として扱う。
+- `Standard`は主agent、仕様作成、通常実装、制限context自reviewの基準とする。`Critical`はfresh独立reviewと
+  高難度の設計・debugに必須とする。高riskはreviewを強化し、実装者の`Critical`昇格は難度で判定する。
+- `Critical`はmodel familyだけでなく、high相当以上の推論設定と、`spec-review / code-review / security-review`等の
+  対象に適した能力を満たす。一般のcode review特化modelをすべての文書reviewへ無条件に使用しない。
+- `Mechanical`はID抽出、format変換、hash、schema・参照検査、test結果集計等の非判断作業だけに使う。
+  risk、requirement、design、test充足性、finding重大度、省略可否を判断させない。
+- classは最低能力とし、上位classによる代行と、管理済み対応表内の同等modelへの解決を認める。
+  `Critical`からの降格は禁止し、対応表外・能力不明は人間判断まで停止する。provider越えの代替も人間承認を要する。
+- review収束中のmodel IDまたは推論設定の変更はreviewer交代とみなし、そのgateのfresh reviewを最初からやり直す。
+- role、required class、解決model・推論profile・能力tag、provider/環境、選定理由、fallback、input hash、
+  取得可能なToken、retry、実行日時を簡潔な証跡として残す。
+- model routingは単価・品質・手戻りの最適化であり、model変更だけでToken数削減とはみなさない。
+  input/output/reasoning/cached Token、retry、費用、時間を合わせて評価する。
+
 ### 2. SDD工程と成果物
 
 - 要件、設計、タスク、合意、テスト結果、結合試験記録の責務と重複を棚卸しする。
@@ -148,10 +169,10 @@ traceabilityは本文copyではなく、`requirement/AC → design節 → task �
 
 ### Related contracts
 
-- Issue #39はfresh subagent独立レビュー、fail-closed、人間承認非代替、基本1レビュアー、
-  批判的な姿勢、同一レビュアーによる収束、最大10巡、推論能力またはcode review能力の高いmodelの利用を
-  所有する。本specが適用範囲やmodel要件を変更する場合は、#39への影響と移行順を明示し、
-  人間承認なしに上書きしない。
+- Issue #41がTier・risk別のreview gate配置、model routing、agent構成のpolicy正本となる。Issue #39は
+  独立したpolicy specではなく、#41配下でfresh reviewerの独立性、共通判定、hash鮮度、fail-closed、
+  全入口適用、証跡、移行、validationを実装する子Issueへ再編する。#39の既存requirementsは適用gateの
+  前提が変わるためstaleとし、#41確定前にdesignへ進めない。
 - Issue #32はClaude Code / Codexパリティを所有する。本specの実装は#32の配布・検証境界へ接続する。
 - Issue #37は成果物分類と保存方針を所有する。本specは一次成果物、人間review guide、承認時navigationを扱うが、
   保存方針を無断で変更しない。

@@ -51,6 +51,16 @@
 | 27 | Tokenはagent別context量・重複率を主指標とし、subagentには役割別の最小context envelopeだけを渡す | agent数より投入context量が消費を左右し、同じ正本と親要約の二重投入が浪費になるため | 2026-08-16 |
 | 28 | 複数subagentの同時利用は独立責務・非重複file・context見積もり・時間短縮・統合方法を提示し、人間が例外承認した場合だけ認める | 並列化は主に時間短縮であり、Token節約を保証せず、競合と不要作業のriskを伴うため | 2026-08-16 |
 | 29 | cc-sdd `kiro-impl`のtask単位dispatchと本契約が衝突する場合はoverlayで既知節を明示的に置換し、適用不能時はfail-closedとする | 曖昧な追記による矛盾を残さず、cc-sddをforkせずにlocal harness契約を優先するため | 2026-08-16 |
+| 30 | model routingは`Standard / Critical / Mechanical`の3能力classを正本とし、実modelはprovider別の更新可能な対応表で解決する | model名・versionの変更でpolicy本文とapprovalを無駄に更新せず、Claude Code / Codexで同じ能力契約を強制するため | 2026-08-16 |
+| 31 | 想定対応をClaude CodeはSonnet 5 / Opus 5または適格特化model / Haiku、Codexは5.6-terra / 5.6-solまたは適格特化model / 5.6-lunaとし、未提供modelは将来候補とする | 現在の利用可否と目標とする対応を混同せず、能力classと実装mappingを分離するため | 2026-08-16 |
+| 32 | `Standard`を主agent・仕様作成・通常実装の最低要件、`Critical`をfresh独立review・高難度設計・debugの要件とする | 変更riskと作業難度を分離し、高riskはreview強化、高難度は実装model昇格で対処するため | 2026-08-16 |
+| 33 | `Critical`はhigh相当以上の推論設定とreview対象に適した能力tagを必須とする | model family名または一般的な「review特化」表示だけで仕様・code・securityの異なるreview能力を証明できないため | 2026-08-16 |
+| 34 | `Mechanical`は機械検証可能な抽出・変換・集計だけに限定し、risk・仕様・設計・test充足性・finding重大度・省略可否を判断させない | 軽量modelの判断誤りが正本やapprovalへ入り込む境界を防ぐため | 2026-08-16 |
+| 35 | classを最低能力とし、上位classの代行と管理済み同等modelへの解決は認めるが、`Critical`からの降格は禁止する | 不要なsubagent切替とcontext再投入を避けつつ、独立reviewの品質下限を守るため | 2026-08-16 |
+| 36 | 対応表外・能力不明・provider越えの代替は人間判断まで停止し、review収束中のmodel IDまたは推論設定変更はreviewer交代としてfresh reviewをやり直す | 能力不明の代替とreviewerの実質的変更を黙認しないため | 2026-08-16 |
+| 37 | model証跡はrole、required class、実model・推論profile・能力tag、環境、選定・fallback理由、input hash、取得可能なToken、retry、日時に限定する | ルーティングの再現性を保ちつつ、会話全文の保存と重複を避けるため | 2026-08-16 |
+| 38 | Issue #41をreview gate配置・model routing・agent構成のpolicy正本とし、Issue #39はそれに従う独立review実行・状態・証跡・validationの子実装Issueへ再編する | 両Issueのpolicy重複と「全gate必須」対「risk別適用」の矛盾を解消し、正本を1つにするため | 2026-08-16 |
+| 39 | model routingの効果はmodel名ではなく、input/output/reasoning/cached Token、retry、費用、時間、手戻りで評価する | 軽量modelの利用がToken数削減を保証せず、再試行を含む総量で比較する必要があるため | 2026-08-16 |
 
 ---
 
@@ -64,7 +74,7 @@
 | Tier Sという理由だけで高リスク変更の独立レビューを省略する | 作業量と障害影響は一致しないため却下 |
 | subagent累計起動数をToken上限として固定する | agent数よりcontext量・重複率の影響が大きく、必要なfresh reviewやdebugを不合理に妨げるため却下 |
 | SDD標準出力文書とAI独立review結果の具体的記述基準・日本語化範囲 | 後続の壁打ちで、requirements・design・tasks等を含む対象文書、抽象語・暗黙の前提の排除、必要な固有名・system名・EARSトリガーキーワード等の例外を決定する |
-| 開発ハーネス内のmodel routing | 後続の壁打ちで、Tier・risk・役割ごとのmodel能力要件、費用との均衡、fallback、実際に利用したmodelの記録方法、Issue #39への影響を決定する |
+| Issue #39を独立したpolicy specのまま維持する | #41とreview適用gate、model、agent構成、Token方針が重複・矛盾するため、#41配下の子実装Issueへ再編する |
 
 ---
 
@@ -74,15 +84,15 @@
 |---|---|---|
 | 1 | 正本文書の責務と最小構成 | 合意済み。具体的なformat、ID表現、意味的validatorはrequirements承認後のdesignで決める |
 | 2 | agent構成と独立review gate | 合意済み。context envelopeの具体field、gate hash、kiro-impl patch方式はrequirements承認後のdesignで決める |
-| 3 | model routing | 実装・独立review等の役割別能力要件、最新推論系またはcode review特化modelの選択、費用との均衡、fallback、利用modelの記録、Issue #39の変更要否を決める |
+| 3 | model routing | 合意済み。具体的な対応表、能力tag、推論profile、実行時検証のformatはrequirements承認後のdesignで決める |
 | 4 | 人間review guideと出力表現 | gate別確認観点、正本へのnavigation、差分・影響範囲、前工程へ戻す条件を決める。SDD標準出力文書とAI独立review結果は、抽象語・暗黙の前提を避け、例外を除いて日本語で具体的に記述する基準を決める |
 | 5 | 計測・比較と受入判定 | 代表taskを選び、Token、時間、文書量、重複率、人間review時間、traceability、欠陥検出率を現行方式と比較する方法を決める |
 | 6 | 移行・parity・Issue依存 | Claude Code/Codex双方への同一反映、既存specの扱い、Issue #39・#32・#37との変更順と受入条件を決める |
 
 ### 次回の再開点
 
-順番3「model routing」から開始する。実装・独立review等の役割別能力要件、model名固定または
-能力class指定、費用との均衡、fallback・fail-closed、利用modelの証跡、Issue #39の変更範囲を決定する。
+順番4「人間review guideと出力表現」から開始する。gate別に人間が確認する正本・判断事項・整合性、
+navigationの提示順、前工程へ戻す条件、SDD標準文書とAI独立review結果の日本語・具体的記述基準を決定する。
 
 ---
 
@@ -113,3 +123,5 @@
 | 2026-08-16 | test層・実行方式・正本の分離、簡潔なTDD証跡、安全な参照検証、条件付きmanual checklistを合意 | KYamada / Codex |
 | 2026-08-16 | manual checklistの記載項目、tasks承認前の作成、人間による実施、未完了時の停止条件を合意 | KYamada / Codex |
 | 2026-08-16 | risk別の独立review gate、通常1 active subagent、context量中心のToken制御、並列例外条件を合意 | KYamada / Codex |
+| 2026-08-16 | 3能力class、役割別routing、推論・能力要件、fallback、証跡、Token評価を合意 | KYamada / Codex |
+| 2026-08-16 | #41をreview policyの正本とし、#39を独立review機構の子実装Issueへ再編する方針を合意 | KYamada / Codex |
