@@ -145,6 +145,65 @@ traceabilityは本文copyではなく、`requirement/AC → design節 → task �
   navigationとして扱う。
 - 同じ文章の反復読解は求めないが、要件から設計、設計からtaskへの対応漏れ・解釈変更は確認する。
 
+#### 採用する人間review guideとnavigation
+
+- 全specで共用する恒久review guideを1つ配布し、各spec用のreview文書は作らない。guideは
+  gateごとの人間の判断責務、確認する正本、再読不要の範囲、前工程へ戻す条件、承認不能状態だけを定義する。
+- requirements gateでは問題・期待結果・対象/対象外・観測可能性・risk・制約・未決事項を確認し、
+  file構成・algorithm・内部APIを人間の承認対象に混ぜない。
+- design gateではrequirement/AC対応、意味変更、公開契約、data、security、障害時動作、rollback、test方針、
+  manual checklist要否を確認し、requirements本文を再掲しない。
+- tasks/実装許可gateではdesignの網羅、依存順、TDD単位、高risk checkpoint、manual確認項目、並列作業の
+  責務分離、前工程の変更をtaskへ隠していないことを確認する。
+- 実装完了gateではscope、ACからtestへの参照、RED/GREEN・revision・環境、failure/skip/未検証、
+  manual結果、必須独立review、残存risk、rollbackを確認し、全diff・全logの読解を標準にしない。
+- 承認時のagentは、対象phase/spec/hash/revision、人間が決めるmaterial decision、正本file・section・ID、
+  前工程からの意味変更、review/検証状態、risk/例外、承認・局所修正・前工程戻し・説明要求の選択肢の順で
+  navigationを提示する。3〜7件は見やすさの目安であり、重要判断を隠す上限にしない。
+- 必須観点は内部的に`APPLICABLE / NOT_APPLICABLE / BLOCKED`のいずれかへ分類し、`NOT_APPLICABLE`には理由を要求する。
+  blocking finding、stale/未実施review、risk不明、参照切れ、工程間矛盾、必須test欠落、manual未完了、隠れたscope変更が
+  ある場合は承認依頼を出さず、承認不能の理由を報告する。
+- 自然言語の承認は、直前のgateと対象が明確で、「承認する」「この内容で進めてよい」「OK、次へ進めて」等の
+  明確な意思がある場合に限る。「よさそう」「概ね問題ない」「たぶんOK」、一部同意、質問への回答はapprovalとして記録しない。
+- 本基準は人間が採用した仮説であり、requirements化後のCritical fresh独立reviewで、省略・見逃し、
+  承認表現の曖昧性、cc-sdd互換性、人間負荷とtraceabilityの均衡を反例ベースで再検証する。
+
+#### 文書出力基準の適用対象
+
+- 固定file名ではなく、SDDハーネス、`kiro-*` skill、またはその指示を受けたagentが生成・更新する、
+  人間が読むことを目的としたすべての文書・説明出力を対象とする。
+- `.kiro/specs/`、`.kiro/steering/`、custom steering、roadmap、research、review、validation、debug、status、
+  将来のcc-sddが追加する文書、人間主導で生成するREADME・運用手順・設計補足等をfile名に依存せず含める。
+  一次成果物から生成するPDF/Word/PowerPoint等の二次成果物にも源泉の基準を引き継ぐ。
+- 適用判定は拡張子ではなく内容単位で行う。JSON/YAML等の人間向け説明には適用するが、
+  schema key・enum・status、code/identifier/API field、command/option/path、raw log/error、hash/version、
+  外部仕様の引用、license原文、vendored/upstream文書、完全一致が必要なprotocol文字列は変更しない。
+- 主体・条件・動作・結果・例外の具体化、抽象語と暗黙前提の排除、正本重複の防止、事実・推論・未確認の区別は
+  言語に関係なくすべての対象文書へ適用する。
+- SDD標準文書、steering、review/validation/debug報告、承認navigation、出力言語未指定の人間向け文書は
+  日本語を既定とする。人間の明示言語指定、対象読者・公開先・外部契約の言語要求、既存文書の言語維持、
+  証拠・互換性・licenseの原文保持が必要な場合だけ他言語を認める。他言語でも具体的記述基準は免除しない。
+- 明示要求がない日本語・英語の全文併記は、Tokenと人間の読解量を増やすため行わない。
+
+#### 具体的記述とreview finding
+
+- 要件、契約、指示、承認済み判断等の規範文で、判定基準・数値・責任主体・例外のない抽象表現は
+  `BLOCKED`とする。背景・仮説・説明の非規範文ではwarningとするが、判断根拠に用いる場合は具体化を要求する。
+- 「適切に」「必要に応じて」「十分な」「安全に」「効率的に」「柔軟に」「可能な限り」「原則として」「等」「最新」
+  「容易に」「高性能」等は禁止語とせず、対象者が同じ判定を再現できる条件が付いているかで判定する。
+- requirementsはcc-sdd互換性のため`The / When / While / If / Where / shall`のEARS構文keywordを維持し、
+  条件・主体・応答を日本語で記述する。1 acceptance criterionは1つの検証可能な振る舞いだけを所有する。
+- 一文1判断、明示的な主語、対象ID・名称による参照、二重否定の回避、閾値・期限・失敗時動作の明示を基準とする。
+  「これ」「それ」で正本対象を曖昧にしない。未決事項は確定事項と分離する。
+- 独立review findingはID、`CRITICAL / HIGH / MEDIUM / LOW`の重大度、`BLOCKING / ADVISORY`の承認影響、
+  対象、違反契約、証拠、証拠からの推論、具体的な失敗例、必要修正の結果、観測可能な完了条件を持つ。
+- 重大度と承認影響は別軸とし、`BLOCKING`が1件でもあれば`PASS`を禁止する。判定に影響する未確認は`UNVERIFIED`として隠さない。
+  初回reviewで全findingを一括提示し、収束中の新規指摘は`LATE_FINDING`とする。
+- findingの必要修正は満たすべき結果を示し、承認済みdesignの範囲を超えて実装方法を過剰指定しない。
+  findingがない場合は網羅観点と「findingなし」だけを示し、称賛・一般論・長い要約を追加しない。
+- 本記述・finding基準もrequirements化後のCritical fresh独立reviewで、抽象語判定の過剰/不足、EARS互換性、
+  finding構造の欠落、人間が判断できる具体性、Token・読解負荷を反例ベースで再検証する。
+
 ## Boundary Candidates
 
 ### In scope
@@ -154,8 +213,8 @@ traceabilityは本文copyではなく、`requirement/AC → design節 → task �
 - Tierとリスク分類、承認ゲート、独立レビュー適用範囲の関係
 - 一次成果物、恒久的な人間review guide、機械証跡の責務と最小構成
 - 人間が判断可能な具体的記述基準とレビュー提示順
-- requirements、design、tasks等のSDD標準出力文書とAI独立review結果の両方で、抽象語・暗黙の前提を避け、
-  必要な固有名・system名・EARSトリガーキーワード等を除いて基本的に日本語で出力するための基準
+- SDD/`kiro-*`/agentが生成・更新するすべての人間可読文書・説明出力に具体的記述基準を適用し、
+  明示的な言語要件や原文保持の例外を除いて日本語で出力するための基準
 - 現行方式と候補方式を比較するToken・時間・品質・人間負荷の計測方法
 - Claude Code / Codex両環境への同一ルール配布と検証
 
@@ -177,6 +236,62 @@ traceabilityは本文copyではなく、`requirement/AC → design節 → task �
 - Issue #37は成果物分類と保存方針を所有する。本specは一次成果物、人間review guide、承認時navigationを扱うが、
   保存方針を無断で変更しない。
 
+## 移行・Issue調停方針
+
+### 全open Issueを含む導入順
+
+2026-08-17時点のopen Issue `#30 / #31 / #32 / #33 / #34 / #35 / #37 / #38 / #39 / #41`を
+対象に、次の順を基準とする。`#34`と`#35`は独立specではなく、`#33`配下の人間管理用work taskである。
+
+1. 本spec `#41`のrequirements、design、tasksを承認可能な状態まで確定する。
+2. `#32`のClaude Code / Codex検出・materialize・semantic parity基盤を完了する。
+3. `#38`のbash 3.2 / CJK PDF生成不具合を再現し、`#37`より先に修正する。
+4. `#30`のsyncにおける確認、clean apply、conflict、report契約を確定する。
+5. `#41`の共通policyを実装し、`#39`をそのpolicyに従う独立review機構として協調導入する。
+6. `#33`のcc-sdd version lifecycleを、`#34`、`#35`の順で実装する。
+7. `#31`の実行通知を、`#41`のToken・人間負荷基準と`#39`のreview境界に合わせて実装する。
+8. `#37`を新policyへ移行し、`#38`修正済みのdoc-exportを前提に再開する。
+
+`#33`、`#31`、`#37`間の順は原則としてroadmap上の順序であり、相互のhard dependencyではない。
+依存をGitHub Issue全体へ設定するとrequirements等の先行検討まで不必要に止める場合は、実装phaseの依存として
+Issue本文とspecに記録する。共有する`payload/overlay/`、skill、sync、doc-exportの同時実装は避ける。
+
+### policyの優先順位と衝突時の停止
+
+- SDDハーネス全体のagent構成、review gate、model routing、文書責務、記述基準、計測、移行については、
+  `#41`を横断policyの正本として既定で優先する。
+- 他Issueが所有する機能要件や成果物を`#41`へ吸収しない。衝突しない範囲では各Issueの責務と承認済み判断を維持する。
+- 他Issueの契約がdata integrity、security、privacy、法的義務、公開互換性、復旧可能性、または人間承認の
+  不変条件を保護しており、`#41`を優先するとその保護を弱める場合は、自動的に上書きしない。
+- criticalな対抗契約、どちらが優先すべきか判定不能な衝突、または両立に承認済みscopeの変更が必要な場合は、
+  該当gateを`BLOCKED`とし、衝突するIssue・契約・失敗例・選択肢・影響を人間へ提示して壁打ちへ戻す。
+- 衝突検出は事前のIssue棚卸しだけで完了扱いにしない。requirements、design、tasks、実装、review、sync、
+  acceptanceのいずれで発見しても、その時点で同じ停止規則を適用する。
+- 承認後に意味上の衝突が判明した場合、影響するinput hashとapprovalをstaleにし、必要な前工程へ戻す。
+  表記差または意味を変えないadapter差だけを理由に承認を破棄しない。
+
+### 既存specの移行境界
+
+- 完了済みspecは遡及修正・一括再reviewせず、使用したcontract versionを追跡可能にする。
+- requirements未承認のspecは新policyを全面適用する。
+- requirements承認済みでdesign未承認のspecは移行評価を行い、意味を維持できる本文は再利用する。
+  新しいhigh-risk判定、必須情報、traceabilityが不足する場合はrequirementsへ戻す。
+- designまたはtasks承認済みで実装前のspecは、書式変更だけでapprovalを破棄しない。安全条件、公開契約、
+  scopeの意味が変わる場合だけ該当gateへ戻す。
+- 実装中のspecは現在のatomic taskを承認済みcontractで完了し、次のtaskまたは機能完了gateで移行する。
+  high-riskの保護欠落を検出した場合はatomic taskの完了を待たず停止する。
+- 新policyへ移行済みのspecは、policy asset欠落やClaude Code / Codex parity失敗時に旧policyへ黙ってfallbackせず、
+  fail-closedで停止する。rollbackは既存成果物、Git履歴、review・approval証跡を削除・書換えしない。
+
+### Claude Code / Codex activation
+
+- canonical policyのversionとhashは共通とし、invocation記法、model mapping等のplatform固有差だけをadapterへ分離する。
+- byte一致ではなく`#32`のsemantic parity contractで同等性を検証する。
+- 必須asset、共通policy hash、両adapter、validationが揃うまでrepositoryで新contractをactiveにしない。
+- 各利用repositoryでは静的parityを確認し、両agentのlive E2Eはrelease acceptance環境で実施する。
+  一方のagentしか利用しない全repositoryに、未使用providerのlive起動まで要求しない。
+- 片側だけの配布・起動・policy適用を成功として報告しない。
+
 ## 比較時に計測する項目
 
 - 主・サブ別Token、サブエージェント起動数、会話ターン数、投入コンテキスト量
@@ -184,6 +299,81 @@ traceabilityは本文copyではなく、`requirement/AC → design節 → task �
 - 必須文書数、総文字量、重複率、人間が実際に読む量
 - 人間のレビュー時間、確認往復数、判断不能だった箇所
 - 要件からテストへの追跡率、承認後の差し戻し、回帰、独立レビューの有効指摘率
+
+### 比較対象
+
+比較は次の3方式を区別する。
+
+- `B0`: 比較実施時点の現行実装。既存command、成果物、Claude Code / Codex parityの互換性回帰を検出する基準。
+- `B1`: Issue #39で想定していた全gate fresh独立review方式。品質と安全性を維持したまま、どの費用を削減できたかを
+  評価する基準。未実装の場合は、承認済みpolicyを固定fixture上で再現して計測する。
+- `C`: Issue #41の候補方式。`B0`に対して互換性を劣化させず、`B1`が狙った安全性を維持しながら、
+  `B1`よりToken・時間・人間負荷を減らすことを求める。
+
+`B0`だけを比較対象にすると、Issue #39で予定していた安全性向上を削った結果を「軽量化」と誤判定するため、
+効率比較の主対象は`B1`対`C`とする。
+
+### 代表caseと実行順
+
+同一のgolden manifestを持つ次の3 caseを用いる。manifestには期待risk分類、material decision、
+requirementからtestまでのtrace、意図的に埋め込むblocking defectを記録する。
+
+- `Case S`: Tier Sかつ低riskの局所変更。
+- `Case L`: Tier Lの通常変更。複数module、TDD、実装許可前と完了時のreviewを含む。
+- `Case H`: 認証・data・公開contract・infra・AIのいずれかを含む合成高risk変更。実環境へ副作用を出さず、
+  検出すべきblocking defectを意図的に含める。
+
+Claude CodeとCodexの双方で`B1`と`C`を比較する。provider間の生Token絶対値ではなく、同一platform内の
+`B1`から`C`への変化を評価する。まずCodexで3 case x 2方式の6実行を行い、hard failureがあれば停止する。
+通過後にClaude Codeでも同じ6実行を行う。結果が閾値近辺または実行揺らぎで判定不能なcaseだけを最大3回まで
+再実行し、中央値を用いる。
+
+### 計測値の定義
+
+- Token・context: 主agent・subagent別のinput、output、reasoning、cached Token、正本の読込量、重複投入量、
+  retryを記録する。providerが返さない値は`UNAVAILABLE`とし、取得できる本文量だけを同一tokenizerで補助推定する。
+  未取得値を0として扱わず、実Token削減を確認済みとは宣言しない。
+- 時間: agent処理、tool実行、人間待ちを分離する。人間review負荷は、同じ開始・終了条件を用いたactive review時間と、
+  確認往復数、判断不能箇所で測る。
+- 文書: file数だけを削減目標にせず、総token、正規化した重複率、正本情報の重複、人間が承認のために読む量、
+  壊れた参照、参照元のないIDを測る。
+- 品質: traceability、RED/GREEN証跡、seeded blocking defectの検出、根拠のないblocking finding、
+  stale review拒否、approval bypass、手戻り、回帰、material decisionへのnavigation、Claude Code / Codex parityを測る。
+
+### 安全性の受入条件
+
+以下は平均や中央値で相殺せず、1件でも違反すれば候補方式を不採用または要件・設計へ差し戻す。
+
+- 人間承認の省略または自動承認が0件。
+- policy上必要なfresh独立reviewの欠落が0件。
+- input hash変更後のstale review再利用が0件。
+- golden manifestに埋め込んだblocking defectの見逃しが0件。
+- 根拠を再現できない`BLOCKING` findingが0件。
+- requirement / ACからdesign、task、testまたはmanual確認へのtraceabilityが100%。
+- 振る舞い変更taskのRED/GREEN証跡が100%。
+- 承認判断に必要なmaterial decisionへのnavigation欠落が0件。
+- Claude CodeまたはCodexの片側でしか通らない実行経路が0件。
+- `Critical`が下位classへ暗黙fallbackする事象が0件。
+
+### 効率目標と採否
+
+同一platform内の`B1`に対し、`C`は次を目標とする。
+
+- end-to-endのcontextまたはToken中央値を20%以上削減する。
+- 人間のactive review時間中央値を25%以上削減する。
+- 正規化した文書重複量を30%以上削減する。
+- agent処理時間中央値を15%以上削減する。
+- 人間との確認往復数を増加させない。
+- 各caseのToken増加を原則10%以内に抑える。
+
+`Case H`で10%を超えるToken増加があっても、追加の安全証拠または欠陥検出による必要性を示し、人間が明示承認した
+場合だけ例外とする。hard safetyを満たし効率目標を満たせば採用する。効率目標との差が相対10%以内なら該当caseを
+最大3回まで再実行し、中央値で判定する。Tokenだけ改善して人間負荷が未達ならnavigationを、
+人間負荷だけ改善してTokenが未達ならcontext envelopeまたはmodel routingを再設計する。
+
+これらの数値閾値、`B1`再現手順、fixtureの代表性とseeded defectによる偏りは、requirements承認前の
+`Critical` fresh独立reviewで反例を用いて再検証する。reviewで根拠不足または判定不能とされた基準は、
+人間へ説明して再合意するまで受入条件として確定しない。
 
 ## 初期の成功状態
 

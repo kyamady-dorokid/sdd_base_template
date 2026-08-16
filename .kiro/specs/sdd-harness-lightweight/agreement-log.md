@@ -61,6 +61,33 @@
 | 37 | model証跡はrole、required class、実model・推論profile・能力tag、環境、選定・fallback理由、input hash、取得可能なToken、retry、日時に限定する | ルーティングの再現性を保ちつつ、会話全文の保存と重複を避けるため | 2026-08-16 |
 | 38 | Issue #41をreview gate配置・model routing・agent構成のpolicy正本とし、Issue #39はそれに従う独立review実行・状態・証跡・validationの子実装Issueへ再編する | 両Issueのpolicy重複と「全gate必須」対「risk別適用」の矛盾を解消し、正本を1つにするため | 2026-08-16 |
 | 39 | model routingの効果はmodel名ではなく、input/output/reasoning/cached Token、retry、費用、時間、手戻りで評価する | 軽量modelの利用がToken数削減を保証せず、再試行を含む総量で比較する必要があるため | 2026-08-16 |
+| 40 | 全spec共通の恒久review guideと承認時の動的navigationを併用し、個別specのreview文書を作らない | 必須観点の漏れ防止と、第三の正本・文章転記・反復読解の回避を両立するため | 2026-08-16 |
+| 41 | requirements、design、tasks/実装許可、実装完了のgateごとに人間の判断責務と再読不要の範囲を分離する | 同一内容の繰り返しではなく、工程固有の判断と工程間の解釈変更に人間の注意を使うため | 2026-08-16 |
+| 42 | 承認navigationは対象/hash/revision、material decision、正本参照、意味変更、review/検証、risk/例外、承認等の選択肢をこの順で示す | 正本の代替要約を作らず、人間が判断する情報へ最短で到達できるようにするため | 2026-08-16 |
+| 43 | 必須観点を`APPLICABLE / NOT_APPLICABLE / BLOCKED`に分類し、理由のない非該当とblocking状態のままの承認依頼を認めない | 動的navigationの「該当なし」を利用した重要観点の省略を防ぐため | 2026-08-16 |
+| 44 | gateと対象が明確な文脈での明示的な自然言語同意だけをapprovalとし、曖昧な好意的反応・一部同意・質問回答はapprovalとしない | 固定コマンドの負荷を避けつつ、承認の誤認を防ぐため | 2026-08-16 |
+| 45 | 本review guide基準はrequirements化後のCritical fresh独立reviewで、省略risk、承認の曖昧性、cc-sdd互換性、人間負荷とtraceabilityを反例ベースで再検証する | 壁打ちで合意した基準自体を無批判に承認せず、正式要件化の欠陥を承認前に検出するため | 2026-08-16 |
+| 46 | 文書出力基準はfile名一覧ではなく、SDD/`kiro-*`/agentが生成・更新するすべての人間可読文書・説明出力へ適用する | steering、custom文書、人間主導の任意文書、将来のcc-sdd追加文書を漏らさないため | 2026-08-16 |
+| 47 | 具体的記述基準はすべての対象言語へ適用し、日本語をSDD/steering/review/navigationと言語未指定文書の既定とする | 「平易な日本語」を翻訳問題に限定せず、他言語の例外文書でも抽象表現と暗黙前提を認めないため | 2026-08-16 |
+| 48 | 明示言語指定、対象読者・公開先・外部契約、既存文書の言語維持、証拠・互換性・licenseの原文保持だけを日本語化の例外とする | 外部提出文書や英語文書の一部だけを意図せず日本語化し、読者要求・契約・原文性を壊すことを防ぐため | 2026-08-16 |
+| 49 | schema値、code/identifier/API field、command/path、raw log/error、hash/version、引用、license、vendored/upstream、protocol文字列は文書内でも変更しない | 人間向け文章への適用と、機械互換性・証拠・法的原文の保持を両立するため | 2026-08-16 |
+| 50 | 規範文の未定義な抽象表現は`BLOCKED`、非規範文はwarningとし、定型の禁止語ではなく判定基準・数値・主体・例外の有無で判定する | 必要な概念語まで禁止せず、人間が同じ判定を再現できない文だけを承認前に止めるため | 2026-08-16 |
+| 51 | requirementsはcc-sddの`The / When / While / If / Where / shall`を維持し、条件・主体・応答を日本語で記述し、1 ACは1つの検証可能な振る舞いだけを所有する | 平易な日本語とcc-sdd/EARS互換性を両立し、ACの一部だけがPASSする曖昧性を防ぐため | 2026-08-16 |
+| 52 | 独立review findingはID、重大度、`BLOCKING / ADVISORY`、対象、違反契約、証拠、推論、失敗例、必要修正の結果、完了条件を持つ | 抽象的な指摘と実装方法の過剰指定を避け、人間と修正者が同じ終了条件を判断できるようにするため | 2026-08-16 |
+| 53 | 重大度と承認影響を別軸とし、`BLOCKING`1件でも`PASS`を禁止し、未確認は`UNVERIFIED`、収束中の新規指摘は`LATE_FINDING`とする | 技術的影響とgate判定を混同せず、未検証と五月雨指摘を隠さないため | 2026-08-16 |
+| 54 | 具体的記述・EARS・finding基準もrequirements承認前のCritical fresh独立reviewで反例ベースに再検証する | 記述ルール自体が過剰なToken・人間負荷、EARS非互換、必要情報欠落を生まないことを承認前に確認するため | 2026-08-16 |
+| 55 | 比較対象を現行実装`B0`、Issue #39想定の全gate独立review方式`B1`、Issue #41候補`C`に分け、互換性は`B0`、安全性と効率は`B1`対`C`で評価する | 未実装の安全性向上を削っただけの結果を軽量化と誤判定せず、既存互換性も別軸で保護するため | 2026-08-17 |
+| 56 | Tier S低risk、Tier L通常、高risk合成の3 caseをgolden manifest付きで用い、Codexでhard safetyを確認後にClaude Codeで同条件を計測する | risk別経路とparityを少数の代表caseで検証し、明白な不合格後の不要なToken消費を止めるため | 2026-08-17 |
+| 57 | Token・context、時間、文書重複、人間review負荷、品質を分離して測り、取得不能なToken値は`UNAVAILABLE`として0扱いしない | agent数やfile数などの代替指標だけで改善を宣言せず、取得できない実測値を捏造しないため | 2026-08-17 |
+| 58 | approval bypass、必要review欠落、stale review、seeded blocker見逃し、根拠のないblocking、trace欠落、TDD証跡欠落、navigation欠落、parity欠落、Critical downgradeを1件も許容しないhard safetyとする | Token・時間の改善で信頼性とtraceabilityの欠陥を平均化しないため | 2026-08-17 |
+| 59 | `B1`比でToken/context 20%、人間active review時間25%、文書重複30%、agent時間15%の中央値削減を目標とし、確認往復を増やさず、case別Token増加を原則10%以内とする | 明確な判定基準なしに「軽量化」を主観評価することを避けるため | 2026-08-17 |
+| 60 | 閾値近辺だけ最大3回再計測し、高riskのToken例外は安全上の必要性と人間承認を求め、数値閾値・`B1`再現性・fixture偏りをCritical fresh独立reviewで再検証する | 非決定的な1回の測定と、根拠の弱い暫定閾値を無条件の正式要件にしないため | 2026-08-17 |
+| 61 | 全open Issue `#30 / #31 / #32 / #33 / #34 / #35 / #37 / #38 / #39 / #41`を移行計画の対象とし、`#41 spec確定 → #32 → #38 → #30 → #41/#39 → #33/#34/#35 → #31 → #37`を基準順とする | #38の見落とし、共有fileの競合、旧Issue本文だけに基づく不完全な依存計画を防ぐため | 2026-08-17 |
+| 62 | `#34 / #35`は`#33`配下のwork taskとし、`#33 / #31 / #37`間の順はhard dependencyではなくroadmap順として扱う | spec単位と人間管理用taskを混同せず、Issue全体のblocked-byで先行検討まで止めないため | 2026-08-17 |
+| 63 | agent・review・model・文書・計測・移行の衝突では`#41`を横断policy正本として既定優先するが、他Issueのcriticalな安全・互換・法的契約を弱める場合は自動上書きしない | policy重複を解消しつつ、横断方針の名目でdata integrity、security、privacy、公開互換性、復旧可能性を破壊しないため | 2026-08-17 |
+| 64 | criticalな対抗契約、優先判定不能、scope変更が必要な衝突は`BLOCKED`として壁打ちへ戻し、工程中に発見した場合も同じ停止規則を適用する | 事前棚卸しで全衝突を予見できると仮定せず、黙った優先付けと事後承認を防ぐため | 2026-08-17 |
+| 65 | 完了済みspecは遡及せず、active specはgate境界で意味差を評価して移行し、承認後に意味上の衝突が判明した場合はhashとapprovalをstaleにして必要な前工程へ戻す | 一律やり直しの費用と、旧policyを無期限に温存するriskを避けるため | 2026-08-17 |
+| 66 | repository単位で共通policy version/hashと両adapterのsemantic parityが揃った後だけ新contractをactiveにし、移行後の欠落・parity失敗では旧policyへ黙ってfallbackしない | Claude Code / Codex片側だけの導入と、安全性downgradeを成功扱いしないため | 2026-08-17 |
 
 ---
 
@@ -73,7 +100,7 @@
 | Issue #39の独立レビュー契約を本specから暗黙に変更する | 既存の承認事項であり、影響と移行順を明示して別途人間承認が必要 |
 | Tier Sという理由だけで高リスク変更の独立レビューを省略する | 作業量と障害影響は一致しないため却下 |
 | subagent累計起動数をToken上限として固定する | agent数よりcontext量・重複率の影響が大きく、必要なfresh reviewやdebugを不合理に妨げるため却下 |
-| SDD標準出力文書とAI独立review結果の具体的記述基準・日本語化範囲 | 後続の壁打ちで、requirements・design・tasks等を含む対象文書、抽象語・暗黙の前提の排除、必要な固有名・system名・EARSトリガーキーワード等の例外を決定する |
+| 出力表現基準の独立reviewによる再検証 | 適用範囲、日本語既定・例外、抽象語、EARS、文体、finding formatは合意済み。requirements化後にCritical reviewerが基準自体を再検証する |
 | Issue #39を独立したpolicy specのまま維持する | #41とreview適用gate、model、agent構成、Token方針が重複・矛盾するため、#41配下の子実装Issueへ再編する |
 
 ---
@@ -85,14 +112,15 @@
 | 1 | 正本文書の責務と最小構成 | 合意済み。具体的なformat、ID表現、意味的validatorはrequirements承認後のdesignで決める |
 | 2 | agent構成と独立review gate | 合意済み。context envelopeの具体field、gate hash、kiro-impl patch方式はrequirements承認後のdesignで決める |
 | 3 | model routing | 合意済み。具体的な対応表、能力tag、推論profile、実行時検証のformatはrequirements承認後のdesignで決める |
-| 4 | 人間review guideと出力表現 | gate別確認観点、正本へのnavigation、差分・影響範囲、前工程へ戻す条件を決める。SDD標準出力文書とAI独立review結果は、抽象語・暗黙の前提を避け、例外を除いて日本語で具体的に記述する基準を決める |
-| 5 | 計測・比較と受入判定 | 代表taskを選び、Token、時間、文書量、重複率、人間review時間、traceability、欠陥検出率を現行方式と比較する方法を決める |
-| 6 | 移行・parity・Issue依存 | Claude Code/Codex双方への同一反映、既存specの扱い、Issue #39・#32・#37との変更順と受入条件を決める |
+| 4 | 人間review guideと出力表現 | 合意済み。適用範囲、日本語既定・例外、抽象語判定、EARS、文体、finding formatをrequirementsと独立reviewの対象にする |
+| 5 | 計測・比較と受入判定 | 合意済み。`B0 / B1 / C`、3代表case、hard safety、効率目標、再計測と例外条件をrequirementsと独立reviewの対象にする |
+| 6 | 移行・parity・Issue依存 | 合意済み。全open Issue、gate境界移行、`#41`の既定優先とcritical衝突時の壁打ち、両agent同時activationをrequirementsへ反映する |
 
 ### 次回の再開点
 
-順番4「人間review guideと出力表現」から開始する。gate別に人間が確認する正本・判断事項・整合性、
-navigationの提示順、前工程へ戻す条件、SDD標準文書とAI独立review結果の日本語・具体的記述基準を決定する。
+6項目の壁打ちは完了した。次は合意事項を重複なくEARS形式の`requirements.md`へ整理し、
+`Critical` fresh独立reviewでrisk分類、review gate、model routing、文書責務、計測閾値、移行・Issue調停を
+反例ベースに再検証する。reviewが`PASS`になるまで人間へrequirements承認を求めない。
 
 ---
 
@@ -103,7 +131,7 @@ navigationの提示順、前工程へ戻す条件、SDD標準文書とAI独立re
 
 | フェーズ | 合意メモ（理由・補足） |
 |---|---|
-| 要件定義（requirements.md） | 未生成・未承認。まず不変条件、リスク分類、比較案を壁打ちする。 |
+| 要件定義（requirements.md） | 壁打ち完了・未生成・未承認。次に生成し、Critical fresh独立reviewを実施する。 |
 | 設計（design.md） | 未生成・未承認。 |
 | タスク分解・実装前確認（tasks.md） | 未生成・未承認。 |
 
@@ -125,3 +153,9 @@ navigationの提示順、前工程へ戻す条件、SDD標準文書とAI独立re
 | 2026-08-16 | risk別の独立review gate、通常1 active subagent、context量中心のToken制御、並列例外条件を合意 | KYamada / Codex |
 | 2026-08-16 | 3能力class、役割別routing、推論・能力要件、fallback、証跡、Token評価を合意 | KYamada / Codex |
 | 2026-08-16 | #41をreview policyの正本とし、#39を独立review機構の子実装Issueへ再編する方針を合意 | KYamada / Codex |
+| 2026-08-16 | 恒久review guide、gate別の人間判断責務、承認navigation、承認不能・自然言語承認の条件を合意 | KYamada / Codex |
+| 2026-08-16 | review guide基準をrequirements承認前のCritical fresh独立reviewで再検証することを合意 | KYamada / Codex |
+| 2026-08-16 | すべてのagent生成・更新の人間可読文書への適用、日本語既定、他言語・原文保持の例外を合意 | KYamada / Codex |
+| 2026-08-16 | 規範文の抽象語判定、EARS構文、文体、独立review findingの構造と独立再reviewを合意 | KYamada / Codex |
+| 2026-08-17 | `B0 / B1 / C`比較、3代表case、hard safety、効率目標、再計測・例外条件と独立reviewによる基準再検証を合意 | KYamada / Codex |
+| 2026-08-17 | 全open Issueの移行順、gate境界移行、`#41`の既定優先、critical衝突時の壁打ち、両agent同時activationを合意 | KYamada / Codex |
