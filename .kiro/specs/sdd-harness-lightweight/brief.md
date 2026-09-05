@@ -34,6 +34,10 @@
 
 #### 採用する独立review gate
 
+> **2026-09-06改訂申し送り**: 下表は2026-08-16時点の固定的なTier連動baselineとして履歴を保持する。
+> 最新の人間承認では、Spec Tier、Review Mode、Model Classを別軸に分離し、Task Eで適応型判定へ
+> 改訂する。Task EのDecisionが確定するまで、この表を新実装の最終contractとして使用しない。
+
 | 経路 | fresh独立review | 内容 |
 |---|---|---|
 | Tier Sかつ低risk | 原則なし | 主agentが各gateで制限context自己reviewを行い、人間approvalは維持する |
@@ -48,6 +52,45 @@
 - reviewerは批判的・証拠ベースで全観点を初回に一括確認し、後発指摘は`LATE_FINDING`として扱う。
 - Tier Lのbundle reviewで承認済みrequirementsまたはdesignの変更が必要になった場合は、該当gateへ戻り、
   古いapprovalを無効化して再承認する。
+
+#### Task Eへ渡す採用済みbaseline: 三軸分離と適応型Review Mode
+
+分類は、目的と判定対象が異なる次の三軸に分ける。小規模であることを低risk・低能力modelの根拠にせず、
+高riskであることを文書量増加の根拠にしない。
+
+| 軸 | 答える問い | 主な評価対象 | 決定するもの | 決定しないもの |
+|---|---|---|---|---|
+| Spec Tier `S / L` | 仕様化・設計・調整がどれほど複雑か | 独立AC、責務境界、依存段数、設計選択、移行段階、人間判断、task分解 | 同一文書体系内の記載深度、計画・調整粒度 | risk、fresh review要否、実model |
+| Review Mode `STANDARD / DEEP` | どれほど強い独立検証が必要か | 影響risk、不確実性、検証可能性、rollback、外部副作用、暗黙契約 | fresh reviewer要否、review範囲、事前承認 | 文書体系、実装modelの能力class |
+| Model Class `Mechanical / Standard / Critical` | 各roleにどの程度の推論能力が必要か | 判断量、制約統合、曖昧性、反例探索、domain知識、機械検証可能性 | roleごとの最低能力とprovider別model解決 | spec全体のTier、review回数 |
+
+- machine-readableな名称は`SPEC_TIER_*`、`REVIEW_*`、`MODEL_*`のようにnamespaceを分け、
+  reviewの`STANDARD`とmodel classの`Standard`を裸の同名値として記録しない。
+- Spec Tierは実装行数ではなく、仕様化・責務分離・依存調整の複雑さで決める。Tier S/Lでfile体系は
+  変えず、記載深度だけを変える。
+- Review Modeは`STANDARD`、`DEEP_RECOMMENDED`、`DEEP_REQUIRED`を区別する。高risk条件が1つでも
+  該当する場合と、riskを証拠で判定できない場合は`DEEP_REQUIRED`とする。複雑性だけが高く、riskが
+  低い場合は`DEEP_RECOMMENDED`候補とする。
+- `DEEP`はfresh Critical reviewer 1名を基本とし、批判的・反証志向で不変条件、負の経路、境界違反、
+  rollback、必要な実データ形状を検証する。同一gateの収束は同じreviewerを最大10巡まで再利用する。
+- 予定時点で`DEEP`と判明している場合、tasks承認時に昇格理由、agent数、model class、context範囲、
+  最大巡回数、Token・時間の見積区分、拒否時の扱いを提示し、その明示承認を事前承認として扱う。
+  実装中に`STANDARD`から`DEEP`へ昇格する場合は、reviewer起動前に追加の人間承認を得る。
+- `DEEP_REQUIRED`を人間が承認しない場合、`STANDARD`へ暗黙降格せず、停止またはscope縮小へ戻す。
+  `DEEP_RECOMMENDED`だけは、risk根拠を提示したうえで人間が`STANDARD`を選択できる。
+- Model Classはtask全体ではなくroleごとに決める。高riskはreviewerを`Critical`へ昇格させるが、
+  implementerの`Critical`昇格は実装難度で別判定する。`Mechanical`へrisk・仕様・重大度を判断させない。
+- 評価順は、`Spec Tier判定 → risk・不確実性・検証可能性からReview Mode判定 → role別Model Class判定
+  → DEEP事前承認`とする。少なくとも`spec_tier`、`risk_class`、`review_mode`、`review_approval_ref`、
+  role別`model_class`を別状態として扱う。
+- `cyclox2_docker`の`docs/catracer-cleanup-2026-27-task2-2` branchは、Task EとRequirements独立reviewで
+  反例・実例として参照する。task 2.2の深いreviewは、実データに存在する非完全重複と破壊的FIX／
+  no-op FIXを検出しており、変更量ではなくdata risk・不確実性による`DEEP`昇格の必要性を示す。
+
+このbaselineはTask CでTier別の文書深度、Task Eで三軸の閾値・相互作用・事前承認・#39実装境界、
+Task A〜F統合でDecision間矛盾、RequirementsのCritical fresh独立reviewで過剰／過少昇格と判定逃れ、
+Designで状態・判定器・fallback、Task Fと段階導入でToken・時間・欠陥検出・誤分類を再確認する。
+再確認はbaselineを無条件に維持する儀式ではなく、反例があれば人間へ改訂案を戻す工程とする。
 
 #### Subagent contextとupstream規則
 

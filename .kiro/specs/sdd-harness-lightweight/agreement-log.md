@@ -98,6 +98,13 @@
 | 74 | repositoryを即時renameせず、旧URL/package/CLI/skill/marker/stateのbridgeを先に検証し、新旧入口が同一stateを共有して旧資産を開始・再開・完了できること、非破壊性、rollback、両platform parity、新名称での配布・更新をE2Eと人間承認で確認するまで旧入口を維持する | 日付による一律廃止や名称変更先行で既存利用者を切り捨てないため | 2026-09-05 |
 | 75 | V1はin-place bridgeとし、新`sdd-rig`が旧`.kiro/`、spec、lock、markerをそのまま認識して二重stateを作らない。state形式変更は明示的・可逆的・rollback検証済みの別Decisionとする | state分岐による承認・進捗の不一致とrollback不能を防ぐため | 2026-09-05 |
 | 76 | 旧CLI、旧install済みskill、旧URL/packageの利用時だけ新名称を短く案内し、新`sdd-rig`が旧projectを開くだけでは警告しない | 移行案内を必要な入口へ限定し、通常作業で警告疲れを起こさないため | 2026-09-05 |
+| 77 | Spec Tier、Review Mode、Model Classを別軸として評価し、machine-readable値は`SPEC_TIER_*`、`REVIEW_*`、`MODEL_*`へnamespace分離する | 文書規模、品質保証強度、model能力を混同し、小規模変更を自動的に低risk・低能力へ誤分類することを防ぐため | 2026-09-06 |
+| 78 | Spec Tierは独立AC、責務境界、依存、設計選択、移行、人間判断、task分解等の仕様化・調整複雑性を評価し、同一file体系内の記載深度だけを決める | Tierをrisk、review要否、model選択から分離し、小規模でも高risk、大規模でも検証可能な変更を表現するため | 2026-09-06 |
+| 79 | Review Modeを`STANDARD / DEEP_RECOMMENDED / DEEP_REQUIRED`として、影響risk、不確実性、検証可能性、rollback、外部副作用、暗黙契約から判定する | fresh reviewのToken費用を全taskへ一律適用せず、見逃し費用が高い変更には独立性と深度を維持するため | 2026-09-06 |
+| 80 | `DEEP`実行前に理由、agent数、model class、context範囲、最大巡回数、Token・時間見積区分、拒否時の扱いを提示して人間承認を得る。`DEEP_REQUIRED`拒否時は暗黙降格せず停止またはscope縮小とする | 高コスト処理を人間に無断で開始せず、費用承認を安全性reviewの任意化へ変質させないため | 2026-09-06 |
+| 81 | Model Classはroleの判断量、制約統合、曖昧性、反例探索、domain知識、機械検証可能性から決め、高riskはreviewer能力、実装難度はimplementer能力へ別々に反映する | riskと難度を分離したまま、各roleへ必要な最低能力だけをprovider中立に割り当てるため | 2026-09-06 |
+| 82 | 三軸baselineをTask C/E、Task A〜F統合、Requirements Critical review、Design、Task F・段階導入で段階的に再検証し、反例時は人間へ改訂案を戻す | 現時点の分類を無批判に固定せず、過剰review、過少review、判定逃れ、model過不足を実証的に修正するため | 2026-09-06 |
+| 83 | `cyclox2_docker`の`docs/catracer-cleanup-2026-27-task2-2`をTask Eの実例に用い、変更量ではなくdata risk・不確実性が深いreviewを正当化したか検証する | 深いreviewが破壊的FIX／no-op FIXを発見した実例を残しつつ、通常taskへの一律適用と混同しないため | 2026-09-06 |
 
 ---
 
@@ -109,6 +116,9 @@
 | #15 | 影響評価と人間承認を必要とする安全条件は維持する。独自変更をoverlayだけで実現する方式の固定は撤回し、Task Bでcore・adapter・project overrideの境界を決める |
 | #29 | fail-closedとlocal harness contract優先は維持する。`kiro-impl`の衝突をoverlayでのみ置換する実装方式はTask B/Eで改訂する |
 | #61 | 旧Issue順は履歴として保持する。現在はTask A〜Fのserial Discovery後に実装waveを確定する統合ロードマップを優先する |
+| #24 | Tier Lへ固定的にfresh review回数を割り当てる方式は、Task Eで三軸分離と`STANDARD / DEEP_RECOMMENDED / DEEP_REQUIRED`の適応型判定へ改訂する。高risk reviewと人間承認を弱めない目的は維持する |
+| #25 | risk boundary checkpoint、gateごと1 reviewer、同一reviewer最大10巡は維持候補とし、`DEEP`事前承認とreview単位の具体条件をTask Eで再確認する |
+| #30〜#39 | provider中立の能力class、Critical非降格、role別証跡、総Token・費用・手戻り評価はbaselineとして維持し、三軸の判定順・namespace・Review Modeとの接続をTask Eで改訂する |
 
 ## 却下・保留事項
 
@@ -179,3 +189,4 @@ Task A〜Fを統合したDiscovery DQ PRがmergeされるまで`requirements.md`
 | 2026-08-17 | `B0 / B1 / C`比較、3代表case、hard safety、効率目標、再計測・例外条件と独立reviewによる基準再検証を合意 | KYamada / Codex |
 | 2026-08-17 | 全open Issueの移行順、gate境界移行、`#41`の既定優先、critical衝突時の壁打ち、両agent同時activationを合意 | KYamada / Codex |
 | 2026-09-05 | Task AでKiro互換保証、独立製品表示、名称・状態のin-place移行contractを合意。skill件数を全`kiro-*`17個とSDD Rig固有`doc-export`へ補正 | KYamada / Codex |
+| 2026-09-06 | Spec Tier・Review Mode・Model Classの三軸分離、適応型`DEEP`判定、実行前人間承認、段階的再検証をTask Eへの採用済みbaselineとして合意 | KYamada / Codex |
