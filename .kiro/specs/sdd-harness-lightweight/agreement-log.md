@@ -88,8 +88,27 @@
 | 64 | criticalな対抗契約、優先判定不能、scope変更が必要な衝突は`BLOCKED`として壁打ちへ戻し、工程中に発見した場合も同じ停止規則を適用する | 事前棚卸しで全衝突を予見できると仮定せず、黙った優先付けと事後承認を防ぐため | 2026-08-17 |
 | 65 | 完了済みspecは遡及せず、active specはgate境界で意味差を評価して移行し、承認後に意味上の衝突が判明した場合はhashとapprovalをstaleにして必要な前工程へ戻す | 一律やり直しの費用と、旧policyを無期限に温存するriskを避けるため | 2026-08-17 |
 | 66 | repository単位で共通policy version/hashと両adapterのsemantic parityが揃った後だけ新contractをactiveにし、移行後の欠落・parity失敗では旧policyへ黙ってfallbackしない | Claude Code / Codex片側だけの導入と、安全性downgradeを成功扱いしないため | 2026-08-17 |
+| 67 | SDD Rig V1はKiro/AWSの公式・提携・後継を名乗らない独立製品として、公開・観測可能な外部workflowの構造互換と起動互換を保証し、完全な出力・内部実装・未公開または将来Kiro仕様との意味一致は保証しない | 既存利用者の移行可能性を保ちつつ、検証不能な完全互換や公式性を表示しないため | 2026-09-05 |
+| 68 | 既存`.kiro/`、未完成を含む既存spec、`spec.json`の既知schema・phase・approval metadata、未知field、`SDD-BASE:*` marker、旧lock/snapshot、旧`sdd-base`入口を非破壊で扱う | V1移行によって既存projectの開始・再開・完了や承認状態を壊さないため | 2026-09-05 |
+| 69 | Claude CodeとCodexの双方で現行inventoryの全`kiro-*`（2026-09-05時点17個）を検出・明示起動可能にし、`doc-export`はKiro互換対象ではないSDD Rig固有skillとして別途parityを保証する | 固定件数の陳腐化と、Kiro互換contractへ独自機能を混在させることを避けるため | 2026-09-05 |
+| 70 | 自然言語起動はKiro互換保証ではなくSDD Rig固有の製品要件として#32とTask Eで扱い、全`kiro-*`の明示起動保証と両立させる | 外部互換性と独自UXを分離し、#32の既存要件をTask Aで暗黙に弱めないため | 2026-09-05 |
+| 71 | 既存資産の開始・再開・完了、人間承認、TDD、Claude Code/Codex parityを不変条件とし、現行の品質目的機能を根拠なく廃止しない | source取り込みや独自改良を品質低下の理由に使わせないため | 2026-09-05 |
+| 72 | 主見出しを「SDD Rig — 開発の理由が、いつでもたどれるAI開発環境。」とし、要件・設計・合意判断・テスト結果から人とAIが決定理由を追跡できる価値を説明する | 製品価値を特定upstreamとの関係ではなく、利用者が得る追跡可能性で示すため | 2026-09-05 |
+| 73 | SDD Rigは「cc-sddをベースに開発した独立製品」と説明し、主表示で「cc-sddの改造版」またはKiro/AWSの公式・提携・後継と呼ばず、cc-sdd由来部分は日本語説明とNOTICE/LICENSEでMIT帰属を示す | 独立製品としての位置づけ、非提携表示、upstreamへの法的・技術的帰属を混同しないため | 2026-09-05 |
+| 74 | repositoryを即時renameせず、旧URL/package/CLI/skill/marker/stateのbridgeを先に検証し、新旧入口が同一stateを共有して旧資産を開始・再開・完了できること、非破壊性、rollback、両platform parity、新名称での配布・更新をE2Eと人間承認で確認するまで旧入口を維持する | 日付による一律廃止や名称変更先行で既存利用者を切り捨てないため | 2026-09-05 |
+| 75 | V1はin-place bridgeとし、新`sdd-rig`が旧`.kiro/`、spec、lock、markerをそのまま認識して二重stateを作らない。state形式変更は明示的・可逆的・rollback検証済みの別Decisionとする | state分岐による承認・進捗の不一致とrollback不能を防ぐため | 2026-09-05 |
+| 76 | 旧CLI、旧install済みskill、旧URL/packageの利用時だけ新名称を短く案内し、新`sdd-rig`が旧projectを開くだけでは警告しない | 移行案内を必要な入口へ限定し、通常作業で警告疲れを起こさないため | 2026-09-05 |
 
 ---
+
+### 旧Decisionの改訂関係
+
+| 旧Decision | Task A後の扱い |
+|---|---|
+| #14 | command・標準成果物・phase・approval metadataを外部互換contractとして維持する部分は継続する。全面forkを避けるという旧理由は、source baseline取り込み方針に合わせTask Bで改訂する |
+| #15 | 影響評価と人間承認を必要とする安全条件は維持する。独自変更をoverlayだけで実現する方式の固定は撤回し、Task Bでcore・adapter・project overrideの境界を決める |
+| #29 | fail-closedとlocal harness contract優先は維持する。`kiro-impl`の衝突をoverlayでのみ置換する実装方式はTask B/Eで改訂する |
+| #61 | 旧Issue順は履歴として保持する。現在はTask A〜Fのserial Discovery後に実装waveを確定する統合ロードマップを優先する |
 
 ## 却下・保留事項
 
@@ -118,9 +137,9 @@
 
 ### 次回の再開点
 
-6項目の壁打ちは完了した。次は合意事項を重複なくEARS形式の`requirements.md`へ整理し、
-`Critical` fresh独立reviewでrisk分類、review gate、model routing、文書責務、計測閾値、移行・Issue調停を
-反例ベースに再検証する。reviewが`PASS`になるまで人間へrequirements承認を求めない。
+PR #42までの6項目に加え、Discovery改訂Task A「Kiro互換・製品境界」が完了した。
+次はTask B「cc-sdd source取り込み」用context packetを作成し、人間確認後に別taskで壁打ちする。
+Task A〜Fを統合したDiscovery DQ PRがmergeされるまで`requirements.md`生成へ進まない。
 
 ---
 
@@ -131,7 +150,7 @@
 
 | フェーズ | 合意メモ（理由・補足） |
 |---|---|
-| 要件定義（requirements.md） | 壁打ち完了・未生成・未承認。次に生成し、Critical fresh独立reviewを実施する。 |
+| 要件定義（requirements.md） | Discovery改訂Task A完了、Task B〜F未着手。未生成・未承認。 |
 | 設計（design.md） | 未生成・未承認。 |
 | タスク分解・実装前確認（tasks.md） | 未生成・未承認。 |
 
@@ -159,3 +178,4 @@
 | 2026-08-16 | 規範文の抽象語判定、EARS構文、文体、独立review findingの構造と独立再reviewを合意 | KYamada / Codex |
 | 2026-08-17 | `B0 / B1 / C`比較、3代表case、hard safety、効率目標、再計測・例外条件と独立reviewによる基準再検証を合意 | KYamada / Codex |
 | 2026-08-17 | 全open Issueの移行順、gate境界移行、`#41`の既定優先、critical衝突時の壁打ち、両agent同時activationを合意 | KYamada / Codex |
+| 2026-09-05 | Task AでKiro互換保証、独立製品表示、名称・状態のin-place移行contractを合意。skill件数を全`kiro-*`17個とSDD Rig固有`doc-export`へ補正 | KYamada / Codex |

@@ -55,8 +55,9 @@
 - reviewerにはgate、対象hash、正本path、diff、対応AC・design・task、test証拠、review観点だけを渡し、
   親の結論や会話全文を渡さない。正本とdiffはreviewerが直接確認する。
 - 同じ正本を親の長い要約とfile読取の両方で重複投入しない。
-- cc-sdd `kiro-impl`のtask単位subagent dispatchと本契約が衝突する場合は、overlayで既知節を明示的に
-  置換・無効化する。upstream変更で安全に適用できない場合はfail-closedとし、Claude Code/Codex双方で検証する。
+- cc-sdd `kiro-impl`のtask単位subagent dispatchと本契約が衝突する場合は、取り込んだcoreまたは
+  platform adapterで既知の契約を明示的に置換・無効化する。具体境界はTask B/Eで決める。
+  upstream変更へ安全に追従できない場合はfail-closedとし、Claude Code/Codex双方で検証する。
 
 #### 採用するmodel routing
 
@@ -208,6 +209,9 @@ traceabilityは本文copyではなく、`requirement/AC → design節 → task �
 
 ### In scope
 
+- Kiro互換として保証する公開・観測可能な外部contractと、保証しない内部・将来仕様
+- `SDD Rig`の独立製品表示、cc-sddへの帰属、旧名称からのin-place移行contract
+- cc-sddをrepository内source baselineとして取り込む境界と、既存外部contractの維持
 - タスクの規模・リスクに応じたエージェント数、役割、起動条件、停止条件
 - 実装・review等の役割、Tier、riskに応じたmodel routing、model能力要件、fallback、利用modelの記録
 - Tierとリスク分類、承認ゲート、独立レビュー適用範囲の関係
@@ -223,7 +227,7 @@ traceabilityは本文copyではなく、`requirement/AC → design節 → task �
 - Issue #32が所有するスキル検出・起動パリティ機構そのものの再実装
 - Issue #30が所有するsyncの一般的なマージ・競合処理
 - Issue #33が所有するcc-sddバージョン昇格ライフサイクル
-- cc-sddのソースまたは生成物を`payload/`へ再配布する設計変更
+- cc-sdd source取り込みのdirectory、更新手順、差分管理、rollbackの実装詳細（Task Bで決める）
 - 人間承認、TDD、main直接コミット禁止を撤廃する変更
 
 ### Related contracts
@@ -238,7 +242,38 @@ traceabilityは本文copyではなく、`requirement/AC → design節 → task �
 
 ## 移行・Issue調停方針
 
-### 全open Issueを含む導入順
+### Task Aで確定したV1互換性と製品境界
+
+SDD Rig V1はKiro/AWSの公式、提携製品、後継ではない独立製品として、定義済みの外部workflowに対する
+構造互換と起動互換を保証する。完全な出力一致、内部実装一致、未公開または将来のKiro仕様との意味一致は
+保証しない。
+
+| 対象 | V1 contract | 保証しないもの |
+|---|---|---|
+| `.kiro/`と既存spec | 完成・未完成を問わず認識し、開始・再開・完了できる | 未公開なKiro内部stateとの一致 |
+| `spec.json` | 既知schema、phase、approval metadataを扱い、未知fieldを非破壊保持する | 将来Kiro schemaの先行保証 |
+| `kiro-*` | Claude Code/Codex双方で全skillを検出・明示起動できる。2026-09-05時点では17個 | 同じ入力からの出力・判断の完全一致 |
+| `doc-export` | SDD Rig固有skillとして両platform parityを保証する | Kiro互換機能であるとの表示 |
+| 旧識別子 | `SDD-BASE:*` marker、旧lock/snapshot、旧`sdd-base`入口をbridge対象とする | 永久に内部実装を旧名称へ固定すること |
+| 自然言語起動 | SDD Rig固有要件として#32とTask Eで扱う | Kiro互換保証への包含 |
+
+品質上の不変条件は、既存資産の開始・再開・完了、人間承認、TDD、Claude Code/Codex parityである。
+現行で確認できる品質目的の機能は根拠なく廃止しない。機能改修と品質維持が衝突する場合は、影響、代替案、
+回帰試験を示して人間判断へ戻す。
+
+製品の主見出しは「**SDD Rig — 開発の理由が、いつでもたどれるAI開発環境。**」とする。
+SDD Rigはcc-sddをベースに開発した独立製品であり、Kiro/AWSの公式・提携・後継または
+「cc-sddの改造版」を主表示に使わない。cc-sdd由来部分は日本語の由来説明とNOTICE/LICENSEでMIT帰属を示す。
+
+名称移行はin-place bridgeとする。新`sdd-rig`は旧`.kiro/`、spec、lock、markerをそのまま認識し、別stateを
+作らない。旧入口は日付で廃止せず、新旧入口の同一state、非破壊性、rollback、両platform parity、旧資産の
+開始・再開・完了、新名称での配布・発見・更新をE2Eと人間承認で確認するまで維持する。旧入口を利用した場合だけ
+新名称を短く案内し、新`sdd-rig`が旧projectを開いただけでは警告しない。
+
+### 旧導入順（PR #42時点の履歴）
+
+> 以下は2026-08-17に合意した旧順序である。戦略変更後はGitHub Issue #41冒頭の
+> Task A〜Fによるserial Discoveryと実装waveを進捗管理の正本とし、旧順序をそのまま実行しない。
 
 2026-08-17時点のopen Issue `#30 / #31 / #32 / #33 / #34 / #35 / #37 / #38 / #39 / #41`を
 対象に、次の順を基準とする。`#34`と`#35`は独立specではなく、`#33`配下の人間管理用work taskである。
@@ -383,10 +418,10 @@ Claude CodeとCodexの双方で`B1`と`C`を比較する。provider間の生Toke
 
 ## 合意済みの基準
 
-- cc-sddをSDDハーネスの基盤とする基本方針を維持し、kiro command、標準成果物名、phase順、
-  approval metadata、数値requirement IDとの互換性を原則として保つ。
-- 文書責務の整理と重複削減は、cc-sddの全面forkや独自文書体系への置換ではなく、overlayによる
-  生成規則の追加・厳格化と意味的検証で実現する。
+- cc-sddをSDDハーネスのsource baselineとし、kiro command、標準成果物名、phase順、
+  approval metadata、数値requirement IDをV1外部互換contractとして保つ。
+- 文書責務の整理と重複削減は独自文書体系への置換ではなく、Kiro互換の外部file・workflowを維持したまま
+  core、共通policy、platform adapter、project overrideの責務分離で実現する。具体境界はTask Bで決める。
 - cc-sdd互換境界からの例外が必要な場合は、理由、代替案、upgrade・sync・parityへの影響を提示し、
   人間の明示承認を得るまで採用しない。
 - Tier Lまたは高リスク変更: fresh subagentによる独立レビューを必須とする。
