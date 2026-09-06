@@ -34,6 +34,10 @@
 
 #### 採用する独立review gate
 
+> **2026-09-06改訂申し送り**: 下表は2026-08-16時点の固定的なTier連動baselineとして履歴を保持する。
+> 最新の人間承認では、Spec Tier、Review Mode、Model Classを別軸に分離し、Task Eで適応型判定へ
+> 改訂する。Task EのDecisionが確定するまで、この表を新実装の最終contractとして使用しない。
+
 | 経路 | fresh独立review | 内容 |
 |---|---|---|
 | Tier Sかつ低risk | 原則なし | 主agentが各gateで制限context自己reviewを行い、人間approvalは維持する |
@@ -49,6 +53,45 @@
 - Tier Lのbundle reviewで承認済みrequirementsまたはdesignの変更が必要になった場合は、該当gateへ戻り、
   古いapprovalを無効化して再承認する。
 
+#### Task Eへ渡す採用済みbaseline: 三軸分離と適応型Review Mode
+
+分類は、目的と判定対象が異なる次の三軸に分ける。小規模であることを低risk・低能力modelの根拠にせず、
+高riskであることを文書量増加の根拠にしない。
+
+| 軸 | 答える問い | 主な評価対象 | 決定するもの | 決定しないもの |
+|---|---|---|---|---|
+| Spec Tier `S / L` | 仕様化・設計・調整がどれほど複雑か | 独立AC、責務境界、依存段数、設計選択、移行段階、人間判断、task分解 | 同一文書体系内の記載深度、計画・調整粒度 | risk、fresh review要否、実model |
+| Review Mode `STANDARD / DEEP` | どれほど強い独立検証が必要か | 影響risk、不確実性、検証可能性、rollback、外部副作用、暗黙契約 | fresh reviewer要否、review範囲、事前承認 | 文書体系、実装modelの能力class |
+| Model Class `Mechanical / Standard / Critical` | 各roleにどの程度の推論能力が必要か | 判断量、制約統合、曖昧性、反例探索、domain知識、機械検証可能性 | roleごとの最低能力とprovider別model解決 | spec全体のTier、review回数 |
+
+- machine-readableな名称は`SPEC_TIER_*`、`REVIEW_*`、`MODEL_*`のようにnamespaceを分け、
+  reviewの`STANDARD`とmodel classの`Standard`を裸の同名値として記録しない。
+- Spec Tierは実装行数ではなく、仕様化・責務分離・依存調整の複雑さで決める。Tier S/Lでfile体系は
+  変えず、記載深度だけを変える。
+- Review Modeは`STANDARD`、`DEEP_RECOMMENDED`、`DEEP_REQUIRED`を区別する。高risk条件が1つでも
+  該当する場合と、riskを証拠で判定できない場合は`DEEP_REQUIRED`とする。複雑性だけが高く、riskが
+  低い場合は`DEEP_RECOMMENDED`候補とする。
+- `DEEP`はfresh Critical reviewer 1名を基本とし、批判的・反証志向で不変条件、負の経路、境界違反、
+  rollback、必要な実データ形状を検証する。同一gateの収束は同じreviewerを最大10巡まで再利用する。
+- 予定時点で`DEEP`と判明している場合、tasks承認時に昇格理由、agent数、model class、context範囲、
+  最大巡回数、Token・時間の見積区分、拒否時の扱いを提示し、その明示承認を事前承認として扱う。
+  実装中に`STANDARD`から`DEEP`へ昇格する場合は、reviewer起動前に追加の人間承認を得る。
+- `DEEP_REQUIRED`を人間が承認しない場合、`STANDARD`へ暗黙降格せず、停止またはscope縮小へ戻す。
+  `DEEP_RECOMMENDED`だけは、risk根拠を提示したうえで人間が`STANDARD`を選択できる。
+- Model Classはtask全体ではなくroleごとに決める。高riskはreviewerを`Critical`へ昇格させるが、
+  implementerの`Critical`昇格は実装難度で別判定する。`Mechanical`へrisk・仕様・重大度を判断させない。
+- 評価順は、`Spec Tier判定 → risk・不確実性・検証可能性からReview Mode判定 → role別Model Class判定
+  → DEEP事前承認`とする。少なくとも`spec_tier`、`risk_class`、`review_mode`、`review_approval_ref`、
+  role別`model_class`を別状態として扱う。
+- `cyclox2_docker`の`docs/catracer-cleanup-2026-27-task2-2` branchは、Task EとRequirements独立reviewで
+  反例・実例として参照する。task 2.2の深いreviewは、実データに存在する非完全重複と破壊的FIX／
+  no-op FIXを検出しており、変更量ではなくdata risk・不確実性による`DEEP`昇格の必要性を示す。
+
+このbaselineはTask CでTier別の文書深度、Task Eで三軸の閾値・相互作用・事前承認・#39実装境界、
+Task A〜F統合でDecision間矛盾、RequirementsのCritical fresh独立reviewで過剰／過少昇格と判定逃れ、
+Designで状態・判定器・fallback、Task Fと段階導入でToken・時間・欠陥検出・誤分類を再確認する。
+再確認はbaselineを無条件に維持する儀式ではなく、反例があれば人間へ改訂案を戻す工程とする。
+
 #### Subagent contextとupstream規則
 
 - implementerにはtask ID、対応AC、関連design節、対象file、test subset、安全規約だけを渡す。
@@ -56,8 +99,9 @@
   親の結論や会話全文を渡さない。正本とdiffはreviewerが直接確認する。
 - 同じ正本を親の長い要約とfile読取の両方で重複投入しない。
 - cc-sdd `kiro-impl`のtask単位subagent dispatchと本契約が衝突する場合は、取り込んだcoreまたは
-  platform adapterで既知の契約を明示的に置換・無効化する。具体境界はTask B/Eで決める。
-  upstream変更へ安全に追従できない場合はfail-closedとし、Claude Code/Codex双方で検証する。
+  platform adapterで既知の契約を明示的に置換・無効化する。具体境界はTask Eで決める。
+  将来の外部source取り込みで既存contractを安全に維持できない場合はfail-closedとし、
+  Claude Code/Codex双方で検証する。cc-sddへの継続追従は前提にしない。
 
 #### 採用するmodel routing
 
@@ -211,7 +255,7 @@ traceabilityは本文copyではなく、`requirement/AC → design節 → task �
 
 - Kiro互換として保証する公開・観測可能な外部contractと、保証しない内部・将来仕様
 - `SDD Rig`の独立製品表示、cc-sddへの帰属、旧名称からのin-place移行contract
-- cc-sddをrepository内source baselineとして取り込む境界と、既存外部contractの維持
+- cc-sddを初期実装時の固定参照元とする一方向forkの境界、provenance、license、既存外部contractの維持
 - タスクの規模・リスクに応じたエージェント数、役割、起動条件、停止条件
 - 実装・review等の役割、Tier、riskに応じたmodel routing、model能力要件、fallback、利用modelの記録
 - Tierとリスク分類、承認ゲート、独立レビュー適用範囲の関係
@@ -226,8 +270,8 @@ traceabilityは本文copyではなく、`requirement/AC → design節 → task �
 
 - Issue #32が所有するスキル検出・起動パリティ機構そのものの再実装
 - Issue #30が所有するsyncの一般的なマージ・競合処理
-- Issue #33が所有するcc-sddバージョン昇格ライフサイクル
-- cc-sdd source取り込みのdirectory、更新手順、差分管理、rollbackの実装詳細（Task Bで決める）
+- #33配下で行う初期source統合の実装、build tool、directory、build成果物commit方針
+- 将来の個別な外部source取り込み提案に対する具体的な採否・実装
 - 人間承認、TDD、main直接コミット禁止を撤廃する変更
 
 ### Related contracts
@@ -270,6 +314,27 @@ SDD Rigはcc-sddをベースに開発した独立製品であり、Kiro/AWSの�
 開始・再開・完了、新名称での配布・発見・更新をE2Eと人間承認で確認するまで維持する。旧入口を利用した場合だけ
 新名称を短く案内し、新`sdd-rig`が旧projectを開いただけでは警告しない。
 
+### Task Bで確定したcc-sdd取り込み境界
+
+SDD Rigはcc-sddを初期実装時の固定参照元とする一方向forkの独立Appとする。「一方向fork」は内部architectureの
+説明にだけ使い、製品表示では「cc-sddをベースに開発した独立製品」を用いる。初期実装・比較・隔離検証では、
+`v3.0.2`、commit `3795eb4274c07dedcf56c571b5c0a826736f23c8`の`tools/cc-sdd`全体を参照する。
+参照対象のsubtree tree SHAは`14c2cde6a674620c8db41a6cfff85215d75aa618`とする。
+
+release後は、pristine baseline、vendor snapshot、subtree、submodule、継続同期機構を常設しない。
+SDD Rig sourceを運用上の正本とし、利用者のinstall・sync・通常利用で`npx cc-sdd`、cc-sdd source取得、
+cc-sdd単体version選択を要求しない。将来外部sourceを採用する場合は、固定参照、隔離検証、人間判断、
+SDD Rigの通常SDD実装、統合release検証、直前SDD Rig releaseへのrollbackを一件ごとに行う。
+
+責務はSDD Rig core、Claude adapter、Codex adapter、project override、legacy bridgeへ分ける。
+project overrideと所有者不明の資産は利用者所有として非破壊で扱い、legacy bridgeはTask AのE2Eと人間承認まで
+維持する。製品保証・配布・検証はClaude CodeとCodexに限定し、その他のupstream platformを対応済みと表示しない。
+
+cc-sddのMIT LICENSE全文、`Copyright (c) 2025 gotalab`、upstream URL、tag、commit、path、tree SHA、
+独立・非提携説明を保持する。SDD Rig自身のLICENSEとは分離し、cc-sdd由来code、templateまたは
+substantial portionsを実際に含む配布物から帰属へ到達できるようにする。ハーネスの利用だけで利用projectの
+App全体へlicenseが自動伝播するとは扱わない。詳細なDecisionと未決調査は`handoffs/task-b.md`を参照する。
+
 ### 旧導入順（PR #42時点の履歴）
 
 > 以下は2026-08-17に合意した旧順序である。戦略変更後はGitHub Issue #41冒頭の
@@ -283,7 +348,8 @@ SDD Rigはcc-sddをベースに開発した独立製品であり、Kiro/AWSの�
 3. `#38`のbash 3.2 / CJK PDF生成不具合を再現し、`#37`より先に修正する。
 4. `#30`のsyncにおける確認、clean apply、conflict、report契約を確定する。
 5. `#41`の共通policyを実装し、`#39`をそのpolicyに従う独立review機構として協調導入する。
-6. `#33`のcc-sdd version lifecycleを、`#34`、`#35`の順で実装する。
+6. `#33`をcc-sddの初期source統合specとして再定義し、必要な子作業を`#34`で実装する。
+   継続upstream追従や利用者環境でのcc-sdd version選択は実装しない。
 7. `#31`の実行通知を、`#41`のToken・人間負荷基準と`#39`のreview境界に合わせて実装する。
 8. `#37`を新policyへ移行し、`#38`修正済みのdoc-exportを前提に再開する。
 
@@ -418,11 +484,12 @@ Claude CodeとCodexの双方で`B1`と`C`を比較する。provider間の生Toke
 
 ## 合意済みの基準
 
-- cc-sddをSDDハーネスのsource baselineとし、kiro command、標準成果物名、phase順、
-  approval metadata、数値requirement IDをV1外部互換contractとして保つ。
+- cc-sddを初期実装時の固定参照元とする一方向forkとし、kiro command、標準成果物名、phase順、
+  approval metadata、数値requirement IDをV1外部互換contractとして保つ。release後に継続同期用の
+  upstream baselineを常設しない。
 - 文書責務の整理と重複削減は独自文書体系への置換ではなく、Kiro互換の外部file・workflowを維持したまま
-  core、共通policy、platform adapter、project overrideの責務分離で実現する。具体境界はTask Bで決める。
-- cc-sdd互換境界からの例外が必要な場合は、理由、代替案、upgrade・sync・parityへの影響を提示し、
+  SDD Rig core、Claude adapter、Codex adapter、project override、legacy bridgeの責務分離で実現する。
+- cc-sdd互換境界からの例外が必要な場合は、理由、代替案、source intake・sync・parityへの影響を提示し、
   人間の明示承認を得るまで採用しない。
 - Tier Lまたは高リスク変更: fresh subagentによる独立レビューを必須とする。
 - Tier Sかつ低リスク変更: 主エージェントの制限レビューと人間承認を標準とする。
