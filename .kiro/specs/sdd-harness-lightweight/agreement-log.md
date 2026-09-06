@@ -105,16 +105,25 @@
 | 81 | Model Classはroleの判断量、制約統合、曖昧性、反例探索、domain知識、機械検証可能性から決め、高riskはreviewer能力、実装難度はimplementer能力へ別々に反映する | riskと難度を分離したまま、各roleへ必要な最低能力だけをprovider中立に割り当てるため | 2026-09-06 |
 | 82 | 三軸baselineをTask C/E、Task A〜F統合、Requirements Critical review、Design、Task F・段階導入で段階的に再検証し、反例時は人間へ改訂案を戻す | 現時点の分類を無批判に固定せず、過剰review、過少review、判定逃れ、model過不足を実証的に修正するため | 2026-09-06 |
 | 83 | `cyclox2_docker`の`docs/catracer-cleanup-2026-27-task2-2`をTask Eの実例に用い、変更量ではなくdata risk・不確実性が深いreviewを正当化したか検証する | 深いreviewが破壊的FIX／no-op FIXを発見した実例を残しつつ、通常taskへの一律適用と混同しないため | 2026-09-06 |
+| 84 | SDD Rigをcc-sdd `v3.0.2`、commit `3795eb4274c07dedcf56c571b5c0a826736f23c8`、`tools/cc-sdd`を初期固定参照元とする一方向forkの独立Appとし、release後にpristine baseline、vendor snapshot、subtree、submodule、継続同期機構を常設しない | 外部sourceへ恒常的に依存せず、SDD Rig sourceを運用上の正本とする一方、初期実装の再現可能性を固定値で確保するため | 2026-09-06 |
+| 85 | 初期実装時は`tools/cc-sdd`全体を比較対象にするが、V1の製品保証・配布・検証はClaude CodeとCodexだけに限定する | 部分抽出による初期比較漏れを防ぎつつ、未検証platformを対応済みと誤表示しないため | 2026-09-06 |
+| 86 | architectureをSDD Rig core、Claude adapter、Codex adapter、project override、legacy bridgeへ分け、project overrideは利用project所有、bridgeはE2Eと人間承認まで維持する | 本体、platform差、利用者資産、旧入口を別責務として管理し、更新による利用者資産の破壊と二重stateを防ぐため | 2026-09-06 |
+| 87 | cc-sddのMIT LICENSE全文、`Copyright (c) 2025 gotalab`、URL、tag、commit、path、subtree tree SHA `14c2cde6a674620c8db41a6cfff85215d75aa618`、独立・非提携説明、初期統合来歴を保持し、component対応、`copied / modified / reimplemented / not adopted`分類、初期検証を一回限りの証跡に残す | 継続同期用baselineを置かなくても、由来、法的帰属、初期統合の判断を監査可能にするため | 2026-09-06 |
+| 88 | SDD Rig自身とcc-sddのLICENSEを分離し、cc-sdd由来code、template、substantial portionsを実際に含む配布物からLICENSE全文と帰属へ到達可能にする。ハーネス利用だけで利用project App全体へMITが自動伝播するとは扱わない | MITのnotice保持と、実コピーを伴わない利用projectへの過剰なlicense伝播説明を避けるため | 2026-09-06 |
+| 89 | 将来の外部source採用は、提案、固定参照、隔離検証、人間判断、通常SDD実装、統合release検証、直前SDD Rig releaseへのrollbackを一件ごとに行い、AIは承認前に候補取得・検証・報告までとする | 継続upstream追従を廃止しても、有用な変更を安全かつ人間の採否判断付きで取り込めるようにするため | 2026-09-06 |
+| 90 | 利用者のinstall・sync・通常利用で`npx cc-sdd`、cc-sdd source取得、cc-sdd単体version選択を要求せず、dependency追加・更新は目的、分類、pin/lock、license、security、supplier、E2E、更新責任を確認する | 配布を自己完結させ、外部取得による非再現性とAIの無断dependency変更を防ぐため | 2026-09-06 |
+| 91 | install、sync、bridgeでは管理対象と所有領域を分類し、所有者不明を利用者所有として非破壊で扱う。競合・不明・parity未検証は差分と候補を示して人間承認後に適用するか、既存環境を保持して中断する | 未適用や競合を完全成功と誤報せず、利用者資産と未知fieldを保護するため | 2026-09-06 |
+| 92 | #41をDiscovery Decision・横断制約・依存順の正本、#33を必要時の初期統合実装spec、#34をその子作業候補とし、既存#33/#34の継続cc-sdd追従記述は実装前に再定義する。Discovery中は人間向けACTIVEを一件に限定する | Decisionとapprovalの二重正本を避け、古いupstream lifecycle案をTask B合意より優先して実装しないため | 2026-09-06 |
 
 ---
 
 ### 旧Decisionの改訂関係
 
-| 旧Decision | Task A後の扱い |
+| 旧Decision | Task B後の扱い |
 |---|---|
-| #14 | command・標準成果物・phase・approval metadataを外部互換contractとして維持する部分は継続する。全面forkを避けるという旧理由は、source baseline取り込み方針に合わせTask Bで改訂する |
-| #15 | 影響評価と人間承認を必要とする安全条件は維持する。独自変更をoverlayだけで実現する方式の固定は撤回し、Task Bでcore・adapter・project overrideの境界を決める |
-| #29 | fail-closedとlocal harness contract優先は維持する。`kiro-impl`の衝突をoverlayでのみ置換する実装方式はTask B/Eで改訂する |
+| #14 | command・標準成果物・phase・approval metadataを外部互換contractとして維持する部分は継続する。「独自forkによるupgrade負荷を避ける」という旧理由は#84で撤回し、継続同期を持たない一方向forkへ改訂する |
+| #15 | 影響評価と人間承認を必要とする安全条件は維持する。独自変更をoverlayだけで実現する方式の固定は撤回し、#86の5層へ改訂する |
+| #29 | fail-closedとlocal harness contract優先は維持する。`kiro-impl`の衝突をoverlayでのみ置換する方式は撤回し、coreまたはadapterで明示的に置換する。具体的なdispatch契約はTask Eで決める |
 | #61 | 旧Issue順は履歴として保持する。現在はTask A〜Fのserial Discovery後に実装waveを確定する統合ロードマップを優先する |
 | #24 | Tier Lへ固定的にfresh review回数を割り当てる方式は、Task Eで三軸分離と`STANDARD / DEEP_RECOMMENDED / DEEP_REQUIRED`の適応型判定へ改訂する。高risk reviewと人間承認を弱めない目的は維持する |
 | #25 | risk boundary checkpoint、gateごと1 reviewer、同一reviewer最大10巡は維持候補とし、`DEEP`事前承認とreview単位の具体条件をTask Eで再確認する |
@@ -147,8 +156,10 @@
 
 ### 次回の再開点
 
-PR #42までの6項目に加え、Discovery改訂Task A「Kiro互換・製品境界」が完了した。
-次はTask B「cc-sdd source取り込み」用context packetを作成し、人間確認後に別taskで壁打ちする。
+PR #42までの6項目に加え、Discovery改訂Task A「Kiro互換・製品境界」と
+Task B「cc-sdd source取り込み・provenance・外部source更新境界」が完了し、人間承認された。
+Task BのDQ PRをreview・mergeした後、Task C「正本・文書責務・日本語・追跡可能性」用context packetを
+作成し、人間確認後に別taskで壁打ちする。PR merge前にTask Cを開始しない。
 Task A〜Fを統合したDiscovery DQ PRがmergeされるまで`requirements.md`生成へ進まない。
 
 ---
@@ -160,7 +171,7 @@ Task A〜Fを統合したDiscovery DQ PRがmergeされるまで`requirements.md`
 
 | フェーズ | 合意メモ（理由・補足） |
 |---|---|
-| 要件定義（requirements.md） | Discovery改訂Task A完了、Task B〜F未着手。未生成・未承認。 |
+| 要件定義（requirements.md） | Discovery改訂Task A・B完了、Task C〜F未着手。未生成・未承認。 |
 | 設計（design.md） | 未生成・未承認。 |
 | タスク分解・実装前確認（tasks.md） | 未生成・未承認。 |
 
@@ -190,3 +201,4 @@ Task A〜Fを統合したDiscovery DQ PRがmergeされるまで`requirements.md`
 | 2026-08-17 | 全open Issueの移行順、gate境界移行、`#41`の既定優先、critical衝突時の壁打ち、両agent同時activationを合意 | KYamada / Codex |
 | 2026-09-05 | Task AでKiro互換保証、独立製品表示、名称・状態のin-place移行contractを合意。skill件数を全`kiro-*`17個とSDD Rig固有`doc-export`へ補正 | KYamada / Codex |
 | 2026-09-06 | Spec Tier・Review Mode・Model Classの三軸分離、適応型`DEEP`判定、実行前人間承認、段階的再検証をTask Eへの採用済みbaselineとして合意 | KYamada / Codex |
+| 2026-09-06 | Task Bで一方向fork、初期source・provenance、5層architecture、license・配布、将来の外部source採用gate、非破壊sync、Issue責務を合意 | KYamada / Codex |

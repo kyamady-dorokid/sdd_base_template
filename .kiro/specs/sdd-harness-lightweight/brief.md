@@ -99,8 +99,9 @@ Designで状態・判定器・fallback、Task Fと段階導入でToken・時間�
   親の結論や会話全文を渡さない。正本とdiffはreviewerが直接確認する。
 - 同じ正本を親の長い要約とfile読取の両方で重複投入しない。
 - cc-sdd `kiro-impl`のtask単位subagent dispatchと本契約が衝突する場合は、取り込んだcoreまたは
-  platform adapterで既知の契約を明示的に置換・無効化する。具体境界はTask B/Eで決める。
-  upstream変更へ安全に追従できない場合はfail-closedとし、Claude Code/Codex双方で検証する。
+  platform adapterで既知の契約を明示的に置換・無効化する。具体境界はTask Eで決める。
+  将来の外部source取り込みで既存contractを安全に維持できない場合はfail-closedとし、
+  Claude Code/Codex双方で検証する。cc-sddへの継続追従は前提にしない。
 
 #### 採用するmodel routing
 
@@ -254,7 +255,7 @@ traceabilityは本文copyではなく、`requirement/AC → design節 → task �
 
 - Kiro互換として保証する公開・観測可能な外部contractと、保証しない内部・将来仕様
 - `SDD Rig`の独立製品表示、cc-sddへの帰属、旧名称からのin-place移行contract
-- cc-sddをrepository内source baselineとして取り込む境界と、既存外部contractの維持
+- cc-sddを初期実装時の固定参照元とする一方向forkの境界、provenance、license、既存外部contractの維持
 - タスクの規模・リスクに応じたエージェント数、役割、起動条件、停止条件
 - 実装・review等の役割、Tier、riskに応じたmodel routing、model能力要件、fallback、利用modelの記録
 - Tierとリスク分類、承認ゲート、独立レビュー適用範囲の関係
@@ -269,8 +270,8 @@ traceabilityは本文copyではなく、`requirement/AC → design節 → task �
 
 - Issue #32が所有するスキル検出・起動パリティ機構そのものの再実装
 - Issue #30が所有するsyncの一般的なマージ・競合処理
-- Issue #33が所有するcc-sddバージョン昇格ライフサイクル
-- cc-sdd source取り込みのdirectory、更新手順、差分管理、rollbackの実装詳細（Task Bで決める）
+- #33配下で行う初期source統合の実装、build tool、directory、build成果物commit方針
+- 将来の個別な外部source取り込み提案に対する具体的な採否・実装
 - 人間承認、TDD、main直接コミット禁止を撤廃する変更
 
 ### Related contracts
@@ -313,6 +314,27 @@ SDD Rigはcc-sddをベースに開発した独立製品であり、Kiro/AWSの�
 開始・再開・完了、新名称での配布・発見・更新をE2Eと人間承認で確認するまで維持する。旧入口を利用した場合だけ
 新名称を短く案内し、新`sdd-rig`が旧projectを開いただけでは警告しない。
 
+### Task Bで確定したcc-sdd取り込み境界
+
+SDD Rigはcc-sddを初期実装時の固定参照元とする一方向forkの独立Appとする。「一方向fork」は内部architectureの
+説明にだけ使い、製品表示では「cc-sddをベースに開発した独立製品」を用いる。初期実装・比較・隔離検証では、
+`v3.0.2`、commit `3795eb4274c07dedcf56c571b5c0a826736f23c8`の`tools/cc-sdd`全体を参照する。
+参照対象のsubtree tree SHAは`14c2cde6a674620c8db41a6cfff85215d75aa618`とする。
+
+release後は、pristine baseline、vendor snapshot、subtree、submodule、継続同期機構を常設しない。
+SDD Rig sourceを運用上の正本とし、利用者のinstall・sync・通常利用で`npx cc-sdd`、cc-sdd source取得、
+cc-sdd単体version選択を要求しない。将来外部sourceを採用する場合は、固定参照、隔離検証、人間判断、
+SDD Rigの通常SDD実装、統合release検証、直前SDD Rig releaseへのrollbackを一件ごとに行う。
+
+責務はSDD Rig core、Claude adapter、Codex adapter、project override、legacy bridgeへ分ける。
+project overrideと所有者不明の資産は利用者所有として非破壊で扱い、legacy bridgeはTask AのE2Eと人間承認まで
+維持する。製品保証・配布・検証はClaude CodeとCodexに限定し、その他のupstream platformを対応済みと表示しない。
+
+cc-sddのMIT LICENSE全文、`Copyright (c) 2025 gotalab`、upstream URL、tag、commit、path、tree SHA、
+独立・非提携説明を保持する。SDD Rig自身のLICENSEとは分離し、cc-sdd由来code、templateまたは
+substantial portionsを実際に含む配布物から帰属へ到達できるようにする。ハーネスの利用だけで利用projectの
+App全体へlicenseが自動伝播するとは扱わない。詳細なDecisionと未決調査は`handoffs/task-b.md`を参照する。
+
 ### 旧導入順（PR #42時点の履歴）
 
 > 以下は2026-08-17に合意した旧順序である。戦略変更後はGitHub Issue #41冒頭の
@@ -326,7 +348,8 @@ SDD Rigはcc-sddをベースに開発した独立製品であり、Kiro/AWSの�
 3. `#38`のbash 3.2 / CJK PDF生成不具合を再現し、`#37`より先に修正する。
 4. `#30`のsyncにおける確認、clean apply、conflict、report契約を確定する。
 5. `#41`の共通policyを実装し、`#39`をそのpolicyに従う独立review機構として協調導入する。
-6. `#33`のcc-sdd version lifecycleを、`#34`、`#35`の順で実装する。
+6. `#33`をcc-sddの初期source統合specとして再定義し、必要な子作業を`#34`で実装する。
+   継続upstream追従や利用者環境でのcc-sdd version選択は実装しない。
 7. `#31`の実行通知を、`#41`のToken・人間負荷基準と`#39`のreview境界に合わせて実装する。
 8. `#37`を新policyへ移行し、`#38`修正済みのdoc-exportを前提に再開する。
 
@@ -461,11 +484,12 @@ Claude CodeとCodexの双方で`B1`と`C`を比較する。provider間の生Toke
 
 ## 合意済みの基準
 
-- cc-sddをSDDハーネスのsource baselineとし、kiro command、標準成果物名、phase順、
-  approval metadata、数値requirement IDをV1外部互換contractとして保つ。
+- cc-sddを初期実装時の固定参照元とする一方向forkとし、kiro command、標準成果物名、phase順、
+  approval metadata、数値requirement IDをV1外部互換contractとして保つ。release後に継続同期用の
+  upstream baselineを常設しない。
 - 文書責務の整理と重複削減は独自文書体系への置換ではなく、Kiro互換の外部file・workflowを維持したまま
-  core、共通policy、platform adapter、project overrideの責務分離で実現する。具体境界はTask Bで決める。
-- cc-sdd互換境界からの例外が必要な場合は、理由、代替案、upgrade・sync・parityへの影響を提示し、
+  SDD Rig core、Claude adapter、Codex adapter、project override、legacy bridgeの責務分離で実現する。
+- cc-sdd互換境界からの例外が必要な場合は、理由、代替案、source intake・sync・parityへの影響を提示し、
   人間の明示承認を得るまで採用しない。
 - Tier Lまたは高リスク変更: fresh subagentによる独立レビューを必須とする。
 - Tier Sかつ低リスク変更: 主エージェントの制限レビューと人間承認を標準とする。

@@ -3,7 +3,8 @@
 > 作成日: 2026-09-06
 > 親Issue: #41
 > 関連Issue: #33、#34
-> 状態: 壁打ち開始前。実装・source取り込み・Issue再編・renameは行わない。
+> 状態: 壁打ち完了・人間承認済み。確定結果は`../handoffs/task-b.md`を正として参照する。
+> このfileは開始時の調査・比較仮説を保存するものであり、実装contractとして使用しない。
 
 ## 1. Taskの目的
 
@@ -183,9 +184,11 @@ upstream baselineの昇格はmaintainer責務とする。
 #41と#33を別specにすることでDecisionや承認を二重管理するなら統合を検討する。一方、#33が独立した
 保守lifecycleを長期管理する価値があるなら、#41は上位contractだけを所有し詳細を参照する。
 
-## 6. 推奨仮説として検証する案
+## 6. 壁打ち開始時の推奨仮説（履歴・不採用部分あり）
 
-壁打ちの開始仮説は次とするが、結論として固定しない。
+壁打ちの開始仮説は次のとおりだった。最終Decisionでは、固定参照元から一方向forkする一方、
+release後にpristine baseline、vendor snapshot、継続同期toolを常設しない方針へ改訂された。
+確定内容は`../handoffs/task-b.md`を参照する。
 
 1. `v3.0.2` tagの`tools/cc-sdd`を、commitを明記したvendored source snapshotとして取り込む。
 2. upstream baselineは可能な限りpristineに保ち、SDD Rig core・platform adapter・product templateを別layerに置く。
