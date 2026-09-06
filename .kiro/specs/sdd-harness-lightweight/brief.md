@@ -103,6 +103,43 @@ Designで状態・判定器・fallback、Task Fと段階導入でToken・時間�
   将来の外部source取り込みで既存contractを安全に維持できない場合はfail-closedとし、
   Claude Code/Codex双方で検証する。cc-sddへの継続追従は前提にしない。
 
+#### Task C/E/Fへ渡す採用済みbaseline: コンテキスト予算・セッション継続管理
+
+SDD Rigは、長時間sessionで同じcontextが各requestへ再投入される費用と、compactによる情報劣化を
+抑えるため、「コンテキスト予算・セッション継続管理」を基本機能として扱う。Claude Codeで得られた
+実測artifactでは、2か月継続したsessionが2,258 request、総input約11.1億Token、平均context約49.3万Token、
+最大約93.4万Tokenに達し、auto-compactは1M上限直前で5回発生していた。この数値は問題の実例として用いるが、
+単一projectと仮定を含むsimulationであり、一般的な削減保証には使わない。
+参照artifact: `https://claude.ai/code/artifact/70567fa6-9d3b-4fc4-886c-b4e6b98f6656`
+
+対策は、次の順で適用する。
+
+1. **計画的session分割を主策とする。** 独立して再開可能なSDD milestoneでcheckpointを作り、
+   新sessionはconversation要約ではなくrepository内の正本と最小handoffから開始する。
+2. **早期compactを安全弁とする。** 1 taskが長期化し、安全な分割点へまだ到達できない場合に、
+   保持すべき対象を指定してcompactする。
+3. **platform固有のauto-compact上限を最終防波堤とする。** 利用可能性をadapterで検出し、
+   利用者が明示的に選択した場合だけ適用する。
+
+Claude 1M contextに対する200K警告・500K上限は検証開始時の候補profileとする。modelのcontext window、
+platform機能、task特性を無視した共通絶対値にはせず、active context、累積input/cached input、turn、経過時間、
+compact回数、大容量tool出力、subagent context、checkpoint readinessを分けて観測する。
+
+session checkpointは新しい仕様正本を作らず、spec/task ID、approval対象hash、branch/commit/worktree、
+dirty/untracked状態、完了・残作業、blocker、次の一手、正本pathだけを参照中心で保持する派生manifestとする。
+情報所有・更新・保存境界はTask C、context budget・分割判定・compact判定はTask E、platform adapter・設定・
+fresh-session再開E2EはTask Fで決める。Task DはPDF、画像、render log等の大容量出力をconversationへ再投入せず、
+保存先と検査要約を返す規則を扱う。
+
+session分割は自動commit/pushと同義にしない。人間未承認の変更や不完全な差分をcheckpoint名目でcommitせず、
+既存commit policyを維持する。利用者のglobal設定を無断変更せず、project設定も既存値・未知fieldを保持し、
+差分と影響を提示して人間承認後に適用する。Claude/Codex parityは同一setting keyではなく、肥大検知、
+checkpoint、正本からの再開、重要Decisionの保持という観測可能な結果で判定する。
+
+session transcriptを計測する場合はlocal opt-inとし、raw transcriptをrepositoryへ保存・外部送信しない。
+promptやfile本文ではなくusage metadataを優先し、取得不能値は`UNAVAILABLE`として扱う。独立実装可能な責務が
+Designで確認できた場合だけ子Issueへ分割し、Discovery Taskを追加してA〜Fのserial順を崩さない。
+
 #### 採用するmodel routing
 
 - model名ではなく、最低能力要件として`Standard / Critical / Mechanical`の3 classを定義する。

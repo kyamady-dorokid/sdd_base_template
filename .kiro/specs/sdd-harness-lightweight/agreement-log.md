@@ -114,6 +114,11 @@
 | 90 | 利用者のinstall・sync・通常利用で`npx cc-sdd`、cc-sdd source取得、cc-sdd単体version選択を要求せず、dependency追加・更新は目的、分類、pin/lock、license、security、supplier、E2E、更新責任を確認する | 配布を自己完結させ、外部取得による非再現性とAIの無断dependency変更を防ぐため | 2026-09-06 |
 | 91 | install、sync、bridgeでは管理対象と所有領域を分類し、所有者不明を利用者所有として非破壊で扱う。競合・不明・parity未検証は差分と候補を示して人間承認後に適用するか、既存環境を保持して中断する | 未適用や競合を完全成功と誤報せず、利用者資産と未知fieldを保護するため | 2026-09-06 |
 | 92 | #41をDiscovery Decision・横断制約・依存順の正本、#33を必要時の初期統合実装spec、#34をその子作業候補とし、既存#33/#34の継続cc-sdd追従記述は実装前に再定義する。Discovery中は人間向けACTIVEを一件に限定する | Decisionとapprovalの二重正本を避け、古いupstream lifecycle案をTask B合意より優先して実装しないため | 2026-09-06 |
+| 93 | 「コンテキスト予算・セッション継続管理」をSDD Rigの基本機能とし、計画的session分割を主策、早期compactを安全弁、platform固有auto-compact上限を任意の最終防波堤とする | 長時間sessionで同じcontextをrequestごとに再投入する費用と、上限直前の非可逆compactによる情報劣化を同時に抑えるため | 2026-09-06 |
+| 94 | Claude 1M contextの200K警告・500K上限は初期検証候補とし、全platform・modelへ共通の固定値や削減保証として適用しない。active context、累積input/cached input、turn、compact、大容量出力、checkpoint readinessを分離して測る | 単一projectと仮定を含むsimulation値を一般化せず、model windowと観測能力の違いを扱うため | 2026-09-06 |
+| 95 | session checkpointを正本参照型の派生manifestとし、会話要約や仕様本文のcopyを正本化しない。分割を自動commit/pushと同義にせず、未承認・不完全な差分をcheckpoint名目でcommitしない | 正本の二重化、要約劣化、既存commit policyの迂回、再開不能な作業状態を防ぐため | 2026-09-06 |
+| 96 | Claude/Codex parityは同じ設定キーではなく、肥大検知、checkpoint、正本からのfresh-session再開、重要Decision保持という観測可能な結果で判定する。global設定を無断変更せず、project設定も非破壊差分と人間承認を必須とする | platform固有機能の差を隠さず、Task Bの利用者所有・未知field保護contractを維持するため | 2026-09-06 |
+| 97 | session transcript計測はlocal opt-inとし、raw transcriptをrepositoryへ保存・外部送信せず、usage metadataを優先する。情報責務をTask C、budget・判定をTask E、adapter・E2EをTask F、大容量二次成果物出力をTask Dへ割り当てる | prompt・file本文・秘密情報の漏洩を防ぎ、横断機能を新しいDiscovery Taskや二重正本へ分裂させないため | 2026-09-06 |
 
 ---
 
@@ -158,8 +163,9 @@
 
 PR #42までの6項目に加え、Discovery改訂Task A「Kiro互換・製品境界」と
 Task B「cc-sdd source取り込み・provenance・外部source更新境界」が完了し、人間承認された。
-Task BのDQ PRをreview・mergeした後、Task C「正本・文書責務・日本語・追跡可能性」用context packetを
-作成し、人間確認後に別taskで壁打ちする。PR merge前にTask Cを開始しない。
+PR #44はmerge済み。「コンテキスト予算・セッション継続管理」をTask C/E/F共通inputとして追加し、
+Task C「正本・文書責務・日本語・追跡可能性」用context packetを作成した。
+次は人間がcontext packetを確認し、承認後にTask C専用taskを一つ起動して壁打ちする。
 Task A〜Fを統合したDiscovery DQ PRがmergeされるまで`requirements.md`生成へ進まない。
 
 ---
@@ -171,7 +177,7 @@ Task A〜Fを統合したDiscovery DQ PRがmergeされるまで`requirements.md`
 
 | フェーズ | 合意メモ（理由・補足） |
 |---|---|
-| 要件定義（requirements.md） | Discovery改訂Task A・B完了、Task C〜F未着手。未生成・未承認。 |
+| 要件定義（requirements.md） | Discovery改訂Task A・B完了、Task C準備中、Task D〜F未着手。未生成・未承認。 |
 | 設計（design.md） | 未生成・未承認。 |
 | タスク分解・実装前確認（tasks.md） | 未生成・未承認。 |
 
@@ -202,3 +208,4 @@ Task A〜Fを統合したDiscovery DQ PRがmergeされるまで`requirements.md`
 | 2026-09-05 | Task AでKiro互換保証、独立製品表示、名称・状態のin-place移行contractを合意。skill件数を全`kiro-*`17個とSDD Rig固有`doc-export`へ補正 | KYamada / Codex |
 | 2026-09-06 | Spec Tier・Review Mode・Model Classの三軸分離、適応型`DEEP`判定、実行前人間承認、段階的再検証をTask Eへの採用済みbaselineとして合意 | KYamada / Codex |
 | 2026-09-06 | Task Bで一方向fork、初期source・provenance、5層architecture、license・配布、将来の外部source採用gate、非破壊sync、Issue責務を合意 | KYamada / Codex |
+| 2026-09-06 | Claude Code実測artifactを基に、計画的session分割・早期compact・任意上限、正本参照型checkpoint、semantic parity、local telemetryをTask C/E/F共通baselineとして合意 | KYamada / Codex |
