@@ -1,6 +1,7 @@
 # Task C context packet: 正本文書・人間review・日本語・追跡可能性
 
 > 作成日: 2026-09-06
+> 更新日: 2026-09-21（Session Workspace Ownership & Isolationを必須inputとして追加）
 > 親Issue: #41
 > 前提Task: Task A、Task B（人間承認・DQ PR merge済み）
 > 状態: 壁打ち開始前。実装、template変更、Issue再編、commit、push、PR、repository renameは行わない。
@@ -116,6 +117,31 @@ global設定を無断変更せず、project設定も非破壊差分と人間承�
 Task Eはbudget・分割・compact判定、Task Fはplatform adapter・設定・fresh-session E2Eを所有する。
 Task Cは、それらが利用する情報contractと、人間が安全に再開可能か判断するnavigationだけを決める。
 
+### 4.1 必須input: Session Workspace Ownership & Isolation
+
+複数のagent sessionが同じGit working treeを共有すると、一方の`checkout`や`switch`が他方から見える
+HEAD、index、作業fileを変更し、未commit差分の混在、誤commit、review対象の混入、承認済みscopeの
+破壊につながる。このため、SDD Rig管理下のmutable sessionをsession単位の専用workspaceへ隔離することは、
+最終Requirementsから落としてはならない必須inputとする。
+
+ただしTask Cが決めるのは、checkpointとreview navigationからsession workspaceの状態を参照するための
+**情報contract**だけである。workspaceの作成、ownership/lease、mutation preflight、resume、close、
+doctor/recover、Claude/Codex adapter、runtime operation lock、fresh-session E2EはTask Fが所有する。
+
+Task Cでは最低限、次の境界を満たすことを確認する。
+
+- canonical session IDはplatform固有conversation IDと混同せず、workspace metadataへの参照に使える。
+- checkpointはworkspace path、Git common-dir/git-dir、branch、base/commit、dirty state、leaseの検証状態を
+  必要に応じて参照できるが、それらの新しい正本にならない。
+- checkpointを作成できたことだけで、workspaceの隔離、ownership、resume可能性を成功扱いしない。
+- workspace metadataまたはleaseがstale、競合、不明、取得不能の場合は`UNVERIFIED`または`BLOCKED`として
+  表示でき、未知状態を安全または0として扱わない。
+- checkpointを理由に、dirty差分の自動移送、自動commit/push、worktreeの自動削除・resetを要求しない。
+
+Session Workspace Manager、linked worktreeとcloneの選択、lease方式、CLI、strict化するmutable phase、
+保存場所・retention等の具体方式は未承認であり、Task Cでは確定しない。Task F context packetでは本件を
+「必須: Session Workspace Ownership & Isolation」として明示し、反例を用いてDecision化する。
+
 ## 5. この壁打ちで決める事項
 
 ### C-1. 文書ごとの正本責務とlifecycle
@@ -154,10 +180,15 @@ Task Cは、それらが利用する情報contractと、人間が安全に再開
 
 - checkpointを既存file内の節、単一の派生manifest、一時生成物のどれにするか。
 - どのfieldを正本から参照し、どのsession固有deltaだけを保持するか。
+- canonical session IDとplatform固有conversation ID、workspace metadata、checkpointの参照関係。
+- workspace path、Git common-dir/git-dir、branch、base/commit、lease検証状態について、正本・参照・
+  session固有deltaのどれが所有するか。
 - clean checkpointとdirty worktree checkpointの違い、同一worktreeを引き継げない場合の停止条件。
+- unmanaged session、stale lease、workspace metadata不一致を安全な再開と誤認しない状態表現。
 - compact、新session、別agentへのhandoffで共通利用できる最小format。
 - checkpointの更新、stale判定、archive、git管理、PII・秘密情報の扱い。
 - 人間が「この状態から安全に再開できる」と判断するnavigation。
+- Task Fへ渡すworkspace隔離の必須情報と、Task Cでは確定しない実行責務の境界。
 
 ### C-6. Task Bの製品説明・NOTICEへの反映
 
@@ -185,7 +216,8 @@ Task Cは、それらが利用する情報contractと、人間が安全に再開
 | git管理外のlocal state | 頻繁に更新できる | 別環境・別worktreeから再開できない |
 | 既存正本＋実行時生成navigationのみ | 重複が最小 | session固有のdirty状態・次の一手を失う |
 
-単独案へ早期固定せず、clean/dirty、同一worktree/別worktree、Claude/Codex、新session/compactのcaseで評価する。
+単独案へ早期固定せず、clean/dirty、managed/unmanaged、同一worktree/別worktree、Claude/Codex、
+新session/compactのcaseで評価する。
 
 ### review navigation
 
@@ -201,6 +233,7 @@ navigation自体が新しい正本や長い要約にならないことを必須�
 - template、skill、validator、hook、CLI、platform設定の実装
 - 200K/500K等の最終閾値と通知UI: Task E/F
 - Claude/Codexのcompact機能を同一setting keyにすること: Task E/F
+- session workspaceの作成、ownership/lease、mutation preflight、resume/close/recovery、runtime lockの方式: Task F
 - 既定PPT、phase profile、意味変換、visual QA: Task D
 - source directory、build tool、initial cc-sdd import: #33/#34とDesign
 - repository/package/CLI renameの実施
@@ -216,6 +249,9 @@ navigation自体が新しい正本や長い要約にならないことを必須�
 - Tier Sを理由に、公開contract、data、security、rollback情報を省略していないか。
 - checkpointのために未承認変更をcommit/pushさせていないか。
 - dirty worktreeを別sessionから安全に再開できないのに、handoff作成だけで成功扱いしていないか。
+- checkpointを作成できたことを、session workspaceの隔離・ownership検証完了と誤認していないか。
+- workspace metadata、lease、Git common-dir/git-dirの不一致・取得不能を安全として扱っていないか。
+- Task CがTask Fのworkspace lifecycle方式を先取りし、未承認の実装contractを固定していないか。
 - platform固有のcontext値が取得不能なのに0または安全として扱っていないか。
 - transcript解析が秘密情報・prompt・file本文を過剰に読み取り、保存・外部送信していないか。
 
@@ -244,6 +280,8 @@ navigation自体が新しい正本や長い要約にならないことを必須�
 - Claude Code environment variables: `https://code.claude.com/docs/en/env-vars`
 - Claude Code hooks: `https://code.claude.com/docs/en/hooks`
 - OpenAI compaction guidance: `https://developers.openai.com/api/docs/guides/latest-model?model=gpt-5.2`
+- Issue #41 workspace隔離DQ: `https://github.com/kyamady-dorokid/sdd_base_template/issues/41#issuecomment-5751118902`
+- Git worktree contract: `https://git-scm.com/docs/git-worktree`
 
 外部仕様は壁打ち開始時に再確認し、provider固有機能を共通contractとして断定しない。
 
@@ -256,11 +294,12 @@ Task C完了時は、次をorchestratorへ返す。
 3. 人間review guideとgate別navigation
 4. 日本語・具体性・原文保持の規則
 5. session checkpointの配置、field、正本との境界、stale・dirty状態の扱い
-6. Task Bの製品説明・NOTICEへの反映条件
-7. Tier別の最小情報と省略条件
-8. 却下案と理由
-9. 未決事項、Requirements/Designへ送る項目
-10. Task D/E/F、#32/#37/#39への影響
+6. session/workspace metadataとの参照contract、`UNVERIFIED/BLOCKED`条件、Task Fへ渡す必須input
+7. Task Bの製品説明・NOTICEへの反映条件
+8. Tier別の最小情報と省略条件
+9. 却下案と理由
+10. 未決事項、Requirements/Designへ送る項目
+11. Task D/E/F、#32/#37/#39への影響
 
 Task Cはrepository file、GitHub Issue、approval状態を変更しない。orchestratorがhandoffをcross-checkし、
 人間が承認した後だけagreement-logとIssueへ固定する。criticalな互換性、license、security、正本二重化、
