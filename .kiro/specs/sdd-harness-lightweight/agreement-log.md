@@ -114,20 +114,110 @@
 | 90 | 利用者のinstall・sync・通常利用で`npx cc-sdd`、cc-sdd source取得、cc-sdd単体version選択を要求せず、dependency追加・更新は目的、分類、pin/lock、license、security、supplier、E2E、更新責任を確認する | 配布を自己完結させ、外部取得による非再現性とAIの無断dependency変更を防ぐため | 2026-09-06 |
 | 91 | install、sync、bridgeでは管理対象と所有領域を分類し、所有者不明を利用者所有として非破壊で扱う。競合・不明・parity未検証は差分と候補を示して人間承認後に適用するか、既存環境を保持して中断する | 未適用や競合を完全成功と誤報せず、利用者資産と未知fieldを保護するため | 2026-09-06 |
 | 92 | #41をDiscovery Decision・横断制約・依存順の正本、#33を必要時の初期統合実装spec、#34をその子作業候補とし、既存#33/#34の継続cc-sdd追従記述は実装前に再定義する。Discovery中は人間向けACTIVEを一件に限定する | Decisionとapprovalの二重正本を避け、古いupstream lifecycle案をTask B合意より優先して実装しないため | 2026-09-06 |
+| 93 | 「コンテキスト予算・セッション継続管理」をSDD Rigの基本機能とし、計画的session分割を主策、早期compactを安全弁、platform固有auto-compact上限を任意の最終防波堤とする | 長時間sessionで同じcontextをrequestごとに再投入する費用と、上限直前の非可逆compactによる情報劣化を同時に抑えるため | 2026-09-06 |
+| 94 | Claude 1M contextの200K警告・500K上限は初期検証候補とし、全platform・modelへ共通の固定値や削減保証として適用しない。active context、累積input/cached input、turn、compact、大容量出力、checkpoint readinessを分離して測る | 単一projectと仮定を含むsimulation値を一般化せず、model windowと観測能力の違いを扱うため | 2026-09-06 |
+| 95 | session checkpointを正本参照型の派生manifestとし、会話要約や仕様本文のcopyを正本化しない。分割を自動commit/pushと同義にせず、未承認・不完全な差分をcheckpoint名目でcommitしない | 正本の二重化、要約劣化、既存commit policyの迂回、再開不能な作業状態を防ぐため | 2026-09-06 |
+| 96 | Claude/Codex parityは同じ設定キーではなく、肥大検知、checkpoint、正本からのfresh-session再開、重要Decision保持という観測可能な結果で判定する。global設定を無断変更せず、project設定も非破壊差分と人間承認を必須とする | platform固有機能の差を隠さず、Task Bの利用者所有・未知field保護contractを維持するため | 2026-09-06 |
+| 97 | session transcript計測はlocal opt-inとし、raw transcriptをrepositoryへ保存・外部送信せず、usage metadataを優先する。情報責務をTask C、budget・判定をTask E、adapter・E2EをTask F、大容量二次成果物出力をTask Dへ割り当てる | prompt・file本文・秘密情報の漏洩を防ぎ、横断機能を新しいDiscovery Taskや二重正本へ分裂させないため | 2026-09-06 |
+| 98 | 標準file構成を維持し、brief、requirements、design、tasks、agreement-log、spec.json、research、test証跡、runbook、steering、二次成果物の固有責務を一情報一正本で分離する。context packetとhandoffはIssue #41のSerial Discovery専用の派生資料であり、標準SDD文書、通常specの必須成果物、Decision・approvalの正本にしない | 正本の重複、陳腐化、review Tokenを減らしながら、標準workflowと追跡可能性を維持するため | 2026-09-21 |
+| 99 | 現在文書は現在contractへ更新できるが、過去のDecision、review、approval、test evidenceへの到達性を保つ。意味または対象hashが変われば依存review・approvalをstaleにし、正しいgateへ戻す | 最新状態の可読性と、過去判断・失敗証拠の監査可能性を両立するため | 2026-09-21 |
+| 100 | stable IDは同一判断対象の修正では維持し、分割・統合・意味変更では新IDを付ける。影響先は`UPDATE / CONFIRM_UNCHANGED / RETIRE / BLOCKED`で閉じる | IDの乱造と意味のすり替えを同時に防ぎ、本文copyなしで影響を追跡するため | 2026-09-21 |
+| 101 | 人間reviewは恒久guideとgate別navigationで正本を直接確認する。自然言語の「進めて」は、一つのpending gate、対象文書、version/hash、許可範囲が直前に明示され、他の質問等が混在しない場合だけapprovalとする | 固定commandを強制せず、一般的な続行指示や説明理解を正式approvalへ誤認しないため | 2026-09-21 |
+| 102 | 意図・scope、architecture、隠れたfailure、権限・data・副作用、境界・並行・負荷、外部前提、test integrity、文書・state残骸の8観点を、人間review、主agent review、fresh独立reviewの共通最低観点とする | 独立reviewだけに品質観点を閉じ込めず、人間承認と軽量経路でも同じ欠陥分類を確認するため | 2026-09-21 |
+| 103 | 日本語化は承認対象を一意にすることを最優先とし、主体・対象・条件・結果・例外を具体化する。EARS keyword、schema、code、path、log、license等は必要な原文を保持し、1 ACは1つの検証可能な振る舞いを持つ | 読みやすさの名目で機械互換・法的原文を壊さず、抽象表現による判断不能を減らすため | 2026-09-21 |
+| 104 | session checkpointは正本参照と未固定の最小差分を持つ派生manifestとし、未固定合意を`provisional / pending-canonicalization`として扱う。正本固定または人間再確認まで後続gateとmutable作業を許可しない | 会話消失から作業を再開可能にしつつ、checkpointを仕様・approvalへ昇格させないため | 2026-09-21 |
+| 105 | session、platform conversation、workspace metadataを分離し、古い・競合・未取得・未検証のworkspace情報は`UNVERIFIED`または`BLOCKED`とする。checkpoint成功をworkspace isolationの証明にしない | pathやworktree存在だけを安全性・所有権の根拠にする誤りを防ぐため | 2026-09-21 |
+| 106 | checkpointはraw transcript、raw log、secret、PIIを既定保存せず、必要な証拠は参照とsensitivityを記録する。runtime storage・retention・暗号化等はTask F/securityが所有し、#37は中間・二次成果物に限定する | 再開性のために機密情報をrepositoryへ複製せず、Issue間の保存責務を混同しないため | 2026-09-21 |
+| 107 | README等はSDD Rigの利用価値と独立製品表示を主とし、NOTICE等からcc-sdd由来、非提携、MIT帰属へ到達可能にする。利用だけで利用project全体へMITが自動伝播するとは説明しない | Task A・Bの製品境界とlicense contractを人間向け文書へ一貫して反映するため | 2026-09-21 |
+| 108 | Spec Tierで文書体系を変えず、scope・AC・責務・依存・選択・移行・判断の複雑性に応じて深度だけを変える。軽微変更でも文書影響を確認する | 小規模変更の証跡欠落と、大規模変更での重複文書増加を避けるため | 2026-09-21 |
+| 109 | Task Cの採用Decisionは#98〜#108を正とする。`handoffs/task-c.md`は却下案、Requirements候補、Design保留、後続制約、既知差分を含む当時の伝達記録として保持するが、現在contractやapprovalの参照先にしない | Decisionの正本を一つに保ちつつ、壁打ち時の理由と未採用案を監査可能にするため | 2026-09-21 |
+| 110 | #102の8観点は、役割ごとに確認方法と深さを調整してよいが、人間、主agent、fresh独立reviewerのいずれからも該当観点を黙って除外しない。使用した観点versionと`APPLICABLE / NOT_APPLICABLE / BLOCKED`の判定へ到達可能にする | Task Cの承認済みhandoffにあった「人間・AIセルフレビュー・独立freshレビューへ適用」という役割指定が、正本化時に人間だけ脱落したため | 2026-09-21 |
+| 111 | Task Aの品質条件を具体化し、機能改修と現行品質の維持が衝突する場合は、影響、代替案、回帰試験を提示して人間判断へ戻す。品質目的を理由なく廃止せず、衝突を実装者だけで解消しない | #71では不変条件だけが残り、衝突時の停止・説明・判断手順がDecision本文から脱落していたため | 2026-09-21 |
+| 112 | Task Aの後続制約を、Task B=source intake・MIT帰属と外部contract維持、Task C=証跡の正本・追跡可能性とschema意味変更時の人間判断、Task D=既存spec・証跡の非破壊、Task E/#32=全`kiro-*`のfresh-session検出・明示起動・parity、Task F=旧入口・in-place bridge・rollback・旧資産再開E2Eとする。旧URL/package/CLIの実配布状況とalias・redirect、`spec.json`全field棚卸しと未知field保持の受入試験も該当ownerの必須確認へ戻す | 非正本のhandoffにだけ残すと、後続Taskが制約と未決調査を完了条件として認識できないため | 2026-09-21 |
+| 113 | Task Bの帰属contractでは、初期参照元に加えて将来採用した外部sourceの短い来歴も保持する。生成projectへcc-sdd由来code・template・substantial portionsを実際に複製する場合はLICENSE全文と帰属への到達性を伝播し、該当性が曖昧なら保守的に含めるか専門家判断へ戻す。NOTICEは製品透明性のcontractとして使うが、MIT本文が`NOTICE`というfile名を要求すると説明しない | #87・#88の要約では、将来sourceの来歴、生成projectへの例外伝播、曖昧時の停止条件、NOTICEの法的説明境界が明示されなかったため | 2026-09-21 |
+| 114 | SDD Rig sourceを正本とし、maintainerまたはCIがbuildする。package・release archive・skill bundleには統合済み成果物と必要なLICENSE/NOTICEを含める。dependencyは目的、分類、pin/lock、license、security、supplier、E2E、更新責任を確認し、AIの無断追加、無承認の自動audit fix、無承認のmajor updateを禁止する。build tool、directory、build成果物のcommit方針はDesignで決める | #90の圧縮でbuild/packageの責任主体、明示的な禁止事項、Design保留事項が正本Decisionから脱落していたため | 2026-09-21 |
+| 115 | install、sync、legacy bridgeは、利用者所有資産、未知設定、環境固有設定、追加skill、既存stateを削除・上書き・再生成しない。競合、所有者不明、parity未検証では比較・差分・影響・候補を示し、人間承認後に適用するか既存環境を保持して中断する。未適用・競合・未検証を完全成功と報告しない | #91の「非破壊」という要約だけでは、保護対象、禁止操作、成功判定を同じ意味で再現できないため | 2026-09-21 |
+| 116 | Task Bの後続責務を、#30/Task F=非破壊sync・`.new`・report・rollback、#32/Task E=外部source無断採用防止と両platform検出・起動・parity、Task C=製品説明・NOTICE、Task D=外部package/CLIのdependency contractとする。Discovery中は人間向けACTIVEを1件に限定し、完了後に既存Issueを`実装対象 / 後回し候補 / 不要・置換済み`へ分類する。未Decision・実装要否未判断のIssueはACTIVEまたは並列実装候補にしない。build方針、template別substantial portions、dependency risk閾値・監査tool、Issue優先順位・実装可否、曖昧なlicense範囲は各ownerの未決事項として保持する | #92では#41/#33/#34とACTIVE件数だけが残り、他の後続owner、Discovery後の分類規則、Task Bの未決調査が正本から脱落していたため | 2026-09-21 |
+| 117 | Serial Discoveryのhandoff正本化では、handoffを原子的な項目IDへ分解し、各項目を`ADOPTED:<Decision ID> / DEFERRED:<owner・gate> / REJECTED:<理由> / BLOCKED:<原因>`のいずれかへ一対一で対応付ける。主体、規範強度、条件、例外、否定、固定値、後続owner、未決状態を照合し、100%対応、逆向き再構成、未対応0件を確認するまで次Taskへ進まない | 要約の存在確認だけでは、Task Cの「人間」のような役割限定や、Task A/Bの例外・停止条件・未決事項が静かに脱落することを防げなかったため | 2026-09-21 |
+| 118 | 壁打ち専用sessionはhandoff送信後も正本化確認が完了するまで存続する。orchestratorは正本反映後、handoff IDごとの反映先Decision、正本文、統合・言換え・保留・未反映を同sessionへ返す。壁打ちsessionは元の承認済みhandoffと照合して`CANONICALIZATION_PASS`または`CANONICALIZATION_REVISE`を返し、`PASS`前にTask完了、session終了・archive、次Task開始を行わない。意味変更・Task間衝突は人間判断へ戻し、この確認をfresh独立reviewの代替にしない | handoff作成者が元の判断を保持している間に、orchestratorの丸め込みを送信元確認できるようにし、後日の高コストなcontext復元と意味欠落を防ぐため | 2026-09-21 |
+| 119 | #117〜#118をIssue #41固有の注意事項に留めず、SDD Rigの「転記完全性確認」機能としてRequirements化する。承認済み情報をsession・agent境界を越えて正本化する場合、handoff ID・source hash・正本対応・canonical hash・確認状態を追跡し、`CANONICALIZATION_PASS`までfail-closedとする。単一sessionが正本を直接更新する通常作業には一律適用しない。情報contractはTask C、agent workflow・停止条件はTask E、session呼戻し・存続・復旧・Claude Code/Codex E2EはTask Fが所有する | 実際に発生した転記欠落を再現可能な製品機能で防ぎつつ、全作業への過剰な確認とToken消費を避けるため | 2026-09-21 |
+
+---
+
+## Task A〜C handoff正本化カバレッジ監査
+
+> 2026-09-21に、専用sessionのstructured handoffと正本Decisionを項目単位で再照合した。
+> `CONFIRMED`は意味、主体、条件、例外、未決状態まで正本で再現できた項目、`RESTORED`は
+> 本監査で不足を訂正Decisionへ復帰した項目を示す。handoff本文に存在するだけでは正本化完了とみなさない。
+
+### Task A
+
+| handoff項目 | 正本Decision | 結果 | 確認内容 |
+|---|---|---|---|
+| A-1 V1互換性 | #67〜#70 | `CONFIRMED` | 構造・起動互換、既存state、未知field、全`kiro-*`、保証外を保持 |
+| A-2 品質条件 | #71、#111 | `RESTORED` | 不変条件に加え、品質衝突時の影響・代替案・回帰試験・人間判断を復帰 |
+| A-3 製品表示 | #72〜#73 | `CONFIRMED` | 主見出し、価値、独立・非提携、MIT帰属を保持 |
+| A-4 名称移行 | #74 | `CONFIRMED` | 即時rename禁止、条件ベースの旧入口維持、E2Eと人間承認を保持 |
+| A-5 状態互換・案内 | #75〜#76 | `CONFIRMED` | in-place bridge、二重state禁止、旧入口利用時だけの案内を保持 |
+| A-6 後続制約・未決調査 | #112 | `RESTORED` | Task B〜Fの拘束、fresh-session E2E、旧配布経路、alias/redirect/rollback、`spec.json`棚卸しのownerを復帰 |
+
+### Task B
+
+| handoff項目 | 正本Decision | 結果 | 確認内容 |
+|---|---|---|---|
+| B-1 固定source・一方向fork | #84 | `CONFIRMED` | 固定tag/commit/path/tree SHA、継続baselineを持たない境界を保持 |
+| B-2 全体比較・保証platform | #85 | `CONFIRMED` | `tools/cc-sdd`全体比較とClaude Code/Codex限定保証を保持 |
+| B-3 五層architecture | #86 | `CONFIRMED` | core、両adapter、project override、legacy bridgeの所有を保持 |
+| B-4 license・帰属・配布 | #87〜#88、#113 | `RESTORED` | 将来source来歴、生成projectへの例外伝播、曖昧時の判断を復帰 |
+| B-5 将来の外部source | #89 | `CONFIRMED` | 提案からrollbackまでのgateとAIの実行限界を保持 |
+| B-6 build・dependency・install | #90、#114 | `RESTORED` | build/package責任、明示的禁止事項、Design保留を復帰 |
+| B-7 非破壊install・sync | #91、#115 | `RESTORED` | 保護対象、禁止操作、中断、完全成功としない条件を復帰 |
+| B-8 Issue・後続Task責務 | #92、#116 | `RESTORED` | #30/#32とTask C/D/E/Fのownerを復帰 |
+| B-9 ACTIVE・分類規則 | #92、#116 | `RESTORED` | 1件ACTIVE、Discovery後の全Issue分類、未Decision Issueの並列化禁止を復帰 |
+| B-10 未決調査 | #116 | `RESTORED` | build、substantial portions、dependency監査、優先順位、専門家判断を復帰 |
+
+### Task Cで確認した先行欠落
+
+| handoff項目 | 正本Decision | 結果 | 確認内容 |
+|---|---|---|---|
+| C-11 review観点の適用主体 | #102、#110 | `RESTORED` | 8観点の対象を主agent・fresh reviewerだけでなく人間reviewへも復帰 |
+
+### 次回からの確認手順
+
+1. 専用sessionはhandoffを原子的なID付き項目として返す。複数の主体・条件・例外を一項目へ隠さない。
+2. orchestratorは文章を要約する前に、各IDへDecision、後続owner、却下理由、またはblockerを割り当てる。
+3. 次の意味要素を別々に照合する: `主体 / MUST・禁止等の規範強度 / 条件 / 例外 / 否定 / 固定値 / 後続owner / 未決状態`。
+4. 正本だけを読んでhandoffの判断を逆向きに再構成し、元handoffとの差を確認する。履歴資料への参照だけでは合格にしない。
+5. handoff ID総数、対応済み数、未対応数を示し、未対応が0件になるまでTask完了・次Task開始・PR承認依頼を行わない。
+6. Requirements化前のCritical fresh reviewでは、この表とTask D〜Fの同形式表を入力に含め、丸め込みによる意味欠落を反例ベースで再確認する。
+7. orchestratorは正本反映後、handoff IDごとの反映先、正本文、統合・言換え・保留・未反映を壁打ちsessionへ返す。
+8. 壁打ちsessionは元handoffと照合し、欠落・意味変更がなければ`CANONICALIZATION_PASS`、あれば`CANONICALIZATION_REVISE`と修正対象を返す。
+9. `CANONICALIZATION_PASS`前に壁打ちsessionを終了・archiveせず、Task完了、次Task開始、PR承認依頼を行わない。
+10. この送信元確認は転記の完全性を検査するものであり、設計妥当性を評価するfresh独立reviewや人間承認を置き換えない。
+
+この表は、正本と同じ文章をもう一つ作るためのものではない。handoffの各判断が正本または明示的な
+保留先へ到達したことを検査する、Issue #41 Serial Discovery用の監査索引である。#119の製品機能は、
+この原則をsession・agent境界を越える正本化へ一般化するが、通常specへ同じ監査表fileの作成を強制しない。
 
 ---
 
 ### 旧Decisionの改訂関係
 
-| 旧Decision | Task B後の扱い |
+| 旧Decision | 現在の扱い |
 |---|---|
 | #14 | command・標準成果物・phase・approval metadataを外部互換contractとして維持する部分は継続する。「独自forkによるupgrade負荷を避ける」という旧理由は#84で撤回し、継続同期を持たない一方向forkへ改訂する |
 | #15 | 影響評価と人間承認を必要とする安全条件は維持する。独自変更をoverlayだけで実現する方式の固定は撤回し、#86の5層へ改訂する |
+| #16 | 正本文書の一意な責務とID参照は維持し、#98でresearch、runbook、steering、二次成果物まで責務境界を拡張する。context packetとhandoffは標準文書へ追加せず、Issue #41の派生資料として分離する |
+| #21・#22 | manual checklistの条件付き必須と人間実施は維持する。Design承認時に要否を決め、必要ならTasks承認前に計画し、実装後に人間が結果を記録するlifecycleをTask Cで確定した。現行workflow/templateとの差は未解消として後続へ渡す |
 | #29 | fail-closedとlocal harness contract優先は維持する。`kiro-impl`の衝突をoverlayでのみ置換する方式は撤回し、coreまたはadapterで明示的に置換する。具体的なdispatch契約はTask Eで決める |
 | #61 | 旧Issue順は履歴として保持する。現在はTask A〜Fのserial Discovery後に実装waveを確定する統合ロードマップを優先する |
 | #24 | Tier Lへ固定的にfresh review回数を割り当てる方式は、Task Eで三軸分離と`STANDARD / DEEP_RECOMMENDED / DEEP_REQUIRED`の適応型判定へ改訂する。高risk reviewと人間承認を弱めない目的は維持する |
 | #25 | risk boundary checkpoint、gateごと1 reviewer、同一reviewer最大10巡は維持候補とし、`DEEP`事前承認とreview単位の具体条件をTask Eで再確認する |
 | #30〜#39 | provider中立の能力class、Critical非降格、role別証跡、総Token・費用・手戻り評価はbaselineとして維持し、三軸の判定順・namespace・Review Modeとの接続をTask Eで改訂する |
+| #42・#44 | navigationの構成は維持し、#101で自然言語approvalの成立条件を一つのpending gate、対象文書、version/hash、許可範囲の明示へ具体化する |
+| #50・#51 | 日本語既定、EARS互換、検証可能性は維持する。#103で対象の一意性を最優先とし、禁止語やID反復を具体性の代用にしないよう補正する |
+| #65 | 意味上の衝突に加え、対象hashの変更でも依存review・approvalをstaleにする。非意味変更の具体判定はDesignへ保留する |
+| #95 | 正本参照型を維持し、#104〜#106で未固定の最小差分、pending-canonicalization、workspace参照、機密情報除外を追加する。storageとlifecycleはTask Fで決める |
 
 ## 却下・保留事項
 
@@ -158,8 +248,11 @@
 
 PR #42までの6項目に加え、Discovery改訂Task A「Kiro互換・製品境界」と
 Task B「cc-sdd source取り込み・provenance・外部source更新境界」が完了し、人間承認された。
-Task BのDQ PRをreview・mergeした後、Task C「正本・文書責務・日本語・追跡可能性」用context packetを
-作成し、人間確認後に別taskで壁打ちする。PR merge前にTask Cを開始しない。
+PR #44はmerge済み。「コンテキスト予算・セッション継続管理」をTask C/E/F共通inputとして追加し、
+Task C「正本・文書責務・日本語・追跡可能性」の専用壁打ち、orchestrator cross-check、人間確認が完了した。
+採用Decisionは#98〜#109を正とし、`handoffs/task-c.md`は壁打ち時の伝達記録として保持する。
+次はTask C固定差分をcommit・push・PR・mergeした後、Task D「doc-export・二次成果物」用の派生context packetを
+作成し、人間承認後に専用taskを一つ起動する。
 Task A〜Fを統合したDiscovery DQ PRがmergeされるまで`requirements.md`生成へ進まない。
 
 ---
@@ -171,7 +264,7 @@ Task A〜Fを統合したDiscovery DQ PRがmergeされるまで`requirements.md`
 
 | フェーズ | 合意メモ（理由・補足） |
 |---|---|
-| 要件定義（requirements.md） | Discovery改訂Task A・B完了、Task C〜F未着手。未生成・未承認。 |
+| 要件定義（requirements.md） | Discovery改訂Task A〜C完了・人間確認済み、Task D〜F未着手。未生成・未承認。 |
 | 設計（design.md） | 未生成・未承認。 |
 | タスク分解・実装前確認（tasks.md） | 未生成・未承認。 |
 
@@ -202,3 +295,8 @@ Task A〜Fを統合したDiscovery DQ PRがmergeされるまで`requirements.md`
 | 2026-09-05 | Task AでKiro互換保証、独立製品表示、名称・状態のin-place移行contractを合意。skill件数を全`kiro-*`17個とSDD Rig固有`doc-export`へ補正 | KYamada / Codex |
 | 2026-09-06 | Spec Tier・Review Mode・Model Classの三軸分離、適応型`DEEP`判定、実行前人間承認、段階的再検証をTask Eへの採用済みbaselineとして合意 | KYamada / Codex |
 | 2026-09-06 | Task Bで一方向fork、初期source・provenance、5層architecture、license・配布、将来の外部source採用gate、非破壊sync、Issue責務を合意 | KYamada / Codex |
+| 2026-09-06 | Claude Code実測artifactを基に、計画的session分割・早期compact・任意上限、正本参照型checkpoint、semantic parity、local telemetryをTask C/E/F共通baselineとして合意 | KYamada / Codex |
+| 2026-09-21 | Task Cで一情報一正本、stable ID・stale判定、人間review navigation、自然言語approval、共通8観点、日本語・EARS、session checkpoint・workspace参照、製品表示、Tier別深度を合意 | KYamada / Codex |
+| 2026-09-21 | Task A〜Cのhandoff正本化を水平監査し、丸め込みで弱まった役割・例外・停止条件・後続owner・未決事項を#110〜#116へ復帰。#117の項目別カバレッジ確認を後続Taskへ導入 | KYamada / Codex |
+| 2026-09-21 | #118として、正本反映後に壁打ちsessionが元handoffとの一致を確認し、`CANONICALIZATION_PASS`まで存続する二段階の正本化確認を採用 | KYamada / Codex |
+| 2026-09-21 | #119として、二段階確認をSDD Rigの転記完全性確認機能へ昇格し、Task C/E/Fを横断するRequirements候補として採用 | KYamada / Codex |

@@ -106,7 +106,9 @@ DQ PRを人間が確認・mergeした後にrequirementsへ進む。
 - 旧repository URL、`sdd-base`、`sdd-init`、`SDD-BASE:*` marker、lock/stateを破壊しない移行期間を設ける。
 - Kiro互換範囲をcompatibility matrixで定義し、非公式・非提携を明示する。
 - cc-sddのLICENSE、著作権表示、provenance、変更表示、upstream更新、rollbackを製品契約に含める。
-- Discoveryの壁打ちはTask A〜Fを1件ずつ実行し、context packetとstructured handoffを固定する。
+- Discoveryの壁打ちはTask A〜Fを1件ずつ実行する。context packetは専用sessionへの派生入力、
+  structured handoffはorchestratorへの伝達記録として保持できるが、どちらも標準SDD文書、
+  通常specの必須成果物、Decision・approvalの正本にしない。採用Decisionだけを`agreement-log.md`へ固定する。
 
 ## 6. Phase 0で判明した停止条件
 

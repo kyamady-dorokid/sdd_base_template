@@ -2,7 +2,10 @@
 
 > 作成日: 2026-09-04
 > 親Issue: #41
-> 状態: 壁打ち完了。承認結果は`../handoffs/task-a.md`と`../agreement-log.md`へ固定済み。
+> 文書区分: Issue #41のSerial Discoveryで専用壁打ちsessionを開始するために作成した派生入力。
+> Kiro / cc-sdd互換の標準SDD文書、通常specの必須成果物、Decision・approvalの正本ではない。
+> 履歴状態: Task A壁打ち完了。採用Decisionは`../agreement-log.md` #67〜#76へ固定済み。
+> `../handoffs/task-a.md`は壁打ち結果の伝達記録として保持する。
 
 ## 1. Taskの目的
 

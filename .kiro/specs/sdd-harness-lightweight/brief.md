@@ -17,6 +17,27 @@
 - テンプレート保守者は、軽量化による品質低下をToken・時間・文書負荷・欠陥検出率で比較できる。
 - Claude CodeとCodexのどちらでも同じ分類、承認境界、成果物、レビュー強度が適用される。
 
+## Discovery現在地（2026-09-21）
+
+Task A「Kiro互換・製品境界」、Task B「cc-sdd source取り込み・provenance・外部source更新境界」、
+Task C「正本文書・人間review・日本語・追跡可能性」は、人間との壁打ち、orchestrator cross-check、
+Decision確認まで完了した。現在はDiscovery段階であり、Requirements、Design、Tasksは未生成・未承認である。
+
+Task Cでは次を採用した。
+
+- 標準file構成を保ちながら、一情報一正本、stable ID、意味変更時のstale判定で追跡可能性を維持する。
+- 人間は恒久review guideとgate別navigationで正本を直接確認し、正本を要約した第三のreview文書を作らない。
+- 自然言語approvalは、一つのpending gate、対象文書、version/hash、許可範囲が直前に明示された場合だけ成立する。
+- 日本語化は対象の一意性と判断可能性を優先し、EARS、schema、code、path、log、license等の必要な原文を保つ。
+- session checkpointは正本参照と未固定の最小差分を持つ派生manifestとし、approvalやbackupへ昇格させない。
+- workspace情報の不明・競合・未検証は`UNVERIFIED`または`BLOCKED`とし、具体的な分離・lease・lifecycleはTask Fで決める。
+- Spec Tierで文書体系を変えず、複雑性に応じて記載深度だけを変える。
+
+採用Decisionは`agreement-log.md` #98〜#109を正とする。`handoffs/task-c.md`は却下案、Requirements候補、
+Design保留、後続制約、既知差分を含む当時の伝達記録であり、現在contractやapprovalの正本にしない。
+次はTask C固定差分のPRをmergeした後、Task D「doc-export・二次成果物」専用の派生context packetを作成する。
+Task A〜Fを統合したDiscovery DQが完了するまで`requirements.md`生成へ進まない。
+
 ## 検討する設計軸
 
 ### 1. エージェント構成とToken効率
@@ -103,6 +124,43 @@ Designで状態・判定器・fallback、Task Fと段階導入でToken・時間�
   将来の外部source取り込みで既存contractを安全に維持できない場合はfail-closedとし、
   Claude Code/Codex双方で検証する。cc-sddへの継続追従は前提にしない。
 
+#### Task C/E/Fへ渡す採用済みbaseline: コンテキスト予算・セッション継続管理
+
+SDD Rigは、長時間sessionで同じcontextが各requestへ再投入される費用と、compactによる情報劣化を
+抑えるため、「コンテキスト予算・セッション継続管理」を基本機能として扱う。Claude Codeで得られた
+実測artifactでは、2か月継続したsessionが2,258 request、総input約11.1億Token、平均context約49.3万Token、
+最大約93.4万Tokenに達し、auto-compactは1M上限直前で5回発生していた。この数値は問題の実例として用いるが、
+単一projectと仮定を含むsimulationであり、一般的な削減保証には使わない。
+参照artifact: `https://claude.ai/code/artifact/70567fa6-9d3b-4fc4-886c-b4e6b98f6656`
+
+対策は、次の順で適用する。
+
+1. **計画的session分割を主策とする。** 独立して再開可能なSDD milestoneでcheckpointを作り、
+   新sessionはconversation要約ではなくrepository内の正本と最小handoffから開始する。
+2. **早期compactを安全弁とする。** 1 taskが長期化し、安全な分割点へまだ到達できない場合に、
+   保持すべき対象を指定してcompactする。
+3. **platform固有のauto-compact上限を最終防波堤とする。** 利用可能性をadapterで検出し、
+   利用者が明示的に選択した場合だけ適用する。
+
+Claude 1M contextに対する200K警告・500K上限は検証開始時の候補profileとする。modelのcontext window、
+platform機能、task特性を無視した共通絶対値にはせず、active context、累積input/cached input、turn、経過時間、
+compact回数、大容量tool出力、subagent context、checkpoint readinessを分けて観測する。
+
+session checkpointは新しい仕様正本を作らず、spec/task ID、approval対象hash、branch/commit/worktree、
+dirty/untracked状態、完了・残作業、blocker、次の一手、正本pathだけを参照中心で保持する派生manifestとする。
+情報所有・更新・保存境界はTask C、context budget・分割判定・compact判定はTask E、platform adapter・設定・
+fresh-session再開E2EはTask Fで決める。Task DはPDF、画像、render log等の大容量出力をconversationへ再投入せず、
+保存先と検査要約を返す規則を扱う。
+
+session分割は自動commit/pushと同義にしない。人間未承認の変更や不完全な差分をcheckpoint名目でcommitせず、
+既存commit policyを維持する。利用者のglobal設定を無断変更せず、project設定も既存値・未知fieldを保持し、
+差分と影響を提示して人間承認後に適用する。Claude/Codex parityは同一setting keyではなく、肥大検知、
+checkpoint、正本からの再開、重要Decisionの保持という観測可能な結果で判定する。
+
+session transcriptを計測する場合はlocal opt-inとし、raw transcriptをrepositoryへ保存・外部送信しない。
+promptやfile本文ではなくusage metadataを優先し、取得不能値は`UNAVAILABLE`として扱う。独立実装可能な責務が
+Designで確認できた場合だけ子Issueへ分割し、Discovery Taskを追加してA〜Fのserial順を崩さない。
+
 #### 採用するmodel routing
 
 - model名ではなく、最低能力要件として`Standard / Critical / Mechanical`の3 classを定義する。
@@ -144,11 +202,31 @@ Designで状態・判定器・fallback、Task Fと段階導入でToken・時間�
 | `tasks.md` | 実装順序、依存関係、TDD単位、observableな完了条件 | 設計理由、詳細仕様、requirement本文 |
 | `agreement-log.md` | 人間の判断、その理由、却下案、保留事項 | 現在仕様の全文、approval状態の二重管理 |
 | `spec.json` | Tier、risk、phase、approval状態、対象hash等の機械状態 | 長い人間向け説明 |
+| `research.md`等 | 調査方法、比較、外部根拠、候補、詳細 | 現在のcontract、approval状態 |
 | `test-results.md` | 実行command、環境、RED/GREEN、実結果、失敗証拠 | 実行予定のtest設計とrequirement本文 |
 | `integration-test-checklist.md` | 人間または外部環境で確認する項目と実施結果 | 自動test済み項目の再掲 |
+| runbook・運用手順 | 運用手順、観測、停止条件、復旧 | 要件・設計理由の再掲 |
+| steering・roadmap | project全体の前提、構造、横断方針、依存順 | 個別specのcontractとapproval |
 
 traceabilityは本文copyではなく、`requirement/AC → design節 → task → testまたはmanual確認`の参照chainで
 維持し、参照切れ、未対応、orphanを意味的に検証する。Tier S/Lで文書体系は変えず、記載の深さを変える。
+
+`context packet`と`handoff`はKiro / cc-sdd互換の標準SDD文書ではない。Issue #41のSerial Discoveryに限り、
+前者を専用壁打ちsessionへの派生入力、後者をorchestratorへの提案・伝達記録として使用する。通常specの
+必須成果物、Decision・approvalの正本、Requirements以降のcontract参照先にはしない。採用Decisionを
+`agreement-log.md`へ固定した後も、監査用の履歴として保持できるが、後続工程は正本だけを参照する。
+
+壁打ち専用sessionはhandoff送信で完了しない。orchestratorが正本へ反映した後、handoff IDごとの反映先、
+正本文、統合・言換え・保留・未反映を同sessionへ返す。壁打ちsessionが元handoffとの一致を確認して
+`CANONICALIZATION_PASS`を返すまで、session終了・archive、Task完了、次Task開始を行わない。
+`CANONICALIZATION_REVISE`の場合は正本を修正して再確認し、意味変更またはTask間衝突は人間判断へ戻す。
+この送信元確認はfresh独立reviewと人間承認を置き換えない。次のTask Dからこの手順を適用する。
+
+この方式はIssue #41だけの注意事項ではなく、SDD Rigの「転記完全性確認」機能としてRequirements化する。
+承認済み情報をsession・agent境界を越えて正本化する場合、handoff ID、source hash、正本対応、canonical hash、
+確認状態を追跡し、`CANONICALIZATION_PASS`までfail-closedとする。単一sessionが正本を直接更新する通常作業へ
+一律適用せず、壁打ち・委任・session分割等で転記が発生する場合に限定する。情報contractはTask C、agent workflowと
+停止条件はTask E、session呼戻し・存続・復旧・Claude Code/Codex E2EはTask Fが所有する。
 
 #### 採用するtest証跡モデル
 
@@ -208,8 +286,9 @@ traceabilityは本文copyではなく、`requirement/AC → design節 → task �
 - 必須観点は内部的に`APPLICABLE / NOT_APPLICABLE / BLOCKED`のいずれかへ分類し、`NOT_APPLICABLE`には理由を要求する。
   blocking finding、stale/未実施review、risk不明、参照切れ、工程間矛盾、必須test欠落、manual未完了、隠れたscope変更が
   ある場合は承認依頼を出さず、承認不能の理由を報告する。
-- 自然言語の承認は、直前のgateと対象が明確で、「承認する」「この内容で進めてよい」「OK、次へ進めて」等の
-  明確な意思がある場合に限る。「よさそう」「概ね問題ない」「たぶんOK」、一部同意、質問への回答はapprovalとして記録しない。
+- 自然言語の「進めて」は、直前にagentが一つだけのpending gateについて、対象gate、対象文書、
+  versionまたはhash、approvalが許可する作業範囲を明示して承認を求め、他の質問・選択肢・理解確認が
+  混在していない場合だけapprovalとして記録する。一般的な続行指示、称賛、説明への返答、一部同意はapprovalにしない。
 - 本基準は人間が採用した仮説であり、requirements化後のCritical fresh独立reviewで、省略・見逃し、
   承認表現の曖昧性、cc-sdd互換性、人間負荷とtraceabilityの均衡を反例ベースで再検証する。
 
@@ -260,6 +339,7 @@ traceabilityは本文copyではなく、`requirement/AC → design節 → task �
 - 実装・review等の役割、Tier、riskに応じたmodel routing、model能力要件、fallback、利用modelの記録
 - Tierとリスク分類、承認ゲート、独立レビュー適用範囲の関係
 - 一次成果物、恒久的な人間review guide、機械証跡の責務と最小構成
+- session・agent境界を越える正本化に対する転記完全性確認とfail-closedな確認状態
 - 人間が判断可能な具体的記述基準とレビュー提示順
 - SDD/`kiro-*`/agentが生成・更新するすべての人間可読文書・説明出力に具体的記述基準を適用し、
   明示的な言語要件や原文保持の例外を除いて日本語で出力するための基準
@@ -314,6 +394,10 @@ SDD Rigはcc-sddをベースに開発した独立製品であり、Kiro/AWSの�
 開始・再開・完了、新名称での配布・発見・更新をE2Eと人間承認で確認するまで維持する。旧入口を利用した場合だけ
 新名称を短く案内し、新`sdd-rig`が旧projectを開いただけでは警告しない。
 
+Task Aの採用Decisionは`agreement-log.md` #67〜#76を基礎とし、正本化監査で復帰した品質衝突時の手順と
+未決調査のownerは#111〜#112を正とする。全`kiro-*`のfresh-session E2E、旧配布経路とrollback、
+`spec.json`全fieldと未知field保持の受入試験を、後続Taskの完了条件から外さない。
+
 ### Task Bで確定したcc-sdd取り込み境界
 
 SDD Rigはcc-sddを初期実装時の固定参照元とする一方向forkの独立Appとする。「一方向fork」は内部architectureの
@@ -333,7 +417,14 @@ project overrideと所有者不明の資産は利用者所有として非破壊�
 cc-sddのMIT LICENSE全文、`Copyright (c) 2025 gotalab`、upstream URL、tag、commit、path、tree SHA、
 独立・非提携説明を保持する。SDD Rig自身のLICENSEとは分離し、cc-sdd由来code、templateまたは
 substantial portionsを実際に含む配布物から帰属へ到達できるようにする。ハーネスの利用だけで利用projectの
-App全体へlicenseが自動伝播するとは扱わない。詳細なDecisionと未決調査は`handoffs/task-b.md`を参照する。
+App全体へlicenseが自動伝播するとは扱わない。生成projectへ由来部分を実際に複製する場合は帰属を伝播し、
+該当性が曖昧なら保守的に含めるか専門家判断へ戻す。
+
+buildはmaintainerまたはCIが行い、配布物には統合済み成果物と必要なLICENSE/NOTICEを含める。
+dependencyの無断追加、無承認の自動audit fix、無承認のmajor updateを禁止する。install、sync、bridgeは
+利用者所有資産、未知設定、環境固有設定、追加skill、既存stateを削除・上書き・再生成せず、未適用・競合・
+未検証を完全成功と報告しない。採用Decisionは`agreement-log.md` #84〜#92と#113〜#116を正とし、
+`handoffs/task-b.md`は壁打ち時の伝達記録としてのみ保持する。
 
 ### 旧導入順（PR #42時点の履歴）
 
