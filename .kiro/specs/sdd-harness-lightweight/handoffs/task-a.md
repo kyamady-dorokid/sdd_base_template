@@ -4,6 +4,7 @@
 > 文書区分: Task A専用sessionからorchestratorへ返した壁打ち結果の伝達記録。
 > Kiro / cc-sdd互換の標準SDD文書、通常specの必須成果物、Decision・approvalの正本ではない。
 > 履歴状態: 内容は人間確認とcross-checkを経て、採用Decisionが`../agreement-log.md` #67〜#76へ固定済み。
+> 2026-09-21の正本化監査で、品質衝突時の手順と未決調査のowner不足を#111〜#112へ復帰した。
 > 件数補正: handoffの「18個の`kiro-*`」は、全`kiro-*`（現時点17個）と
 > SDD Rig固有の`doc-export` 1個を合わせた配布SDD skill 18個として正規化した。
 

@@ -381,6 +381,10 @@ SDD Rigはcc-sddをベースに開発した独立製品であり、Kiro/AWSの�
 開始・再開・完了、新名称での配布・発見・更新をE2Eと人間承認で確認するまで維持する。旧入口を利用した場合だけ
 新名称を短く案内し、新`sdd-rig`が旧projectを開いただけでは警告しない。
 
+Task Aの採用Decisionは`agreement-log.md` #67〜#76を基礎とし、正本化監査で復帰した品質衝突時の手順と
+未決調査のownerは#111〜#112を正とする。全`kiro-*`のfresh-session E2E、旧配布経路とrollback、
+`spec.json`全fieldと未知field保持の受入試験を、後続Taskの完了条件から外さない。
+
 ### Task Bで確定したcc-sdd取り込み境界
 
 SDD Rigはcc-sddを初期実装時の固定参照元とする一方向forkの独立Appとする。「一方向fork」は内部architectureの
@@ -400,7 +404,13 @@ project overrideと所有者不明の資産は利用者所有として非破壊�
 cc-sddのMIT LICENSE全文、`Copyright (c) 2025 gotalab`、upstream URL、tag、commit、path、tree SHA、
 独立・非提携説明を保持する。SDD Rig自身のLICENSEとは分離し、cc-sdd由来code、templateまたは
 substantial portionsを実際に含む配布物から帰属へ到達できるようにする。ハーネスの利用だけで利用projectの
-App全体へlicenseが自動伝播するとは扱わない。採用Decisionは`agreement-log.md` #84〜#92を正とし、
+App全体へlicenseが自動伝播するとは扱わない。生成projectへ由来部分を実際に複製する場合は帰属を伝播し、
+該当性が曖昧なら保守的に含めるか専門家判断へ戻す。
+
+buildはmaintainerまたはCIが行い、配布物には統合済み成果物と必要なLICENSE/NOTICEを含める。
+dependencyの無断追加、無承認の自動audit fix、無承認のmajor updateを禁止する。install、sync、bridgeは
+利用者所有資産、未知設定、環境固有設定、追加skill、既存stateを削除・上書き・再生成せず、未適用・競合・
+未検証を完全成功と報告しない。採用Decisionは`agreement-log.md` #84〜#92と#113〜#116を正とし、
 `handoffs/task-b.md`は壁打ち時の伝達記録としてのみ保持する。
 
 ### 旧導入順（PR #42時点の履歴）

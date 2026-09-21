@@ -4,6 +4,8 @@
 > 文書区分: Task C専用sessionからorchestratorへ返した壁打ち結果の伝達記録。
 > Kiro / cc-sdd互換の標準SDD文書、通常specの必須成果物、Decision・approvalの正本ではない。
 > 履歴状態: 内容は人間確認とcross-checkを経て、採用Decisionが`../agreement-log.md` #98〜#109へ固定済み。
+> 正誤訂正: 元のstructured handoffでは8観点を「人間・AIセルフレビュー・独立freshレビュー」に
+> 適用していた。正本化時に人間が脱落したため、2026-09-21に#102を訂正し#110で適用条件を復帰した。
 > 境界: 本文書はDiscovery Decision候補とその理由を伝えた履歴資料である。採用Decisionは
 > `agreement-log.md`を正とし、本文書は`requirements.md`、`design.md`、`tasks.md`の生成・承認、
 > 実装許可を意味しない。
@@ -85,7 +87,7 @@ blocking finding、staleまたは未実施review、risk不明、参照切れ、�
 
 ## 4. 共通review観点
 
-主agentの制限context reviewとfresh独立reviewは、少なくとも次の8観点を確認する。
+人間review、主agentの制限context review、fresh独立reviewは、少なくとも次の8観点を確認する。
 
 1. 利用者意図、scope、対象外の置換・逸脱がないか。
 2. architectureと複雑性が問題に対して過剰または不足していないか。

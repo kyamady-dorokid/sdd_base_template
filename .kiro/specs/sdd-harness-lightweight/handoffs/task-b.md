@@ -4,6 +4,11 @@
 > 文書区分: Task B専用sessionからorchestratorへ返した壁打ち結果の伝達記録。
 > Kiro / cc-sdd互換の標準SDD文書、通常specの必須成果物、Decision・approvalの正本ではない。
 > 履歴状態: 内容は人間確認とcross-checkを経て、採用Decisionが`../agreement-log.md` #84〜#92へ固定済み。
+> 2026-09-21の正本化監査で、帰属の例外伝播、build・dependency、非破壊条件、後続owner、
+> 未決調査の不足を#113〜#116へ復帰した。
+> 正誤補足: 元のstructured handoffには、Discovery中の人間向けACTIVE 1件制限、Discovery後の
+> 全Issue分類、未Decision Issueを並列実装候補にしない規則も含まれていた。本文生成時に脱落したため、
+> #116と第8節へ復帰した。
 > 用語補正: 「一方向fork」は内部architectureを表す。製品表示では
 > 「cc-sddをベースに開発した独立製品」を使う。
 
@@ -122,6 +127,9 @@ install、sync、legacy bridgeは、利用者所有資産、未知設定、環�
 
 #33・#34に残る継続cc-sdd追従、版候補の自動検出・昇格、利用者によるcc-sdd version選択の記述は
 本Decisionと矛盾するため、実装前に再定義する。
+
+Discovery中は人間向けACTIVEを1件に限定する。Discovery完了後は既存Issueを`実装対象 / 後回し候補 /
+不要・置換済み`へ明示分類し、未Decisionまたは実装要否未判断のIssueをACTIVE・並列実装候補として扱わない。
 
 ## 9. 未決調査
 
