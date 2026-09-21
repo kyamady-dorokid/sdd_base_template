@@ -139,6 +139,8 @@
 | 115 | install、sync、legacy bridgeは、利用者所有資産、未知設定、環境固有設定、追加skill、既存stateを削除・上書き・再生成しない。競合、所有者不明、parity未検証では比較・差分・影響・候補を示し、人間承認後に適用するか既存環境を保持して中断する。未適用・競合・未検証を完全成功と報告しない | #91の「非破壊」という要約だけでは、保護対象、禁止操作、成功判定を同じ意味で再現できないため | 2026-09-21 |
 | 116 | Task Bの後続責務を、#30/Task F=非破壊sync・`.new`・report・rollback、#32/Task E=外部source無断採用防止と両platform検出・起動・parity、Task C=製品説明・NOTICE、Task D=外部package/CLIのdependency contractとする。Discovery中は人間向けACTIVEを1件に限定し、完了後に既存Issueを`実装対象 / 後回し候補 / 不要・置換済み`へ分類する。未Decision・実装要否未判断のIssueはACTIVEまたは並列実装候補にしない。build方針、template別substantial portions、dependency risk閾値・監査tool、Issue優先順位・実装可否、曖昧なlicense範囲は各ownerの未決事項として保持する | #92では#41/#33/#34とACTIVE件数だけが残り、他の後続owner、Discovery後の分類規則、Task Bの未決調査が正本から脱落していたため | 2026-09-21 |
 | 117 | Serial Discoveryのhandoff正本化では、handoffを原子的な項目IDへ分解し、各項目を`ADOPTED:<Decision ID> / DEFERRED:<owner・gate> / REJECTED:<理由> / BLOCKED:<原因>`のいずれかへ一対一で対応付ける。主体、規範強度、条件、例外、否定、固定値、後続owner、未決状態を照合し、100%対応、逆向き再構成、未対応0件を確認するまで次Taskへ進まない | 要約の存在確認だけでは、Task Cの「人間」のような役割限定や、Task A/Bの例外・停止条件・未決事項が静かに脱落することを防げなかったため | 2026-09-21 |
+| 118 | 壁打ち専用sessionはhandoff送信後も正本化確認が完了するまで存続する。orchestratorは正本反映後、handoff IDごとの反映先Decision、正本文、統合・言換え・保留・未反映を同sessionへ返す。壁打ちsessionは元の承認済みhandoffと照合して`CANONICALIZATION_PASS`または`CANONICALIZATION_REVISE`を返し、`PASS`前にTask完了、session終了・archive、次Task開始を行わない。意味変更・Task間衝突は人間判断へ戻し、この確認をfresh独立reviewの代替にしない | handoff作成者が元の判断を保持している間に、orchestratorの丸め込みを送信元確認できるようにし、後日の高コストなcontext復元と意味欠落を防ぐため | 2026-09-21 |
+| 119 | #117〜#118をIssue #41固有の注意事項に留めず、SDD Rigの「転記完全性確認」機能としてRequirements化する。承認済み情報をsession・agent境界を越えて正本化する場合、handoff ID・source hash・正本対応・canonical hash・確認状態を追跡し、`CANONICALIZATION_PASS`までfail-closedとする。単一sessionが正本を直接更新する通常作業には一律適用しない。情報contractはTask C、agent workflow・停止条件はTask E、session呼戻し・存続・復旧・Claude Code/Codex E2EはTask Fが所有する | 実際に発生した転記欠落を再現可能な製品機能で防ぎつつ、全作業への過剰な確認とToken消費を避けるため | 2026-09-21 |
 
 ---
 
@@ -188,9 +190,14 @@
 4. 正本だけを読んでhandoffの判断を逆向きに再構成し、元handoffとの差を確認する。履歴資料への参照だけでは合格にしない。
 5. handoff ID総数、対応済み数、未対応数を示し、未対応が0件になるまでTask完了・次Task開始・PR承認依頼を行わない。
 6. Requirements化前のCritical fresh reviewでは、この表とTask D〜Fの同形式表を入力に含め、丸め込みによる意味欠落を反例ベースで再確認する。
+7. orchestratorは正本反映後、handoff IDごとの反映先、正本文、統合・言換え・保留・未反映を壁打ちsessionへ返す。
+8. 壁打ちsessionは元handoffと照合し、欠落・意味変更がなければ`CANONICALIZATION_PASS`、あれば`CANONICALIZATION_REVISE`と修正対象を返す。
+9. `CANONICALIZATION_PASS`前に壁打ちsessionを終了・archiveせず、Task完了、次Task開始、PR承認依頼を行わない。
+10. この送信元確認は転記の完全性を検査するものであり、設計妥当性を評価するfresh独立reviewや人間承認を置き換えない。
 
-この手順は、正本と同じ文章をもう一つ作るためのものではない。handoffの各判断が正本または明示的な
-保留先へ到達したことを検査する、Issue #41 Serial Discovery限定の監査索引である。
+この表は、正本と同じ文章をもう一つ作るためのものではない。handoffの各判断が正本または明示的な
+保留先へ到達したことを検査する、Issue #41 Serial Discovery用の監査索引である。#119の製品機能は、
+この原則をsession・agent境界を越える正本化へ一般化するが、通常specへ同じ監査表fileの作成を強制しない。
 
 ---
 
@@ -291,3 +298,5 @@ Task A〜Fを統合したDiscovery DQ PRがmergeされるまで`requirements.md`
 | 2026-09-06 | Claude Code実測artifactを基に、計画的session分割・早期compact・任意上限、正本参照型checkpoint、semantic parity、local telemetryをTask C/E/F共通baselineとして合意 | KYamada / Codex |
 | 2026-09-21 | Task Cで一情報一正本、stable ID・stale判定、人間review navigation、自然言語approval、共通8観点、日本語・EARS、session checkpoint・workspace参照、製品表示、Tier別深度を合意 | KYamada / Codex |
 | 2026-09-21 | Task A〜Cのhandoff正本化を水平監査し、丸め込みで弱まった役割・例外・停止条件・後続owner・未決事項を#110〜#116へ復帰。#117の項目別カバレッジ確認を後続Taskへ導入 | KYamada / Codex |
+| 2026-09-21 | #118として、正本反映後に壁打ちsessionが元handoffとの一致を確認し、`CANONICALIZATION_PASS`まで存続する二段階の正本化確認を採用 | KYamada / Codex |
+| 2026-09-21 | #119として、二段階確認をSDD Rigの転記完全性確認機能へ昇格し、Task C/E/Fを横断するRequirements候補として採用 | KYamada / Codex |

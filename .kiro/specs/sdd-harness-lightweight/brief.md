@@ -216,6 +216,18 @@ traceabilityは本文copyではなく、`requirement/AC → design節 → task �
 必須成果物、Decision・approvalの正本、Requirements以降のcontract参照先にはしない。採用Decisionを
 `agreement-log.md`へ固定した後も、監査用の履歴として保持できるが、後続工程は正本だけを参照する。
 
+壁打ち専用sessionはhandoff送信で完了しない。orchestratorが正本へ反映した後、handoff IDごとの反映先、
+正本文、統合・言換え・保留・未反映を同sessionへ返す。壁打ちsessionが元handoffとの一致を確認して
+`CANONICALIZATION_PASS`を返すまで、session終了・archive、Task完了、次Task開始を行わない。
+`CANONICALIZATION_REVISE`の場合は正本を修正して再確認し、意味変更またはTask間衝突は人間判断へ戻す。
+この送信元確認はfresh独立reviewと人間承認を置き換えない。次のTask Dからこの手順を適用する。
+
+この方式はIssue #41だけの注意事項ではなく、SDD Rigの「転記完全性確認」機能としてRequirements化する。
+承認済み情報をsession・agent境界を越えて正本化する場合、handoff ID、source hash、正本対応、canonical hash、
+確認状態を追跡し、`CANONICALIZATION_PASS`までfail-closedとする。単一sessionが正本を直接更新する通常作業へ
+一律適用せず、壁打ち・委任・session分割等で転記が発生する場合に限定する。情報contractはTask C、agent workflowと
+停止条件はTask E、session呼戻し・存続・復旧・Claude Code/Codex E2EはTask Fが所有する。
+
 #### 採用するtest証跡モデル
 
 - `test-results.md`は常時必須とし、機械的に合否判定できるunit、component、contract、integration、
@@ -327,6 +339,7 @@ traceabilityは本文copyではなく、`requirement/AC → design節 → task �
 - 実装・review等の役割、Tier、riskに応じたmodel routing、model能力要件、fallback、利用modelの記録
 - Tierとリスク分類、承認ゲート、独立レビュー適用範囲の関係
 - 一次成果物、恒久的な人間review guide、機械証跡の責務と最小構成
+- session・agent境界を越える正本化に対する転記完全性確認とfail-closedな確認状態
 - 人間が判断可能な具体的記述基準とレビュー提示順
 - SDD/`kiro-*`/agentが生成・更新するすべての人間可読文書・説明出力に具体的記述基準を適用し、
   明示的な言語要件や原文保持の例外を除いて日本語で出力するための基準
