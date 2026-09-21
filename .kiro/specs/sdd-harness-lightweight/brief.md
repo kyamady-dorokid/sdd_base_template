@@ -17,6 +17,26 @@
 - テンプレート保守者は、軽量化による品質低下をToken・時間・文書負荷・欠陥検出率で比較できる。
 - Claude CodeとCodexのどちらでも同じ分類、承認境界、成果物、レビュー強度が適用される。
 
+## Discovery現在地（2026-09-21）
+
+Task A「Kiro互換・製品境界」、Task B「cc-sdd source取り込み・provenance・外部source更新境界」、
+Task C「正本文書・人間review・日本語・追跡可能性」は、人間との壁打ち、orchestrator cross-check、
+Decision確認まで完了した。現在はDiscovery段階であり、Requirements、Design、Tasksは未生成・未承認である。
+
+Task Cでは次を採用した。
+
+- 標準file構成を保ちながら、一情報一正本、stable ID、意味変更時のstale判定で追跡可能性を維持する。
+- 人間は恒久review guideとgate別navigationで正本を直接確認し、正本を要約した第三のreview文書を作らない。
+- 自然言語approvalは、一つのpending gate、対象文書、version/hash、許可範囲が直前に明示された場合だけ成立する。
+- 日本語化は対象の一意性と判断可能性を優先し、EARS、schema、code、path、log、license等の必要な原文を保つ。
+- session checkpointは正本参照と未固定の最小差分を持つ派生manifestとし、approvalやbackupへ昇格させない。
+- workspace情報の不明・競合・未検証は`UNVERIFIED`または`BLOCKED`とし、具体的な分離・lease・lifecycleはTask Fで決める。
+- Spec Tierで文書体系を変えず、複雑性に応じて記載深度だけを変える。
+
+詳細Decision、却下案、Requirements候補、Design保留、後続制約、既知差分は`handoffs/task-c.md`を正とする。
+次はTask C固定差分のPRをmergeした後、Task D「doc-export・二次成果物」のcontext packetを作成する。
+Task A〜Fを統合したDiscovery DQが完了するまで`requirements.md`生成へ進まない。
+
 ## 検討する設計軸
 
 ### 1. エージェント構成とToken効率
@@ -181,8 +201,12 @@ Designで確認できた場合だけ子Issueへ分割し、Discovery Taskを追�
 | `tasks.md` | 実装順序、依存関係、TDD単位、observableな完了条件 | 設計理由、詳細仕様、requirement本文 |
 | `agreement-log.md` | 人間の判断、その理由、却下案、保留事項 | 現在仕様の全文、approval状態の二重管理 |
 | `spec.json` | Tier、risk、phase、approval状態、対象hash等の機械状態 | 長い人間向け説明 |
+| `research.md`等 | 調査方法、比較、外部根拠、候補、詳細 | 現在のcontract、approval状態 |
 | `test-results.md` | 実行command、環境、RED/GREEN、実結果、失敗証拠 | 実行予定のtest設計とrequirement本文 |
 | `integration-test-checklist.md` | 人間または外部環境で確認する項目と実施結果 | 自動test済み項目の再掲 |
+| runbook・運用手順 | 運用手順、観測、停止条件、復旧 | 要件・設計理由の再掲 |
+| steering・roadmap | project全体の前提、構造、横断方針、依存順 | 個別specのcontractとapproval |
+| context packet / handoff | 次工程の入力境界とDecision参照 | approval状態、仕様本文のcopy |
 
 traceabilityは本文copyではなく、`requirement/AC → design節 → task → testまたはmanual確認`の参照chainで
 維持し、参照切れ、未対応、orphanを意味的に検証する。Tier S/Lで文書体系は変えず、記載の深さを変える。
@@ -245,8 +269,9 @@ traceabilityは本文copyではなく、`requirement/AC → design節 → task �
 - 必須観点は内部的に`APPLICABLE / NOT_APPLICABLE / BLOCKED`のいずれかへ分類し、`NOT_APPLICABLE`には理由を要求する。
   blocking finding、stale/未実施review、risk不明、参照切れ、工程間矛盾、必須test欠落、manual未完了、隠れたscope変更が
   ある場合は承認依頼を出さず、承認不能の理由を報告する。
-- 自然言語の承認は、直前のgateと対象が明確で、「承認する」「この内容で進めてよい」「OK、次へ進めて」等の
-  明確な意思がある場合に限る。「よさそう」「概ね問題ない」「たぶんOK」、一部同意、質問への回答はapprovalとして記録しない。
+- 自然言語の「進めて」は、直前にagentが一つだけのpending gateについて、対象gate、対象文書、
+  versionまたはhash、approvalが許可する作業範囲を明示して承認を求め、他の質問・選択肢・理解確認が
+  混在していない場合だけapprovalとして記録する。一般的な続行指示、称賛、説明への返答、一部同意はapprovalにしない。
 - 本基準は人間が採用した仮説であり、requirements化後のCritical fresh独立reviewで、省略・見逃し、
   承認表現の曖昧性、cc-sdd互換性、人間負荷とtraceabilityの均衡を反例ベースで再検証する。
 

@@ -119,20 +119,38 @@
 | 95 | session checkpointを正本参照型の派生manifestとし、会話要約や仕様本文のcopyを正本化しない。分割を自動commit/pushと同義にせず、未承認・不完全な差分をcheckpoint名目でcommitしない | 正本の二重化、要約劣化、既存commit policyの迂回、再開不能な作業状態を防ぐため | 2026-09-06 |
 | 96 | Claude/Codex parityは同じ設定キーではなく、肥大検知、checkpoint、正本からのfresh-session再開、重要Decision保持という観測可能な結果で判定する。global設定を無断変更せず、project設定も非破壊差分と人間承認を必須とする | platform固有機能の差を隠さず、Task Bの利用者所有・未知field保護contractを維持するため | 2026-09-06 |
 | 97 | session transcript計測はlocal opt-inとし、raw transcriptをrepositoryへ保存・外部送信せず、usage metadataを優先する。情報責務をTask C、budget・判定をTask E、adapter・E2EをTask F、大容量二次成果物出力をTask Dへ割り当てる | prompt・file本文・秘密情報の漏洩を防ぎ、横断機能を新しいDiscovery Taskや二重正本へ分裂させないため | 2026-09-06 |
+| 98 | 標準file構成を維持し、brief、requirements、design、tasks、agreement-log、spec.json、research、test証跡、runbook、steering、handoff、二次成果物の固有責務を一情報一正本で分離する | 正本の重複、陳腐化、review Tokenを減らしながら、標準workflowと追跡可能性を維持するため | 2026-09-21 |
+| 99 | 現在文書は現在contractへ更新できるが、過去のDecision、review、approval、test evidenceへの到達性を保つ。意味または対象hashが変われば依存review・approvalをstaleにし、正しいgateへ戻す | 最新状態の可読性と、過去判断・失敗証拠の監査可能性を両立するため | 2026-09-21 |
+| 100 | stable IDは同一判断対象の修正では維持し、分割・統合・意味変更では新IDを付ける。影響先は`UPDATE / CONFIRM_UNCHANGED / RETIRE / BLOCKED`で閉じる | IDの乱造と意味のすり替えを同時に防ぎ、本文copyなしで影響を追跡するため | 2026-09-21 |
+| 101 | 人間reviewは恒久guideとgate別navigationで正本を直接確認する。自然言語の「進めて」は、一つのpending gate、対象文書、version/hash、許可範囲が直前に明示され、他の質問等が混在しない場合だけapprovalとする | 固定commandを強制せず、一般的な続行指示や説明理解を正式approvalへ誤認しないため | 2026-09-21 |
+| 102 | 意図・scope、architecture、隠れたfailure、権限・data・副作用、境界・並行・負荷、外部前提、test integrity、文書・state残骸の8観点を主agent reviewとfresh独立reviewの共通最低観点とする | 独立reviewだけに品質観点を閉じ込めず、軽量経路でも同じ欠陥分類を確認するため | 2026-09-21 |
+| 103 | 日本語化は承認対象を一意にすることを最優先とし、主体・対象・条件・結果・例外を具体化する。EARS keyword、schema、code、path、log、license等は必要な原文を保持し、1 ACは1つの検証可能な振る舞いを持つ | 読みやすさの名目で機械互換・法的原文を壊さず、抽象表現による判断不能を減らすため | 2026-09-21 |
+| 104 | session checkpointは正本参照と未固定の最小差分を持つ派生manifestとし、未固定合意を`provisional / pending-canonicalization`として扱う。正本固定または人間再確認まで後続gateとmutable作業を許可しない | 会話消失から作業を再開可能にしつつ、checkpointを仕様・approvalへ昇格させないため | 2026-09-21 |
+| 105 | session、platform conversation、workspace metadataを分離し、古い・競合・未取得・未検証のworkspace情報は`UNVERIFIED`または`BLOCKED`とする。checkpoint成功をworkspace isolationの証明にしない | pathやworktree存在だけを安全性・所有権の根拠にする誤りを防ぐため | 2026-09-21 |
+| 106 | checkpointはraw transcript、raw log、secret、PIIを既定保存せず、必要な証拠は参照とsensitivityを記録する。runtime storage・retention・暗号化等はTask F/securityが所有し、#37は中間・二次成果物に限定する | 再開性のために機密情報をrepositoryへ複製せず、Issue間の保存責務を混同しないため | 2026-09-21 |
+| 107 | README等はSDD Rigの利用価値と独立製品表示を主とし、NOTICE等からcc-sdd由来、非提携、MIT帰属へ到達可能にする。利用だけで利用project全体へMITが自動伝播するとは説明しない | Task A・Bの製品境界とlicense contractを人間向け文書へ一貫して反映するため | 2026-09-21 |
+| 108 | Spec Tierで文書体系を変えず、scope・AC・責務・依存・選択・移行・判断の複雑性に応じて深度だけを変える。軽微変更でも文書影響を確認する | 小規模変更の証跡欠落と、大規模変更での重複文書増加を避けるため | 2026-09-21 |
+| 109 | Task Cの詳細Decision、却下案、Requirements候補、Design保留、後続制約、既知差分は`handoffs/task-c.md`を参照し、agreement-logへ全文を重複させない | Decision一覧を短く保ち、後続taskが必要な情報へ一意に到達できるようにするため | 2026-09-21 |
 
 ---
 
 ### 旧Decisionの改訂関係
 
-| 旧Decision | Task B後の扱い |
+| 旧Decision | 現在の扱い |
 |---|---|
 | #14 | command・標準成果物・phase・approval metadataを外部互換contractとして維持する部分は継続する。「独自forkによるupgrade負荷を避ける」という旧理由は#84で撤回し、継続同期を持たない一方向forkへ改訂する |
 | #15 | 影響評価と人間承認を必要とする安全条件は維持する。独自変更をoverlayだけで実現する方式の固定は撤回し、#86の5層へ改訂する |
+| #16 | 正本文書の一意な責務とID参照は維持し、#98でresearch、runbook、steering、handoff、二次成果物まで責務境界を拡張する |
+| #21・#22 | manual checklistの条件付き必須と人間実施は維持する。Design承認時に要否を決め、必要ならTasks承認前に計画し、実装後に人間が結果を記録するlifecycleをTask Cで確定した。現行workflow/templateとの差は未解消として後続へ渡す |
 | #29 | fail-closedとlocal harness contract優先は維持する。`kiro-impl`の衝突をoverlayでのみ置換する方式は撤回し、coreまたはadapterで明示的に置換する。具体的なdispatch契約はTask Eで決める |
 | #61 | 旧Issue順は履歴として保持する。現在はTask A〜Fのserial Discovery後に実装waveを確定する統合ロードマップを優先する |
 | #24 | Tier Lへ固定的にfresh review回数を割り当てる方式は、Task Eで三軸分離と`STANDARD / DEEP_RECOMMENDED / DEEP_REQUIRED`の適応型判定へ改訂する。高risk reviewと人間承認を弱めない目的は維持する |
 | #25 | risk boundary checkpoint、gateごと1 reviewer、同一reviewer最大10巡は維持候補とし、`DEEP`事前承認とreview単位の具体条件をTask Eで再確認する |
 | #30〜#39 | provider中立の能力class、Critical非降格、role別証跡、総Token・費用・手戻り評価はbaselineとして維持し、三軸の判定順・namespace・Review Modeとの接続をTask Eで改訂する |
+| #42・#44 | navigationの構成は維持し、#101で自然言語approvalの成立条件を一つのpending gate、対象文書、version/hash、許可範囲の明示へ具体化する |
+| #50・#51 | 日本語既定、EARS互換、検証可能性は維持する。#103で対象の一意性を最優先とし、禁止語やID反復を具体性の代用にしないよう補正する |
+| #65 | 意味上の衝突に加え、対象hashの変更でも依存review・approvalをstaleにする。非意味変更の具体判定はDesignへ保留する |
+| #95 | 正本参照型を維持し、#104〜#106で未固定の最小差分、pending-canonicalization、workspace参照、機密情報除外を追加する。storageとlifecycleはTask Fで決める |
 
 ## 却下・保留事項
 
@@ -164,8 +182,9 @@
 PR #42までの6項目に加え、Discovery改訂Task A「Kiro互換・製品境界」と
 Task B「cc-sdd source取り込み・provenance・外部source更新境界」が完了し、人間承認された。
 PR #44はmerge済み。「コンテキスト予算・セッション継続管理」をTask C/E/F共通inputとして追加し、
-Task C「正本・文書責務・日本語・追跡可能性」用context packetを作成した。
-次は人間がcontext packetを確認し、承認後にTask C専用taskを一つ起動して壁打ちする。
+Task C「正本・文書責務・日本語・追跡可能性」の専用壁打ち、orchestrator cross-check、人間確認が完了した。
+詳細は`handoffs/task-c.md`を参照する。次はTask C固定差分をcommit・push・PR・mergeした後、
+Task D「doc-export・二次成果物」用context packetを作成し、人間承認後に専用taskを一つ起動する。
 Task A〜Fを統合したDiscovery DQ PRがmergeされるまで`requirements.md`生成へ進まない。
 
 ---
@@ -177,7 +196,7 @@ Task A〜Fを統合したDiscovery DQ PRがmergeされるまで`requirements.md`
 
 | フェーズ | 合意メモ（理由・補足） |
 |---|---|
-| 要件定義（requirements.md） | Discovery改訂Task A・B完了、Task C準備中、Task D〜F未着手。未生成・未承認。 |
+| 要件定義（requirements.md） | Discovery改訂Task A〜C完了・人間確認済み、Task D〜F未着手。未生成・未承認。 |
 | 設計（design.md） | 未生成・未承認。 |
 | タスク分解・実装前確認（tasks.md） | 未生成・未承認。 |
 
@@ -209,3 +228,4 @@ Task A〜Fを統合したDiscovery DQ PRがmergeされるまで`requirements.md`
 | 2026-09-06 | Spec Tier・Review Mode・Model Classの三軸分離、適応型`DEEP`判定、実行前人間承認、段階的再検証をTask Eへの採用済みbaselineとして合意 | KYamada / Codex |
 | 2026-09-06 | Task Bで一方向fork、初期source・provenance、5層architecture、license・配布、将来の外部source採用gate、非破壊sync、Issue責務を合意 | KYamada / Codex |
 | 2026-09-06 | Claude Code実測artifactを基に、計画的session分割・早期compact・任意上限、正本参照型checkpoint、semantic parity、local telemetryをTask C/E/F共通baselineとして合意 | KYamada / Codex |
+| 2026-09-21 | Task Cで一情報一正本、stable ID・stale判定、人間review navigation、自然言語approval、共通8観点、日本語・EARS、session checkpoint・workspace参照、製品表示、Tier別深度を合意 | KYamada / Codex |
