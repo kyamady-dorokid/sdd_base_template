@@ -1,7 +1,9 @@
 # Task B handoff: cc-sdd source取り込み・provenance・外部source更新境界
 
 > 完了日: 2026-09-06
-> 状態: 人間承認済み。orchestratorによるTask A・関連Issue・法的表示・Task Fとのcross-check済み。
+> 文書区分: Task B専用sessionからorchestratorへ返した壁打ち結果の伝達記録。
+> Kiro / cc-sdd互換の標準SDD文書、通常specの必須成果物、Decision・approvalの正本ではない。
+> 履歴状態: 内容は人間確認とcross-checkを経て、採用Decisionが`../agreement-log.md` #84〜#92へ固定済み。
 > 用語補正: 「一方向fork」は内部architectureを表す。製品表示では
 > 「cc-sddをベースに開発した独立製品」を使う。
 

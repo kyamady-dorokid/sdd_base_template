@@ -1,8 +1,11 @@
 # Task C handoff: 正本文書・人間review・日本語・追跡可能性
 
 > 完了日: 2026-09-21
-> 状態: 人間同意済み。orchestratorによるTask A・B、関連Issue、workspace分離とのcross-check済み。
-> 境界: 本文書はDiscovery Decisionであり、`requirements.md`、`design.md`、`tasks.md`の生成・承認、
+> 文書区分: Task C専用sessionからorchestratorへ返した壁打ち結果の伝達記録。
+> Kiro / cc-sdd互換の標準SDD文書、通常specの必須成果物、Decision・approvalの正本ではない。
+> 履歴状態: 内容は人間確認とcross-checkを経て、採用Decisionが`../agreement-log.md` #98〜#109へ固定済み。
+> 境界: 本文書はDiscovery Decision候補とその理由を伝えた履歴資料である。採用Decisionは
+> `agreement-log.md`を正とし、本文書は`requirements.md`、`design.md`、`tasks.md`の生成・承認、
 > 実装許可を意味しない。
 
 ## 1. 一情報一正本と文書責務
@@ -23,9 +26,12 @@ stable IDまたは節を参照し、本文を再掲しない。
 | `integration-test-checklist.md` | 人間操作・判断、外部環境、運用確認の事前計画と実施結果 |
 | runbook・運用手順 | 運用時の手順、観測、停止条件、復旧。要件・設計理由は参照する |
 | steering・roadmap | project全体の前提、構造、横断方針、依存順。個別spec contractは持たない |
-| context packet / handoff | 次工程に必要な入力境界とDecision参照。approvalの正本にはしない |
 | review navigation | 承認対象への案内。正本文書の代替要約にはしない |
 | PDF / Word / PPT等 | 人間向け派生view。一次成果物から一方向に生成し、正本にしない |
+
+context packetとhandoffは上表の標準文書に含めない。Issue #41のSerial Discoveryに限り、context packetを
+専用壁打ちsessionへの派生入力、handoffをorchestratorへの提案・伝達記録として使用する。通常specの
+必須成果物、Decision・approvalの正本、Requirements以降のcontract参照先にはしない。
 
 現在の正本文書は、現在contractを反映するため更新できる。ただし、過去のDecision、review、approval、
 test evidenceへ到達できる状態を壊さない。`FAIL`から`PASS`へ現在summaryを更新してよいが、過去の

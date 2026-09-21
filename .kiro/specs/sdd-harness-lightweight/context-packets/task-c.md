@@ -4,7 +4,11 @@
 > 更新日: 2026-09-21（Session Workspace Ownership & Isolationを必須inputとして追加）
 > 親Issue: #41
 > 前提Task: Task A、Task B（人間承認・DQ PR merge済み）
-> 状態: 壁打ち開始前。実装、template変更、Issue再編、commit、push、PR、repository renameは行わない。
+> 文書区分: Issue #41のSerial Discoveryで専用壁打ちsessionを開始するために作成した派生入力。
+> Kiro / cc-sdd互換の標準SDD文書、通常specの必須成果物、Decision・approvalの正本ではない。
+> 履歴状態: Task C壁打ち完了。採用Decisionは`../agreement-log.md` #98〜#109へ固定済み。
+> `../handoffs/task-c.md`は壁打ち結果の伝達記録として保持する。
+> 壁打ち開始時の禁止範囲: 実装、template変更、Issue再編、commit、push、PR、repository renameは行わない。
 
 ## 1. Taskの目的
 
@@ -262,8 +266,6 @@ navigation自体が新しい正本や長い要約にならないことを必須�
 - `.kiro/specs/sdd-harness-lightweight/brief.md`
 - `.kiro/specs/sdd-harness-lightweight/agreement-log.md`
 - `.kiro/specs/sdd-harness-lightweight/spec.json`
-- `.kiro/specs/sdd-harness-lightweight/handoffs/task-a.md`
-- `.kiro/specs/sdd-harness-lightweight/handoffs/task-b.md`
 - `payload/overlay/docs/sdd/workflow.md`
 - `payload/overlay/docs/sdd/rules/japanese-writing-style.md`
 - `payload/overlay/docs/sdd/rules/testing-policy.md`
@@ -271,6 +273,13 @@ navigation自体が新しい正本や長い要約にならないことを必須�
 - `payload/overlay/docs/sdd/templates/`
 - `payload/overlay/snippets/CLAUDE.sdd.md`
 - `payload/overlay/snippets/AGENTS.sdd.md`
+
+### 壁打ち時の履歴資料
+
+- `.kiro/specs/sdd-harness-lightweight/handoffs/task-a.md`
+- `.kiro/specs/sdd-harness-lightweight/handoffs/task-b.md`
+
+上記handoffは当時の伝達内容を確認するための資料であり、Decision・approvalの正本として参照しない。
 
 ### external evidence
 

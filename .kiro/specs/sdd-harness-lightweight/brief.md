@@ -33,8 +33,9 @@ Task Cでは次を採用した。
 - workspace情報の不明・競合・未検証は`UNVERIFIED`または`BLOCKED`とし、具体的な分離・lease・lifecycleはTask Fで決める。
 - Spec Tierで文書体系を変えず、複雑性に応じて記載深度だけを変える。
 
-詳細Decision、却下案、Requirements候補、Design保留、後続制約、既知差分は`handoffs/task-c.md`を正とする。
-次はTask C固定差分のPRをmergeした後、Task D「doc-export・二次成果物」のcontext packetを作成する。
+採用Decisionは`agreement-log.md` #98〜#109を正とする。`handoffs/task-c.md`は却下案、Requirements候補、
+Design保留、後続制約、既知差分を含む当時の伝達記録であり、現在contractやapprovalの正本にしない。
+次はTask C固定差分のPRをmergeした後、Task D「doc-export・二次成果物」専用の派生context packetを作成する。
 Task A〜Fを統合したDiscovery DQが完了するまで`requirements.md`生成へ進まない。
 
 ## 検討する設計軸
@@ -206,10 +207,14 @@ Designで確認できた場合だけ子Issueへ分割し、Discovery Taskを追�
 | `integration-test-checklist.md` | 人間または外部環境で確認する項目と実施結果 | 自動test済み項目の再掲 |
 | runbook・運用手順 | 運用手順、観測、停止条件、復旧 | 要件・設計理由の再掲 |
 | steering・roadmap | project全体の前提、構造、横断方針、依存順 | 個別specのcontractとapproval |
-| context packet / handoff | 次工程の入力境界とDecision参照 | approval状態、仕様本文のcopy |
 
 traceabilityは本文copyではなく、`requirement/AC → design節 → task → testまたはmanual確認`の参照chainで
 維持し、参照切れ、未対応、orphanを意味的に検証する。Tier S/Lで文書体系は変えず、記載の深さを変える。
+
+`context packet`と`handoff`はKiro / cc-sdd互換の標準SDD文書ではない。Issue #41のSerial Discoveryに限り、
+前者を専用壁打ちsessionへの派生入力、後者をorchestratorへの提案・伝達記録として使用する。通常specの
+必須成果物、Decision・approvalの正本、Requirements以降のcontract参照先にはしない。採用Decisionを
+`agreement-log.md`へ固定した後も、監査用の履歴として保持できるが、後続工程は正本だけを参照する。
 
 #### 採用するtest証跡モデル
 
@@ -395,7 +400,8 @@ project overrideと所有者不明の資産は利用者所有として非破壊�
 cc-sddのMIT LICENSE全文、`Copyright (c) 2025 gotalab`、upstream URL、tag、commit、path、tree SHA、
 独立・非提携説明を保持する。SDD Rig自身のLICENSEとは分離し、cc-sdd由来code、templateまたは
 substantial portionsを実際に含む配布物から帰属へ到達できるようにする。ハーネスの利用だけで利用projectの
-App全体へlicenseが自動伝播するとは扱わない。詳細なDecisionと未決調査は`handoffs/task-b.md`を参照する。
+App全体へlicenseが自動伝播するとは扱わない。採用Decisionは`agreement-log.md` #84〜#92を正とし、
+`handoffs/task-b.md`は壁打ち時の伝達記録としてのみ保持する。
 
 ### 旧導入順（PR #42時点の履歴）
 

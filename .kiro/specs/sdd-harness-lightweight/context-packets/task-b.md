@@ -3,7 +3,10 @@
 > 作成日: 2026-09-06
 > 親Issue: #41
 > 関連Issue: #33、#34
-> 状態: 壁打ち完了・人間承認済み。確定結果は`../handoffs/task-b.md`を正として参照する。
+> 文書区分: Issue #41のSerial Discoveryで専用壁打ちsessionを開始するために作成した派生入力。
+> Kiro / cc-sdd互換の標準SDD文書、通常specの必須成果物、Decision・approvalの正本ではない。
+> 履歴状態: Task B壁打ち完了。採用Decisionは`../agreement-log.md` #84〜#92へ固定済み。
+> `../handoffs/task-b.md`は壁打ち結果の伝達記録として保持する。
 > このfileは開始時の調査・比較仮説を保存するものであり、実装contractとして使用しない。
 
 ## 1. Taskの目的
@@ -188,7 +191,8 @@ upstream baselineの昇格はmaintainer責務とする。
 
 壁打ちの開始仮説は次のとおりだった。最終Decisionでは、固定参照元から一方向forkする一方、
 release後にpristine baseline、vendor snapshot、継続同期toolを常設しない方針へ改訂された。
-確定内容は`../handoffs/task-b.md`を参照する。
+以下は壁打ち開始時点の比較案である。採用Decisionは`../agreement-log.md` #84〜#92を参照し、
+`../handoffs/task-b.md`は当時の伝達内容を確認する場合だけ参照する。
 
 1. `v3.0.2` tagの`tools/cc-sdd`を、commitを明記したvendored source snapshotとして取り込む。
 2. upstream baselineは可能な限りpristineに保ち、SDD Rig core・platform adapter・product templateを別layerに置く。
@@ -263,7 +267,6 @@ orchestratorはTask Aとの整合、Issue間の二重正本、法的表示、後
 - `../agreement-log.md`
 - `../spec.json`
 - `../discovery-inventory.md`
-- `../handoffs/task-a.md`
 - `payload/KNOWN_GOOD_CCSDD_VERSION`
 - `payload/scripts/init.sh`
 - `payload/scripts/validate.sh`
@@ -274,6 +277,12 @@ orchestratorはTask Aとの整合、Issue間の二重正本、法的表示、後
 - `README.md`
 - `LICENSE`
 - `AGENTS.md` / `CLAUDE.md`
+
+### 壁打ち時の履歴資料
+
+- `../handoffs/task-a.md`
+
+このhandoffはTask Aの当時の伝達内容を確認するための資料であり、Decision・approvalの正本ではない。
 
 ### upstream
 
