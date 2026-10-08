@@ -141,10 +141,22 @@
 | 117 | Serial Discoveryのhandoff正本化では、handoffを原子的な項目IDへ分解し、各項目を`ADOPTED:<Decision ID> / DEFERRED:<owner・gate> / REJECTED:<理由> / BLOCKED:<原因>`のいずれかへ一対一で対応付ける。主体、規範強度、条件、例外、否定、固定値、後続owner、未決状態を照合し、100%対応、逆向き再構成、未対応0件を確認するまで次Taskへ進まない | 要約の存在確認だけでは、Task Cの「人間」のような役割限定や、Task A/Bの例外・停止条件・未決事項が静かに脱落することを防げなかったため | 2026-09-21 |
 | 118 | 壁打ち専用sessionはhandoff送信後も正本化確認が完了するまで存続する。orchestratorは正本反映後、handoff IDごとの反映先Decision、正本文、統合・言換え・保留・未反映を同sessionへ返す。壁打ちsessionは元の承認済みhandoffと照合して`CANONICALIZATION_PASS`または`CANONICALIZATION_REVISE`を返し、`PASS`前にTask完了、session終了・archive、次Task開始を行わない。意味変更・Task間衝突は人間判断へ戻し、この確認をfresh独立reviewの代替にしない | handoff作成者が元の判断を保持している間に、orchestratorの丸め込みを送信元確認できるようにし、後日の高コストなcontext復元と意味欠落を防ぐため | 2026-09-21 |
 | 119 | #117〜#118をIssue #41固有の注意事項に留めず、SDD Rigの「転記完全性確認」機能としてRequirements化する。承認済み情報をsession・agent境界を越えて正本化する場合、handoff ID・source hash・正本対応・canonical hash・確認状態を追跡し、`CANONICALIZATION_PASS`までfail-closedとする。単一sessionが正本を直接更新する通常作業には一律適用しない。情報contractはTask C、agent workflow・停止条件はTask E、session呼戻し・存続・復旧・Claude Code/Codex E2EはTask Fが所有する | 実際に発生した転記欠落を再現可能な製品機能で防ぎつつ、全作業への過剰な確認とToken消費を避けるため | 2026-09-21 |
+| 120 | `doc-export`のPPTは人間の理解・共有・論点把握を支援する派生viewであり、正本または正式approval対象にしない。正式approvalは、利用者が正本を開くか対象を明示選択し、PPTから正本reviewへ明示遷移した後、単一pending gate、対象正本文書、version/hash、許可範囲を直前に提示した場合だけ成立する。PPT閲覧中の一般的肯定はapprovalにせず、正本へアクセスできない相手はfeedback・賛同はできても正式承認者にしない。PPTで条件・例外・禁止・risk・未決を省略した場合は正本遷移前にその存在を明示する | 二重権威と、読みやすい要約だけを見た誤承認を防ぎつつ、人間向け派生viewの価値を残すため | 2026-10-08 |
+| 121 | #120の承認境界をClaude CodeとCodexで意味的に同一とし、`doc-export`は両platformの明示skill・自然言語と直接CLIから同じ意味で起動可能にする。具体的なskill検出・起動・fresh-session E2Eは#32、agent workflowはTask E、adapter・session実行はTask Fが所有する | platformごとに承認成立条件や利用可能な入口が変わることを防ぎ、実装責務の二重正本を避けるため | 2026-10-08 |
+| 122 | human review gateではPPT生成を提案するが自動生成せず、人間の明示依頼後だけ生成する。形式指定がなければ、一意なpending gateに対応するphase別profileのPPTを既定とし、gateまたはphaseが一意でなければ推定せず確認する。Word、PDF、複数形式、複数phaseは明示指定時だけ生成する。profile候補は`requirements-review / design-review / tasks-review / status-share`とし、schemaはDesignへ保留する。PPT生成失敗だけで読める正本のreview・approvalを不可能にしないが、依頼されたPPTの失敗をreview可能・成功と報告しない。現行のmanifestなしで3正本全文を各DOCXへ出す既定はmigration・compatibility対象とする | 不要なToken・renderer費用とstale成果物を増やさず、派生物の失敗を正本の承認不能または偽の成功へ変換しないため | 2026-10-08 |
+| 123 | `doc-export`は正本の意味を維持する範囲で並べ替え、要約、言換え、表・図への変換を行える。ただし主体、対象、条件・trigger、規範強度、観測可能な結果、例外・停止条件、否定、未決・未検証・仮定、risk・severity、固定値・閾値・version、stable IDを削除・変更せず、正本にない要件・設計判断・関係・依存・因果・優先度・approvalを事実として追加しない。意味を持つ順序と必要な原文を保持し、複数項目の統合は各行・cellから元IDへ追跡でき、異なる条件・例外を丸めない場合だけ許可する。図は正本にあるcomponent・関係・state・flowだけを描き、収まらなければslide分割・appendix・正本参照を使う。正本にない判断が必要なら補完せず人間へ戻す | presentation変換による意味欠落、規範強度の変化、もっともらしい新規判断の混入を防ぐため | 2026-10-08 |
+| 124 | artifactごとにspec ID、phase/profile、source path、source file content hash、対象version/gate hash、generator version、template ID/version、生成日時を記録する。掲載・意図的省略・変換失敗・source不在・未確認の正本ID/見出しを区別し、主要slideへ人が読める正本IDまたは`file#heading`、生成reportへ詳細なslide-source mappingを残す。生成時、review開始時、正本approvalへの遷移時にsource hashを再確認し、source fileが一つでも変われば原則PPT全体を`STALE`とする。非意味変更の最適化はDesignへ保留する。`GENERATED / PARTIAL / CURRENT / STALE / REVIEW_READY`を区別し、生成済みまたは`CURRENT`だけで`REVIEW_READY`にしない。再確認不能な外部共有物は生成時hashへの派生物と表示し、現在の承認資料とは保証しない。意図的省略時も条件・例外・禁止・risk・未決の存在と正本参照先は主要部分から分かるようにする | 派生viewの鮮度・網羅性・出典を人間が再構成でき、部分成功や古い資料を承認可能と誤認しないため | 2026-10-08 |
+| 125 | SDD Rigはversion管理された既定PPT templateを提供し、利用project所有のtemplate overrideを許可する。選択優先順位は実行時明示指定、project override、SDD Rig既定templateの順とする。phase profileが必須の意味要素、visual template/themeがbrand・logo・色・font・layoutを所有し、overrideは承認境界、source mapping、鮮度、条件・例外・risk・未決を削除できない。利用者所有overrideをinstall/sync/updateで上書き・削除・再生成・自動変換せず、非互換時はsilent fallbackせず差分・不足を示して人間へ戻す。既定templateは日本語/CJK、font fallback、長い表・図・risk・例外、#120・#124の表示領域を支援する | project固有の見た目を許容しながら、承認と意味保持のcontractをtemplate変更で回避させず、利用者資産を非破壊に保つため | 2026-10-08 |
+| 126 | 外部template、font、icon、rendererは固定参照、license、商用利用・改変・再配布、attribution、supplier、再現性、更新責任、Claude/Codex parityを確認して別途採否判断する。具体的な外部package/template採用やcc-sdd由来asset同梱はTask Dの合意に含めない。cc-sdd由来物を同梱する提案時はMIT LICENSE全文と`Copyright (c) 2025 gotalab`の保持・到達性を再確認する。export中に不足rendererを黙ってinstallせず、別setupとして目的、version/pin、license、supplier、影響、更新責任を示し、人間承認後だけ導入する | Task Bのdependency・provenance contractを二次成果物機能でも維持し、供給網・license・再現性を暗黙の実装詳細にしないため | 2026-10-08 |
+| 127 | artifact品質はrenderer processの終了成功だけで合格にしない。毎回、artifact構造、必須XML、非0 slide、全slide render、asset・relationship・internal reference、source mapping、profile coverage、source freshness、未掲載・失敗count、placeholder、overflow、重なり、極小font、CJK glyph・文字化け、contrastを自動検査する。formal gateの理解にPPTを使う場合は実際にrenderされた全slideの人間visual QAを必須とし、overflow、文字切れ、重なり、日本語可読性、表・図、contrast、条件・例外・risk・未決の埋没、図の確定・未決誤表示、正本案内、warning可視性を確認する。参考共有では`AUTO_PASS`かつvisual未確認を明示したartifactを渡せるが`REVIEW_READY`または品質保証済みと呼ばない。`GENERATED → AUTO_PASS/AUTO_WARN/AUTO_FAIL → VISUAL_REQUIRED → VISUAL_PASS/VISUAL_FAIL → REVIEW_READY`を意味上区別し、`AUTO_FAIL`、未解消`AUTO_WARN`、`VISUAL_FAIL`、`STALE`、`UNVERIFIED`を成功扱いしない。renderer未導入の対象は`NOT_GENERATED`とし、他形式を続行しても全artifact成功と表現しない。visual QAは意味同等性確認や正式approvalの代替にせず、両platformで同じstatus・blocking・reportを使い、片側で検証不能なら推測PASSにしない | 壊れた表示、意味欠落、部分生成を機械的成功へ丸めず、自動検査と人間の視覚判断を重複させずに組み合わせるため | 2026-10-08 |
+| 128 | 生成前にspec、phase、profile、format、機密区分を一意にし、不明なら確認する。対象、artifact数、AI要約・図表化、必要renderer、visual QA、中間data再取得、Token・時間・外部処理の見積区分、保存しない場合の再現性riskを提示し、取得不能な値は`UNAVAILABLE`として0扱いしない。大容量PDF、全slide画像、render logを会話へ無制限に投入せず、manifest、検査結果、縮小contact sheetを優先し問題slideだけ詳細確認する。閾値とagent budgetはTask Eが所有する | 明示依頼後の費用・情報量・再現性を人間が判断できるようにし、二次成果物自身がcontext肥大を再発させることを防ぐため | 2026-10-08 |
+| 129 | 二次成果物は既定で再生成可能かつgitignore対象のbuild outputとし、外部Drive等を必須化しない。外部upload、Git stage/commit/push、外部archive、dependency導入を生成処理から自動実行しない。PII・機密・大容量を通常の非PII出力先へ混在させず、永続reportへlocal user名を含む絶対pathを残さない。既存artifactと利用者所有fileを黙って上書きしない。exact source hash、profile、template、generator versionが一致し検証済みのartifactは再利用を提案できるが、hash再確認を省略しない | 派生成果物を安全に再生成可能なbuild outputとして保ち、秘密情報、利用者資産、外部副作用を暗黙に扱わないため | 2026-10-08 |
+| 130 | output ownership、同一specの並行生成、atomic publish、PII隔離、worktree削除後の発見性、main worktree mutation preflight、cache lifecycleはTask Fで確定し、安全に解決できなければsilent fallbackせず`BLOCKED`とする。#37のlinked worktreeからmain worktreeのoutputsへ出す案は候補として維持するが、Task Fのownership・lease・preflight・recovery contract確定前には有効化しない。保存済み中間dataがなければ再取得費用と非再現性を通知し、人間確認後に再生成し、外部storage連携は必須にしない。bash 3.2、CJK/PDF rendererの既知不具合を修正済みと仮定せず#38へ渡す。skill discovery・起動・fresh-session parityは#32、agent/model/context予算はTask E、workspace/output/lock/recoveryはTask Fが所有する | main worktree出力という利便性を並行sessionの破壊的変更へ変えず、既存Issue間の責務と未解決riskを保持するため | 2026-10-08 |
+| 131 | Task Dで合意したRequirements候補、Design保留、未決調査は後段の各gateへ明示的に渡すが、現時点で`requirements.md`、`design.md`、`tasks.md`の承認または実装許可へ昇格させない。Task A〜CのDecisionは改訂せず、衝突が後から見つかった場合は自動上書きせず人間判断へ戻す | Discoveryの採用方針、設計方式、調査事実、実装許可を混同しないため | 2026-10-08 |
 
 ---
 
-## Task A〜C handoff正本化カバレッジ監査
+## Task A〜D handoff正本化カバレッジ監査
 
 > 2026-09-21に、専用sessionのstructured handoffと正本Decisionを項目単位で再照合した。
 > `CONFIRMED`は意味、主体、条件、例外、未決状態まで正本で再現できた項目、`RESTORED`は
@@ -181,6 +193,145 @@
 | handoff項目 | 正本Decision | 結果 | 確認内容 |
 |---|---|---|---|
 | C-11 review観点の適用主体 | #102、#110 | `RESTORED` | 8観点の対象を主agent・fresh reviewerだけでなく人間reviewへも復帰 |
+
+### Task D
+
+> source handoff: `TASK_D_HANDOFF_V1`。受信本文SHA-256
+> `3984d7fb95428bf48fdd10c6f13034767d6eed20bf35b573d81921988091cbc1`。
+> source packet SHA-256 `dab0818b0957d61345b7f56b6b2ca96498036a1e836d6a6ff79982dd6fb1d028`。
+> 2026-10-08に送信元sessionが対象hashと全111 IDを再照合し、`CANONICALIZATION_PASS`を返した。
+
+#### ADOPTED項目
+
+| handoff ID | 正本対応 | 状態 | 保持した意味 |
+|---|---|---|---|
+| D1-01 | #120 | `ADOPTED` | PPTは理解・共有用の派生viewで、正本・正式approval対象ではない |
+| D1-02 | #120 | `ADOPTED` | 正本reviewへの明示遷移後だけapprovalが成立する |
+| D1-03 | #120 | `ADOPTED` | 正本を開くか対象を明示選択する操作をapproval前に必須とする |
+| D1-04 | #120 | `ADOPTED` | PPT閲覧中の一般的肯定をapprovalへ昇格させない |
+| D1-05 | #120 | `ADOPTED` | 正本へアクセスできない相手はfeedback可能だが正式承認者にしない |
+| D1-06 | #120 | `ADOPTED` | 未掲載の条件・例外・禁止・risk・未決の存在を正本遷移前に示す |
+| D1-07 | #121 | `ADOPTED` | 承認境界をClaude Code/Codexで意味的に同一にする |
+| D2-01 | #122 | `ADOPTED` | gateでPPT生成を提案するが自動生成しない |
+| D2-02 | #122 | `ADOPTED` | 人間の明示依頼後だけ生成する |
+| D2-03 | #122 | `ADOPTED` | 形式未指定時は一意なpending gate用phase profile PPTを既定とする |
+| D2-04 | #122 | `ADOPTED` | gate・phaseが一意でなければ推定せず確認する |
+| D2-05 | #122 | `ADOPTED` | Word・PDF・複数形式・複数phaseは明示指定時だけ生成する |
+| D2-06 | #122 | `ADOPTED` | 4つのprofile候補を保持し、exact schemaはDesignへ保留する |
+| D2-07 | #122 | `ADOPTED` | PPT失敗だけで正本reviewを禁止しないが、依頼失敗を成功と報告しない |
+| D2-08 | #122 | `ADOPTED` | 現行DOCX既定をmigration・compatibility対象にする |
+| D3-01 | #123 | `ADOPTED` | 意味維持範囲で並べ替え・要約・言換え・表図化を許可する |
+| D3-02 | #123 | `ADOPTED` | 主体からstable IDまでの意味要素を削除・変更しない |
+| D3-03 | #123 | `ADOPTED` | 正本にない判断・関係・approval等を事実として追加しない |
+| D3-04 | #123 | `ADOPTED` | 意味を持つ順序を維持し、不明なら勝手に並べ替えない |
+| D3-05 | #123 | `ADOPTED` | 規範強度を変えず、必要な原文を保持する |
+| D3-06 | #123 | `ADOPTED` | 統合は元ID追跡可能かつ異なる条件・例外を丸めない場合だけ許可する |
+| D3-07 | #123 | `ADOPTED` | 図へ新しい箱・矢印・依存を追加しない |
+| D3-08 | #123 | `ADOPTED` | 収まらない場合は分割・appendix・正本参照を使い黙って短縮しない |
+| D3-09 | #123 | `ADOPTED` | 正本にない判断を推論補完せず人間へ戻す |
+| D4-01 | #124 | `ADOPTED` | artifactごとのsource・generator・template・日時metadataを記録する |
+| D4-02 | #124 | `ADOPTED` | 掲載・意図的省略・失敗・不在・未確認を区別する |
+| D4-03 | #124 | `ADOPTED` | 主要slideに読める参照、reportに詳細mappingを残す |
+| D4-04 | #124 | `ADOPTED` | 生成・review開始・正本approval遷移時にsource hashを再確認する |
+| D4-05 | #124 | `ADOPTED` | source file変更で原則全体STALE、非意味変更最適化はDesign保留 |
+| D4-06 | #124 | `ADOPTED` | 5つのartifact状態を区別し、CURRENTだけでREVIEW_READYにしない |
+| D4-07 | #124 | `ADOPTED` | 再確認不能な外部共有物を現在の承認資料と保証しない |
+| D4-08 | #124 | `ADOPTED` | 省略時も重要事項の存在と正本参照先を主要部分から分かるようにする |
+| D5-01 | #125 | `ADOPTED` | version管理された既定PPT templateとproject overrideを提供する |
+| D5-02 | #125 | `ADOPTED` | 明示指定、project override、既定templateの優先順を保持する |
+| D5-03 | #125 | `ADOPTED` | profileの意味要素とvisual themeの見た目を分離する |
+| D5-04 | #125 | `ADOPTED` | overrideで必須の承認・意味要素を削除できない |
+| D5-05 | #125 | `ADOPTED` | 利用者所有overrideを更新処理で破壊・再生成しない |
+| D5-06 | #125 | `ADOPTED` | override非互換時はsilent fallbackせず人間へ戻す |
+| D5-07 | #125 | `ADOPTED` | 既定templateのCJK・font・長文・重要表示領域を支援する |
+| D5-08 | #126 | `ADOPTED` | 外部asset・rendererをdependency contractで別途採否判断する |
+| D5-09 | #126 | `ADOPTED` | 具体採用を含めず、cc-sdd由来同梱時のMIT帰属を再確認する |
+| D6-01 | #127 | `ADOPTED` | renderer exit成功だけを品質合格にしない |
+| D6-02 | #127 | `ADOPTED` | 構造・render・参照・mapping・coverage・visual defect等を毎回自動検査する |
+| D6-03 | #127 | `ADOPTED` | formal gateでPPTを使う場合は全rendered slideの人間visual QAを必須とする |
+| D6-04 | #127 | `ADOPTED` | visual QAの具体的な可読性・埋没・案内・warning観点を保持する |
+| D6-05 | #127 | `ADOPTED` | 参考共有のvisual未確認artifactをREVIEW_READYと呼ばない |
+| D6-06 | #127 | `ADOPTED` | 自動検査からREVIEW_READYまでの状態を意味上区別する |
+| D6-07 | #127 | `ADOPTED` | fail・未解消warn・visual fail・stale・unverifiedを成功扱いしない |
+| D6-08 | #127 | `ADOPTED` | renderer未導入はNOT_GENERATEDで、部分続行を全体成功にしない |
+| D6-09 | #127 | `ADOPTED` | visual QAを意味同等性確認・正式approvalの代替にしない |
+| D6-10 | #127 | `ADOPTED` | 両platformで同じ状態・block・reportを使い、検証不能を推測PASSにしない |
+| D7-01 | #121 | `ADOPTED` | 両platformのskill・自然言語・直接CLIで意味的に同じ入口を持つ |
+| D7-02 | #128 | `ADOPTED` | 対象属性を一意にし、不明なら確認する |
+| D7-03 | #128 | `ADOPTED` | 生成前に対象・費用・QA・再取得・再現性riskを提示する |
+| D7-04 | #128 | `ADOPTED` | 取得不能なToken等をUNAVAILABLEとし0扱いしない |
+| D7-05 | #129 | `ADOPTED` | 二次成果物は既定gitignoreのbuild outputで、外部Driveを必須にしない |
+| D7-06 | #129 | `ADOPTED` | upload・Git操作・archive・dependency導入を自動実行しない |
+| D7-07 | #129 | `ADOPTED` | PII等を通常出力と混在させず、永続reportへlocal絶対pathを残さない |
+| D7-08 | #129 | `ADOPTED` | 既存artifact・利用者所有fileを黙って上書きしない |
+| D7-09 | #130 | `ADOPTED` | Task Fがownership等を確定し、安全不能ならBLOCKEDにする |
+| D7-10 | #130 | `ADOPTED` | main worktree outputs案をTask F contract確定前に有効化しない |
+| D7-11 | #129、#130 | `ADOPTED` | 一致・検証済みartifactの再利用提案とhash再確認を保持し、lifecycleはTask Fへ渡す |
+| D7-12 | #128 | `ADOPTED` | 大容量artifactを会話へ無制限投入せず縮小・問題箇所優先にする |
+| D7-13 | #126 | `ADOPTED` | 不足rendererは別setup・人間承認後にだけ導入する |
+| D7-14 | #130 | `ADOPTED` | 中間data再取得の費用・非再現性を通知し、外部storageを必須にしない |
+| D7-15 | #130 | `ADOPTED` | bash 3.2・CJK/PDF既知不具合を未修正前提で#38へ渡す |
+| D7-16 | #121、#128、#130 | `ADOPTED` | #32、Task E、Task Fの後続owner境界を保持する |
+
+#### REJECTED項目
+
+| handoff ID | 状態 | 理由 |
+|---|---|---|
+| RD-01 | `REJECTED` | PPTを新正本にすると#98・#101と衝突し二重権威になる |
+| RD-02 | `REJECTED` | 無条件自動生成は費用・stale・不要artifactを増やす |
+| RD-03 | `REJECTED` | 自由生成・判断補完は意味変化と追跡不能を生む |
+| RD-04 | `REJECTED` | coverの日時・pathだけではcontentの鮮度・網羅性を証明できない |
+| RD-05 | `REJECTED` | 正本全文複製は二重正本・容量・Token問題を生む |
+| RD-06 | `REJECTED` | override不具合時のsilent fallbackはbrand・必須情報を誤認させる |
+| RD-07 | `REJECTED` | 実行時の外部template自動取得はlicense・供給網・再現性を壊す |
+| RD-08 | `REJECTED` | renderer exit 0だけではvisual・semantic欠陥を検出できない |
+| RD-09 | `REJECTED` | 自動検査なしの人間丸投げは負荷と再現性を悪化させる |
+| RD-10 | `REJECTED` | main worktreeへの無条件出力はownership・並行・PII・lifecycle未解決 |
+| RD-11 | `REJECTED` | export中の無承認installはdependency contract違反 |
+| RD-12 | `REJECTED` | Drive保存・Git操作の必須化または自動化は#37と非破壊性に反する |
+
+#### Requirements候補・Design保留・未決調査
+
+以下は#131により後続gateへ渡すが、現在のRequirements・Design・実装承認ではない。
+
+| ID | 状態 | owner・反映先 | 内容 |
+|---|---|---|---|
+| RQ-D-01 | `DEFERRED` | Requirements | 正本・PPT・approvalの権威境界と二段階遷移 |
+| RQ-D-02 | `DEFERRED` | Requirements | 明示依頼、既定PPT、phase profile、ambiguity fail-closed |
+| RQ-D-03 | `DEFERRED` | Requirements | 制約付き意味変換と禁止された推論 |
+| RQ-D-04 | `DEFERRED` | Requirements | source manifest、slide mapping、coverage、freshness/status |
+| RQ-D-05 | `DEFERRED` | Requirements | versioned default template、非破壊override、license gate |
+| RQ-D-06 | `DEFERRED` | Requirements | 自動品質検査、人間visual QA、fail-closed status |
+| RQ-D-07 | `DEFERRED` | Requirements | 複数入口parity、費用preflight、安全な保存境界 |
+| RQ-D-08 | `DEFERRED` | Requirements・#32 | 両platformのfresh-session検出・起動・意味parity |
+| RQ-D-09 | `DEFERRED` | Requirements・#37 | PII、任意storage、大容量context制約 |
+| RQ-D-10 | `DEFERRED` | Requirements・Task E/F | canonicalization確認完了までTask Dを完了扱いしない |
+| DD-01 | `DEFERRED` | Design | profile schemaと必須slot・slide構成 |
+| DD-02 | `DEFERRED` | Design | manifest・mapping・status schema、hash algorithm、保存形式 |
+| DD-03 | `DEFERRED` | Design | template形式・path・override指定・compatibility range |
+| DD-04 | `DEFERRED` | Design・Task B | renderer/package/template、pin/lock、license、build・配布方式 |
+| DD-05 | `DEFERRED` | Design | visual・semantic検査toolと閾値 |
+| DD-06 | `DEFERRED` | Design | visual QA UI、記録schema、warning override範囲 |
+| DD-07 | `DEFERRED` | Design・Task F | naming/versioning、atomic publish、cache、retention |
+| DD-08 | `DEFERRED` | Design・Task E | 費用見積区分とDEEP・agent budget接続 |
+| DD-09 | `DEFERRED` | Design・#32 | platform adapterと自然言語dispatch |
+| DD-10 | `DEFERRED` | Design・Task F | output resolver、workspace lease・lock・recovery |
+| INV-D-01 | `DEFERRED` | Design・Task F | 現行3 DOCX既定からPPT/profileへのmigration互換性 |
+| INV-D-02 | `DEFERRED` | Design | 現行配布物に既定PPTX/POTXがない差分 |
+| INV-D-03 | `DEFERRED` | Design | 現行reportにhash・mapping・stale・coverage・REVIEW_READYがない差分 |
+| INV-D-04 | `DEFERRED` | Design | 現行品質検査にvisual QAがない差分 |
+| INV-D-05 | `DEFERRED` | Design・Task B | 現行の対話中renderer導入経路から無承認dependency変更を排除する調査 |
+| INV-D-06 | `DEFERRED` | #38 | bash 3.2、CJK/PDF engine・font問題のOPEN確認 |
+| INV-D-07 | `DEFERRED` | Task F・#37 | main worktree output案とsession workspace isolationの整合 |
+| INV-D-08 | `DEFERRED` | #37・Task F | #37の旧path/designを未承認・stale前提で再評価 |
+| INV-D-09 | `DEFERRED` | Issue #41進捗管理 | Issue本文のstaleなTask C表示をTask D正本化後に更新 |
+| INV-D-10 | `DEFERRED` | Task B・Design | 外部asset・rendererのlicense・再配布・supplier・offline再現性 |
+| INV-D-11 | `DEFERRED` | Design | 非意味変更時だけ部分freshを許す可否。現状はfile hash変更で全体STALE |
+| INV-D-12 | `DEFERRED` | 計測・Requirements review | formal gate visual QA負荷と軽量化目標の実測 |
+
+集計は`ADOPTED 67 / REJECTED 12 / DEFERRED 32 / BLOCKED 0 / 未対応 0`。
+送信元照合は`CANONICALIZATION_PASS`。この確認は転記完全性だけを対象とし、fresh独立reviewや
+Requirements・Design・Tasksの人間approvalを代替しない。
 
 ### 次回からの確認手順
 
@@ -246,13 +397,12 @@
 
 ### 次回の再開点
 
-PR #42までの6項目に加え、Discovery改訂Task A「Kiro互換・製品境界」と
-Task B「cc-sdd source取り込み・provenance・外部source更新境界」が完了し、人間承認された。
-PR #44はmerge済み。「コンテキスト予算・セッション継続管理」をTask C/E/F共通inputとして追加し、
-Task C「正本・文書責務・日本語・追跡可能性」の専用壁打ち、orchestrator cross-check、人間確認が完了した。
-採用Decisionは#98〜#109を正とし、`handoffs/task-c.md`は壁打ち時の伝達記録として保持する。
-次はTask C固定差分をcommit・push・PR・mergeした後、Task D「doc-export・二次成果物」用の派生context packetを
-作成し、人間承認後に専用taskを一つ起動する。
+PR #45はmerge済み。Discovery改訂Task A「Kiro互換・製品境界」、Task B「cc-sdd source取り込み・
+provenance・外部source更新境界」、Task C「正本・文書責務・日本語・追跡可能性」は完了済み。
+Task D「doc-export・二次成果物」はD-1〜D-7の壁打ちと人間確認を終え、採用事項を#120〜#131、
+却下事項とRequirements候補・Design保留・未決調査をTask Dカバレッジ監査へ正本化した。
+送信元sessionによる転記完全性確認は`CANONICALIZATION_PASS`。次はTask D差分をcommit・push・PR・mergeし、
+Task E「agent・review・model・context予算」の開始資料を作成して人間承認を得る。
 Task A〜Fを統合したDiscovery DQ PRがmergeされるまで`requirements.md`生成へ進まない。
 
 ---
@@ -264,7 +414,7 @@ Task A〜Fを統合したDiscovery DQ PRがmergeされるまで`requirements.md`
 
 | フェーズ | 合意メモ（理由・補足） |
 |---|---|
-| 要件定義（requirements.md） | Discovery改訂Task A〜C完了・人間確認済み、Task D〜F未着手。未生成・未承認。 |
+| 要件定義（requirements.md） | Discovery改訂Task A〜D完了・人間確認・転記完全性確認済み。Task E〜F未着手。Requirementsは未生成・未承認。 |
 | 設計（design.md） | 未生成・未承認。 |
 | タスク分解・実装前確認（tasks.md） | 未生成・未承認。 |
 
@@ -300,3 +450,4 @@ Task A〜Fを統合したDiscovery DQ PRがmergeされるまで`requirements.md`
 | 2026-09-21 | Task A〜Cのhandoff正本化を水平監査し、丸め込みで弱まった役割・例外・停止条件・後続owner・未決事項を#110〜#116へ復帰。#117の項目別カバレッジ確認を後続Taskへ導入 | KYamada / Codex |
 | 2026-09-21 | #118として、正本反映後に壁打ちsessionが元handoffとの一致を確認し、`CANONICALIZATION_PASS`まで存続する二段階の正本化確認を採用 | KYamada / Codex |
 | 2026-09-21 | #119として、二段階確認をSDD Rigの転記完全性確認機能へ昇格し、Task C/E/Fを横断するRequirements候補として採用 | KYamada / Codex |
+| 2026-10-08 | Task DでPPTの非正本境界、明示生成、意味変換、出典・鮮度、template override、品質検査、保存・費用・後続ownerを合意。#120〜#131と全111 IDを正本化し、送信元sessionが`CANONICALIZATION_PASS`を確認 | KYamada / Codex |
