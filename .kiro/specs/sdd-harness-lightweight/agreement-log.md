@@ -153,12 +153,42 @@
 | 129 | 二次成果物は既定で再生成可能かつgitignore対象のbuild outputとし、外部Drive等を必須化しない。外部upload、Git stage/commit/push、外部archive、dependency導入を生成処理から自動実行しない。PII・機密・大容量を通常の非PII出力先へ混在させず、永続reportへlocal user名を含む絶対pathを残さない。既存artifactと利用者所有fileを黙って上書きしない。exact source hash、profile、template、generator versionが一致し検証済みのartifactは再利用を提案できるが、hash再確認を省略しない | 派生成果物を安全に再生成可能なbuild outputとして保ち、秘密情報、利用者資産、外部副作用を暗黙に扱わないため | 2026-10-08 |
 | 130 | output ownership、同一specの並行生成、atomic publish、PII隔離、worktree削除後の発見性、main worktree mutation preflight、cache lifecycleはTask Fで確定し、安全に解決できなければsilent fallbackせず`BLOCKED`とする。#37のlinked worktreeからmain worktreeのoutputsへ出す案は候補として維持するが、Task Fのownership・lease・preflight・recovery contract確定前には有効化しない。保存済み中間dataがなければ再取得費用と非再現性を通知し、人間確認後に再生成し、外部storage連携は必須にしない。bash 3.2、CJK/PDF rendererの既知不具合を修正済みと仮定せず#38へ渡す。skill discovery・起動・fresh-session parityは#32、agent/model/context予算はTask E、workspace/output/lock/recoveryはTask Fが所有する | main worktree出力という利便性を並行sessionの破壊的変更へ変えず、既存Issue間の責務と未解決riskを保持するため | 2026-10-08 |
 | 131 | Task Dで合意したRequirements候補、Design保留、未決調査は後段の各gateへ明示的に渡すが、現時点で`requirements.md`、`design.md`、`tasks.md`の承認または実装許可へ昇格させない。Task A〜CのDecisionは改訂せず、衝突が後から見つかった場合は自動上書きせず人間判断へ戻す | Discoveryの採用方針、設計方式、調査事実、実装許可を混同しないため | 2026-10-08 |
+| 132 | `Spec Tier`、`Review Mode`、`Model Class`を別軸かつ別namespaceとする。Spec Tierは仕様化・調整の複雑性から同一文書体系内の記載深度・分解粒度を決め、Review Modeは影響risk、不確実性、検証可能性、rollback、外部副作用、暗黙契約から必要な独立検証を決める。Model Classはrole別の判断量、制約統合、曖昧性、反例探索、domain知識、機械検証可能性から最低能力を決め、高riskはreviewer能力、実装難度はimplementer能力へ別々に反映する。Tierをrisk・review・modelの直接判定根拠にしない | 文書深度、検証強度、必要能力を同じ「難易度」へ丸めず、各軸の目的と権限を分離するため | 2026-10-09 |
+| 133 | 主agentは共通の観測事実からTierとReview Modeを互いの分類値に依存せず判定する。Review Modeから必要roleとreview対象を定めた後、主agentまたはorchestratorがrole別Model Classを判定し、実model mappingの実行可能性を確認する。複雑性だけで`DEEP`にせず、それが生む不確実性・検証困難・暗黙契約等の観測事実で判定する。強いmodelの使用、適格model不在、予算、期限を必要reviewの省略または必要能力の降格理由にせず、実行不能時は停止、scope縮小、必要な人間判断へ戻す | Tierへのanchoring、能力と独立性の混同、利用都合による安全水準の引下げを防ぐため | 2026-10-09 |
+| 134 | 主agentはscope把握後にSpec Tierを提案し、人間はscope確認または既存approval gateで確認・異議提示する。Tier専用gateは増やさない。Review Modeは初期scope把握時と各対象gate直前にpolicyで判定する。人間は`DEEP_RECOMMENDED`を受諾・拒否でき、`DEEP_REQUIRED`では実行・scope縮小・停止を選ぶが`STANDARD`へ上書きしない。`DEEP`実行前には理由、agent数、class、context、巡回、Token・時間見積、拒否時の扱いを提示して承認を得る。roleと対象の確定後に必要classを判定し、dispatch直前にmappingを検証する。対応表外、能力不明、provider越え代替は人間判断まで停止し、追加費用等の確認条件はE-5で具体化する | 既存gateを不必要に増やさず、人間の費用判断と必須安全水準を両立し、能力不明の代替を防ぐため | 2026-10-09 |
+| 135 | Spec Tierはspec単位を基本とする。Review Modeはgate・review対象・review対象hash単位とする。Model Classはrole・作業単位・入力hash単位とする | 文書深度の全体一貫性を保ちつつ、一部の高riskを平均化せず、同一spec内の異なる能力需要を表現するため | 2026-10-09 |
+| 136 | scope、AC、責務境界、依存、移行段階の増減時はTierを再判定するが、その変更だけで他二軸を自動変更しない。対象hash、risk、不確実性、rollback、外部副作用、検証可能性の変更時はReview Modeを再判定し、上方変更時は必要review完了まで停止する。下方変更には危険条件が消えた証拠を要求し、予算不足だけでは認めない。role、作業内容、判断量、入力hash、能力mapping変更時はModel Classを再判定する。review収束中のmodel IDまたは推論設定変更はreviewer交代としてfresh reviewをやり直す | 古い分類の流用、便宜的な降格、review主体の実質変更の隠蔽を防ぐため | 2026-10-09 |
+| 137 | 各軸の分類値と判定状態`RESOLVED / UNRESOLVED / BLOCKED / STALE`を分離する。scope、対象、入力hash等の必須事実が未取得なら推測分類せず`UNRESOLVED`とし、証拠収集以外を停止する。証拠が矛盾して優先関係を決められない場合は`BLOCKED`として人間へ戻す。合理的な調査後も残る対象固有の不確実性は未取得情報と区別してReview Modeの正規入力とし、`DEEP`境界はE-2へ保留する。必要classに適格なmodelまたはmappingがなければ実行解決を`BLOCKED`とし、classを下げない。未判定をTier L、`DEEP`、`Critical`等の最大値で埋めない。具体schemaはDesignへ保留する | 未調査、残存不確実性、実行不能を同じ安全分類へ丸めず、対象不明の高費用処理を安全と誤認しないため | 2026-10-09 |
+| 138 | 能力水準は軽量・標準・高度の三段階を維持するが、`Lightweight`名称は暫定候補とする。旧`Mechanical`相当は軽量routingとして残し、通常の仕様・risk判断へ利用範囲を広げない。`Mechanical`の判断禁止は能力classそのものではなく実行制約`MECHANICAL_ONLY`として分離し、機械検証可能な抽出・変換・集計だけを許可する。risk、仕様、設計、test充足性、finding重大度、情報省略を判断させない。上位能力modelが代行しても制約を緩和せず、`MECHANICAL_ONLY`指定だけで任意modelを適格とみなさない | 軽量routingを維持しながら、能力水準と判断権限を分離し、上位model代行による権限拡張を防ぐため | 2026-10-09 |
+| 139 | 各分類は観測事実とその軸への影響理由を追跡可能にし、同じ事実を複数軸で使う場合も各軸への理由を示す。Tierでは独立AC、責務境界、依存、設計選択、移行、人間判断を証拠とし、行数・file数・時間は調査の手掛かりに限り単独分類に使わない。Review Modeでは影響対象、失敗結果、不確実性、検証範囲、rollback、副作用、暗黙契約を証拠とし、Tier、期限、予算、強いmodel、test PASSだけを安全分類の根拠にしない。Model Classではroleの判断、制約統合、曖昧性、反例探索、domain知識、機械検証可能性を証拠とし、model名、価格、世代、context長だけで判定しない。期限・予算は実行計画またはscope縮小に使うが、必要review強度・能力水準を下げる証拠にしない | 入力量の重複禁止ではなく判定理由の独立性を守り、量・製品名・費用都合による誤分類を防ぐため | 2026-10-09 |
+| 140 | 旧Decisionとの関係を次のとおり固定する。#77・#78は三軸・namespace分離と同一文書体系内のTier別深度を維持する。#79〜#81は目的・安全条件を維持し、#132〜#139の判定順、権限、粒度、未判定状態、証拠、実行制約分離で改訂する。#82・#83は段階的再検証と実例検証を維持し、#83の実例はrevisionと証拠を確認してE-2/E-8で扱う。#24はTier連動の固定review回数を適応型判定へ置換し、高risk検証と人間承認の目的を維持したまま適用条件・回数をE-2/E-3で決める。#25〜#29は現行の改訂関係込みで維持し、review収束はE-3、agent構成・dispatchはE-4へ渡す。#29のoverlay固定撤回とcore/adapterによる明示置換・fail-closedを維持する。#30・#34・#35は三段階の必要能力を維持し、`Mechanical`の禁止判断を実行制約へ分離し、上位代行でも制約を変えないよう改訂する。#31の旧model対応は履歴・候補として保持し、現在の適格性保証へ流用せず両providerの更新可能なmappingへ接続する。#32・#33・#36〜#39はrole別最低能力、Critical適格性、未知mapping時停止、reviewer変更、証跡、#41のpolicy所有、総費用評価を維持し、E-3/E-4/E-5/E-8で具体化する。#93〜#97はE-1で変更せずE-6で具体化する。Decision全体をretireする対象はなく、置換部分、維持目的、後続保留を分ける | 旧Decisionを一括廃止または暗黙維持せず、E-1で変わる契約と後続論点を追跡可能にするため | 2026-10-09 |
+| 141 | E-5ではOpenAI・Anthropic双方についてmodel ID、世代、推論設定、対象roleを含むmapping、適格性、更新・代替条件を人間と判断する。現時点で具体modelを適格認定しない。代表作業によるmapping評価方針は採用するが、候補作成・評価・正式適用の工程、代表作業の選定、入力、期待結果、合否、実施者、証跡、再評価条件をE-5で決め、通常実装1件の成功だけでsecurity review等へ適格性を拡張しない。更新頻度と契機は、定期、人間の更新依頼、model追加・更新・廃止、推論設定変更、評価失敗・品質低下・retry・手戻り増、利用開始・gate前の鮮度確認、併用、その他を事前に排除せず、情報確認頻度、再評価頻度、正式適用時点、旧mapping継続条件、再評価範囲、費用、人間判断条件を含めてE-5で決める | 具体modelの未検証な固定を避け、provider更新とrole適格性を再現可能な評価へ接続するため | 2026-10-09 |
+| 142 | E-1のRequirements候補は三軸分離、証拠追跡、判定責務・時点・粒度、未判定停止、再分類、最低能力と実行制約分離とし、Discovery統合後のRequirements工程へ渡す。具体field/schema、hash構成、状態遷移実装、証拠参照format、`Lightweight`正式名称は、E-1の意味contractを弱めず、人間承認後のDesign工程で扱う。`STANDARD / DEEP`境界、review範囲・依存、昇降格、巡回、stale、前gate復帰はE-2/E-3へ、agent topologyはE-4、model mappingはE-5、contextはE-6、通知・approval navigation・転記workflowはE-7、計測・既存Issue移行はE-8へ渡す。#39は#41 policyに従う独立review実装・状態・証跡・validation、#32はskill/helper検出・明示/自然言語起動・semantic parity・fresh-session E2E、#31はuser-facing通知UXを所有する。#31の通知境界はE-7で決め、最終順序はDiscovery統合で判断する。各Issueの旧承認・旧順序を新契約の実装許可へ流用せず、#32の停止中local commit/worktreeを変更しない。通知はapprovalを代替しない。Task A〜Dは本Decisionから暗黙改訂せず、衝突、owner変更、新公開contractが判明した場合は人間判断へ戻す | E-1の意味contractを将来工程へ漏れなく渡しながら、未決方式、既存Issue、先行Taskの権限を混同しないため | 2026-10-09 |
+| 143 | **C1: reviewの強さは変更の影響と証拠で決める。** 主agentは現gateに必要な基本事実の不足・矛盾を先に処理し、必須条件、具体的な独立review推奨理由、通常reviewで扱える根拠の順に判定する。未取得は`UNRESOLVED`、解消不能な矛盾は`BLOCKED`とし、Modeを推測せず必須条件を相殺しない。領域名ではなく、data・利用者資産、security・権限・PII、公開契約、外部副作用、並行・復旧、SDD安全規約、infra、停止・枯渇・性能に関わる運用parameter、production AIについて、保護対象・振る舞い・境界・安全保証への実際の変更で自動昇格を判定する。対策、backup、test PASS、未検証の自己申告だけでは該当を消さない。公開契約への追加を一律昇格から外せるのは、保証対象consumerと契約範囲が明示され、既存動作・出力・error・既定値・解釈を変えず、他の必須条件に非該当で、停止・撤回後も既存契約とdataを維持できる証拠がすべてある場合だけとする。この例外でもSTANDARDを自動確定せず、新公開contractの人間承認gateを省略しない。合理的調査は変更・保護対象、確認した仕様・code・契約・test、確認済み・未確認、残疑問の検証方法または解消不能理由を含むagentの説明責務とし、時間・file数や人間への定型入力で代用しない。調査後も具体的な安全上の失敗経路を通常検証で否定または影響限定できなければ`DEEP_REQUIRED`、必須非該当で影響が人間と合意したscope・AC・運用条件・回復条件に収まる根拠と独立確認論点があれば`DEEP_RECOMMENDED`、現gateの事項を通常review・検証で確認でき独立review追加理由がなければ`STANDARD`とする。許容条件をagentが捏造せず、不明なら人間へ確認する。必要test・証拠不足・未達ACをMode選択で合格にせず、DEEP reviewerが必要情報へアクセスできなければ検証不能を停止・未解決として残す。判定はtaskの分け方に左右されず、変更同士の相互作用を含む失敗経路に基づき、独立した追加承認手続きや点数表は設けない | 未調査、単語、対策実施、task分割を安全判定へ転用せず、実際の影響・残存不確実性・検証能力から必要reviewを決めるため | 2026-11-25 |
+| 144 | **C2: 人間は必要水準を保ったまま実行方法を選ぶ。** `DEEP_RECOMMENDED`は人間が拒否して`STANDARD`実施を選べるが、判定自体を書き換えず、推奨理由、拒否事実、残論点を追跡し、通常の必須検証を維持する。`DEEP_REQUIRED`の拒否または予算・環境による実行不能時は必要水準を維持し、必要reviewに依存するgate通過と後続対象作業を停止して延期、scope縮小、中止へ戻す。強いmodelや同一context自己reviewで代替せず、独立性の未検証な自己申告で迂回しない。一方、必要reviewへ依存しない承認済み作業までは一律停止しない。無応答、時間経過、一般的な好意的反応を承認にせず、scope縮小時も変更後の対象・hash・副作用を再評価して必要な人間承認を維持する | 費用・実施方法の人間選択と、安全水準の解除・暗黙承認を分離するため | 2026-11-25 |
+| 145 | **C3: 承認範囲内の通常調整は自律進行し、実質的拡張・前提崩れだけ影響部分を見直す。** DEEP実行前に、推奨・必須の根拠と確認論点、spec・gate・対象成果物・基準version/hash、role・agent数・必要class、context・機密情報・外部送信、最大巡回数・Token/時間見積区分・実行上限、上限到達・不能・拒否時動作を持つ計画を提示して人間承認を得る。取得不能値は`UNAVAILABLE`とし0または無制限にしない。作成前成果物では基準hashを持つ実行計画を承認対象とし、実入力hashを実行前に確定・記録して計画内か検証する。既存phase承認へreview計画を明示的に含めることはできるが、将来成果物の内容承認やreview後の人間承認を代替しない。計画内の通常指摘修正・再確認では費用承認を繰り返さない一方、input freshnessと再分類を確認し、費用承認の継続を古いreview結果の有効性と混同しない。対象scope、agent数、context、外部送信先、承認済み費用・時間等の実質的拡張は実行前に再承認し、上限到達時は未解決事項と追加見積を示して継続・scope縮小・停止を人間へ戻し、黙って巡回を追加しない。`STANDARD`から`DEEP_RECOMMENDED`への変更は理由・計画を示し、人間が拒否した場合は#144の推奨拒否規則へ戻す。`STANDARD`または推奨から必須への変更では依存gateと後続対象作業を停止して必要review完了後に再開する。Modeを下げる場合は危険条件または推奨理由が消えた証拠と他の必須条件を再確認し、test PASS、review実施済み、予算不足、納期だけを根拠にしない。途中変更時は変更前後Mode・対象hash、新事実または解消条件、影響するgate・作業・review結果・承認、再開条件をagentが追跡するが、人間へ細則ごとの採否を要求しない。承認済みrequirements・designの前提崩れはDEEP追加だけで続行せず該当前段gateへ戻し、review鮮度等の詳細は統合実行方針で具体化する | 費用・情報処理の承認範囲を守りながら、通常の修正往復を過剰な再承認にせず、stale結果や前段承認の迂回を防ぐため | 2026-11-25 |
+| 146 | **壁打ちは重要なdecision package単位で行う。** 人間には、守る安全境界、費用・権限のtrade-off、既存合意を変える重要差分をまとまった案として示し、通常詳細はagentが案と具体例・反例を整理して実質差分がなければ質問を増やさない。採用済み意味を共通原則へ統合しつつ細則自体の必要性を点検し、単に表示を短くして全細則を恒久必須化しない。不要詳細は意味統合、後段保留、改訂候補に分け、安全条件を変える場合だけ明示して人間へ戻す。原子的handoff IDは転記完全性の内部表現であり、人間への原子的承認義務にしない。人間は統合案の重要差分を判断し、agent・orchestrator・source sessionがID分解、正本対応、逆照合を行い、新しいtrade-offまたは意味変更が見つかった場合だけ人間へ戻す | 追跡可能性を維持したまま、壁打ちを細則ごとの承認会にせず、人間負担とproduct policyの過剰設計を抑えるため | 2026-11-25 |
+| 147 | E-2による旧Decisionとの関係を次のとおり固定する。#6・#8は必須条件1件で昇格する安全目的を維持し、実影響判定と公開契約追加の条件付き例外を#143で具体化する。#9のproduction AI原則高riskと証明付き隔離read-only例外は維持し、新例外・具体modelを追加しない。#10は後方互換追加等を単独自動昇格にしない目的を維持し、公開契約例外の証拠条件と相互作用評価へ接続し、件数だけで昇格しない。#11は基本事実未取得の`UNRESOLVED`と合理的調査後の安全上の残存不確実性を区別するよう改訂する。#79・#80および#134・#136・#137の三Mode、人間承認、粒度、再分類、状態分離を維持して#143〜#145で具体化し、#132〜#142を弱めない。#24・#25・#30〜#39・#93〜#97は既存改訂込みで維持し、具体review回数、agent数、Token閾値、model IDを新規固定しない。#117〜#119の原子的対応、hash、source確認、`CANONICALIZATION_PASS`までのfail-closedを維持し、人間の壁打ち粒度とは分離する | E-2の統合が既存安全目的を黙って廃止したり、原子的監査を原子的な人間承認へ誤変換したりすることを防ぐため | 2026-11-25 |
+| 148 | 後続は独立した細則承認列ではなく二つの統合packageとして扱う。E-3〜E-7では独立review・収束、agent構成、Model Class/provider mapping、context/session分割、通知・approval navigation・転記workflowを一体の実行方針案として検討する。E-1〜E-8はcoverageを示すもので各項目の独立承認gate数を意味せず、新しい固定承認回数を設けない。OpenAI・Anthropic双方のmapping、role別代表作業の評価内容・実施段階・正式適用、更新頻度・契機を含め、人間の更新依頼等の候補を事前排除しないが、具体model適格性を未検証で認定しない。E-8ではhard safety、効率目標、#39/#32/#31の再利用・stale・実装owner、代表case・段階導入の証明内容を検証・移行方針として整理し、計測field・fixture詳細ごとの人間採否を求めない。三統合方針と人間負担削減をRequirements候補とし、schema、UI、event、context field、具体計測方法、fixture等は重要Decisionに不可欠でなければ人間承認後のDesignへ保留し、Discovery統合DQ PR merge前にRequirementsを生成しない。局所修正、途中scope変更、data移行の仮想例は机上確認に留まり、実運用の時間・Token・過剰DEEP率は未計測とする。`cyclox2_docker`指定branch実例はsource sessionの前回local調査でref不在と報告された未検証事項としてE-8へ渡し、実証済みまたは確認済み事実として引用しない | coverageと承認gate数を混同せず、未検証の詳細や具体modelを固定しないまま、実行policyと検証・移行policyへ責務を収束させるため | 2026-11-25 |
+| 149 | **Task Eのreview・agent実行方針を統合する。** `STANDARD`は主agent、`DEEP`は必要能力を満たすfresh独立reviewerが担当し、既存の独立性、原則1 reviewer、同一reviewerによる収束、最大10巡の上限を維持する。計画内の通常修正では承認を繰り返さない。主agentはorchestrationと通常作業を兼任し、必要なroleだけを追加する。active subagentは通常1体とし、累計起動数へ固定上限を置かない。並列化はToken節約とみなさず、独立責務、非重複範囲、context・費用、統合方法、時間短縮効果を示して人間が例外承認した場合だけ行う。利用者向けのskill開始・完了・判断要求は親agentへ集約し、helper内部通知を乱発しない。通知、review完了、source確認待ちを人間承認または全体完了へ読み替えない | 必要な独立性と人間承認を維持しながら、重複context、並列統合、通知、再承認の負荷を抑えるため | 2026-11-25 |
+| 150 | **Model Classはprovider中立に運用し、更新方式Bを採用する。** OpenAI・Anthropic双方についてrole別に評価し、model名、価格、世代だけでclassを決めず、登録済みの適格構成から選ぶ。軽量・標準・高度の能力水準、`MECHANICAL_ONLY`制約、Critical能力下限、無断降格禁止、未知mapping時の停止を維持する。初回登録または未評価構成への変更は正式適用前に、roleを代表する抽出・変換、AC付き通常作業、欠陥埋込みreview等で評価するが、具体fixture・合否基準はDesign・検証で確定する。毎taskで評価一式を繰り返さず、利用時は取得可能な構成情報・利用条件と登録済み適格構成の整合を確認する。人間の更新依頼を常に受け付け、観測可能な構成変更・品質変化等から再評価を提案する一方、定期再評価を当初の常時既定にはしない。観測不能を変更なしとみなさず、未評価model、provider越え代替、review中のmodel・推論設定変更を自動承認しない。model・provider変更を理由に別Workspaceを黙って作成したり、外部送信先・送信範囲を無断変更したりせず、既存の停止、人間承認、機密情報保護を維持する。定期再評価の選択肢は排除せず、必要性が判明した時点で費用とともに人間が判断する。今回、具体周期、schedule、model ID、実評価合格は確定しない | provider更新へ追従できる能力保証と、常時評価・毎task評価による費用増大の両方を避けるため | 2026-11-25 |
+| 151 | **Context・session・通知は正本参照と最小情報を基準にする。** 主agentとsubagentは正本参照とrole別の最小情報を優先し、工程の区切りで引き継ぎ、早期compactを安全弁として使う。全platform共通の固定Token閾値は設けず、#93〜#97および#104〜#106の未固定差分、workspace参照、機密情報除外、設定非破壊、semantic parityを維持する。schema、通知event一覧、具体設定・model ID、context計測API・閾値はDiscovery判断に不可欠でなければ人間承認後のDesignへ保留する。Task Eの方針採用を、mapping登録、model評価合格、storage・lifecycle実装、通知実装の成功へ読み替えない | Context再投入と情報欠落を減らしつつ、未検証の実装詳細や固定閾値をpolicyへ持ち込まないため | 2026-11-25 |
+| 152 | **E-8の安全性検証は`B0 / B1 / C`を分離する。** `B0`を現行実装との互換性、`B1`を全gate独立review比較方式、`C`を今回の候補として扱い、`B1`は比較fixtureであって旧#39の全gate方式をcurrent policyへ復活させない。局所低risk、調整複雑な通常変更、小規模でも高riskな合成変更を、期待分類、判断、trace、埋込みblockerを持つgolden manifest付き代表caseで検証する。Tier Lだけを理由にDEEPや固定review回数を割り当てず、task分割による判定逃れと過剰reviewの両方を検査する。#58のapproval bypass、必要review欠落、stale review、seeded blocker見逃し、根拠のないblocking、trace・TDD・navigation・parity欠落、Critical downgradeを独立したhard safety条件として維持し、効率改善で相殺しない。仮想例・fixture合格を実環境全体の無欠陥保証にしない | 安全条件を削っただけの軽量化や、少数fixtureによる過剰な一般化を防ぐため | 2026-11-25 |
+| 153 | **効率は同一platform内の`B1`対`C`で多面的に測り、段階的に両platformを検証する。** Token・context、時間、人間負荷、文書・context重複、品質、retry、手戻りを区別し、取得不能値は`UNAVAILABLE`として0扱いせず、provider間の生Token比較だけで改善を宣言しない。まずCodexでhard safetyを確認し、次にClaude Codeで同条件を測るが、片側だけでparity成功としない。#59の削減率は初期目標として保持するが、#60の閾値、`B1`再現性、fixture偏りを正式reviewする前に保証値または安全性を相殺する合否基準へ昇格しない。閾値近辺は最大3回再計測し、安全上必要な高risk費用例外は人間判断を維持する | 未取得値、provider差、一回の非決定的計測、暫定目標を改善証明へ誤用しないため | 2026-11-25 |
+| 154 | **既存Issueと新contractの移行を段階管理する。** #39は#41 policyに従う独立review実装、#32は全user-facing skill/helperの検出、明示・自然言語起動、semantic parity、fresh-session E2E、#31は通知UXを所有する。旧全gate必須承認、停止中の#32資産、#31の旧着手順を新contractの実装許可へ流用しない。Task A〜Fと最終統合後に依存、競合、受入条件から実装順を確定し、共通policy version/hashとClaude/Codex両adapterのsemantic parityが揃うまで新contractをactiveにしない。完了済みspecへ遡及せず、active specはgate境界で意味差・staleを評価し、導入不備時に旧policyへ黙ってfallbackしない。未Decision Issueを並列実装候補として起動せず、Discovery後に実装対象、後回し、不要・置換済みへ分類する。今回の採用からIssue更新、実装、commit、push、PRを推定しない | staleな承認や片側実装を流用せず、既存Issueの責務を保った移行とactivationを行うため | 2026-11-25 |
+| 155 | **Task EのDiscovery方針と後続ownerを固定する。** Workspace ownership/isolation、lease・operation lock、resume・close・recovery、adapter・discovery・E2E、state・output保存とlock方式はTask F、#32、#39、Designが所有する。Task Eの実行意味contractをcore・adapterへ実装し、`kiro-impl`等のdispatchと衝突して適用不能ならfail-closedとする。role別評価の具体基準・fixture・実model対応、context計測API・閾値、通知schema、受入試験code・測定環境は人間承認後のRequirements・Design・検証へ渡す。Task A〜D、E-1/E-2、#25〜#39、#93〜#97、#101〜#119、#121、#128、#130、#141、#148の既存改訂込みの安全目的・ownerを維持し、並列承認、上限、Critical非降格、人間approval、非破壊、転記完全性を黙って緩和しない | Task Eを完了可能な方針へ収束させながら、Task Fと後続工程の責務を奪わず、未確定事項を成功扱いしないため | 2026-11-25 |
+| 156 | **Task Fは変更可能なWorkspaceの所有と分離を保証する。** 各mutable Workspaceには識別可能な所有sessionを一つだけ割り当て、同じWorkspaceまたは管理stateを複数sessionが同時変更しない。worktree、checkpoint、read-only参照の存在だけでは所有・分離・変更権限を証明しない。開始・再開時にsession、Workspace、repository、revision、未commit変更、承認・正本化状態の整合を確認し、所有者不明、stale、矛盾、未検証なら読み取り診断以外の変更を`UNVERIFIED`または`BLOCKED`として止める。main worktree、共有outputs、共有stateへ書き込む場合は、所有者、出力先resolver、衝突preflight、復旧原則を満たすまで有効化せず、自動fallbackしない | worktree分離やcheckpointを実際の所有権と誤認し、session間で利用者資産・state・outputsを競合させないため | 2026-11-25 |
+| 157 | **Workspace LeaseとOperation Lockを別責務とする。** LeaseはsessionによるWorkspaceの所有・生存状態を表し、Operation Lockはinstall、sync、publish、state移行等、共有資源を変更する短時間のcritical operationを直列化する。worktreeまたはLeaseだけでGit共通領域、設定、state、outputsへの操作排他を代替せず、Operation Lockだけで継続的なWorkspace所有を代替しない。取得失敗、所有競合、staleか判断不能な状態では操作を停止し、無断で奪取しない。期限、更新、回収、保存先、lock粒度、順序、deadlock対策、process・OS間方式はDesign・実機検証で決める | 長期所有と短時間の共有資源操作を混同せず、競合時に黙ったlock奪取や破壊的復旧を行わないため | 2026-11-25 |
+| 158 | **Session lifecycleは非破壊のresume・close・recoveryを保証する。** Resumeはcanonical source、checkpoint参照、未固定の最小差分から復元し、会話要約・raw transcriptを正本とせず、自動commitまたは未確認変更の吸収を行わない。正常closeでは実行中operationを安全に完了または停止し、LockとLeaseを解放し、未完了変更、成果物、blocker、pending-canonicalization、再開に必要な参照を発見可能な状態で残す。必要なsource確認前にagentが正常完了・archiveした扱いにしないが、人間によるアプリ終了自体を禁止せず、中断可能な状態を保持する。異常終了時は孤立Lease・途中operationを検出して変更を止め、read-only診断の上で再接続、再開、現状保持、rollback等の候補を示す。未commit・所有者不明の資産を自動削除せず、復旧中・未検証を成功へ丸めない。具体schema、保存、retention、暗号化、crash検出、cleanup UIはDesignへ渡す | セッション切断やcompactをデータ喪失・二重実行・転記欠落へ変えず、安全な中断と復旧を両立するため | 2026-11-25 |
+| 159 | **Legacy Bridgeとrollbackは同一state・非破壊・可逆を保証する。** 新旧入口は同じ`.kiro`、spec、approval、test、進行stateを使用し、二重stateを作らない。未知field、project override、追加skill、環境固有設定、利用者所有fileを保持し、競合・所有不明・parity未検証時は差分、影響、候補を示して人間判断へ戻すか既存環境を保持して中断する。rollbackは無関係なGit履歴・未commit変更・利用者資産・証跡を破壊せず、管理対象の入口、設定、配布差分を検証済み手順で直前の稼働可能な状態へ戻せることを要求する。「管理対象を一切戻さない」という禁止には拡張しない。未知field、承認履歴、test証跡を保持し、state形式の意味変更は明示的・可逆的・rollback検証済みの別Decisionと人間判断を必要とする。旧入口は旧資産の開始・再開・完了、同一state、rollback、parity、新名称での配布・発見・更新をE2Eで確認し人間が承認するまで廃止しない。部分適用・未検証を移行成功と報告しない | 利用者資産と証跡を守りながら、旧入口を無期限に惰性維持せず検証可能なbridge・rollbackへするため | 2026-11-25 |
+| 160 | **Claude Code / Codex parityは観測可能な意味の一致で受け入れる。** 共通policy version/hash、同じcanonical state、approval・review、checkpoint・resume、Workspace競合時停止、critical operation排他、Legacy Bridge、rollback、未知field・利用者資産保持、異常終了recovery、成功・未検証・停止状態の報告を両platformで保証する。platform固有adapterの機械的実装差は認めるが、既存規約が同一内容を要求する`AGENTS.md`・`CLAUDE.md`、共通snippet、`.claude`・`.agents`の共通`kiro-*`変更、両install先の同一bundle等の同一性契約は維持する。全user-facing skill/helperについて、明示起動だけでなく自然言語起動、直接skill・subagent経由の意味一致、fresh-session検出・起動E2Eを含め、`doc-export`の直接CLI contractも維持する。release受入ではclean環境、未完了の旧project、利用者override・未知field、同時mutable session競合、critical operation中断・recovery、rollbackを両platformで検証する。各利用projectで未使用platformの毎回実行は求めないが、release受入の片側未検証・失敗を全体成功と報告しない | platform固有差と共通配布物の同一性契約を混同せず、利用者が観測する起動・安全・復旧の同等性を片側成功で偽装しないため | 2026-11-25 |
+| 161 | **Task Fで確定するのは保証境界・責務・停止/復旧原則であり、実装成功の宣言ではない。** Discoveryでは#156〜#160の所有、fail-closed、二種の排他、lifecycle、bridge・rollback、semantic parity、受入scenarioをRequirements候補として確定する。Leaseのidentity・TTL・更新・回収、Lock backend・path・粒度・順序・deadlock、Workspace構成、output resolver、atomic publish、checkpoint schema、backup、暗号化・retention、CLI・UI、cleanup、adapter実装は人間承認後のDesignへ保留する。実機ではClaude Code/CodexのWorkspace挙動、process・OS・filesystemを跨ぐlock、crash injection、並行E2E、旧URL・package・CLIの配布実態、`spec.json` field、rollback、Token・時間・負荷改善を検証する。「ハーネス仕様が固まった」は保証境界と方針の確定を意味し、実装、parity、migration、効率改善の達成・証明を意味しない。新contractはDesign・実装・検証・人間承認前にactiveにしない | Discoveryの仕様確定を未実装・未検証の成功宣言へ拡大せず、後続工程の判断対象を明確にするため | 2026-11-25 |
 
 ---
 
-## Task A〜D handoff正本化カバレッジ監査
+## Task A〜F handoff正本化カバレッジ監査
 
-> 2026-09-21に、専用sessionのstructured handoffと正本Decisionを項目単位で再照合した。
+> 2026-09-21以降、各専用sessionのstructured handoffと正本Decisionを項目単位で再照合している。
 > `CONFIRMED`は意味、主体、条件、例外、未決状態まで正本で再現できた項目、`RESTORED`は
 > 本監査で不足を訂正Decisionへ復帰した項目を示す。handoff本文に存在するだけでは正本化完了とみなさない。
 
@@ -333,6 +363,224 @@
 送信元照合は`CANONICALIZATION_PASS`。この確認は転記完全性だけを対象とし、fresh独立reviewや
 Requirements・Design・Tasksの人間approvalを代替しない。
 
+### Task E — E-1 三つの評価軸の責務確定
+
+> source handoff: `TASK_E_E1_HANDOFF_V1`、handoff ID
+> `ISSUE41-TASKE-E1-20261009-01`。受信本文SHA-256
+> `3367217a94ead6357f6096f56cbec3849d051acbdcea97f91f781e335eccf7a2`。
+> source packet SHA-256
+> `bdc7d22bdd92c46365bc1ffc8a6e4fa6a3124c0efd2510119b609a6962d81d9e`。
+> E-1だけを対象とし、Task E全体、E-2以降、Requirements、Design、Tasks、実装の完了・承認を意味しない。
+
+#### ADOPTED項目
+
+| handoff ID | 正本対応 | 状態 | 主体・owner | 保持した意味 |
+|---|---|---|---|---|
+| E1-A01 | #132 | `ADOPTED` | 主agent/orchestrator・Task E | 三軸を別軸・別namespaceとし、文書深度・検証強度・最低能力を混同しない |
+| E1-A02 | #132 | `ADOPTED` | 主agent・Task E/Task C | Spec Tierは仕様化・調整複雑性から文書深度・分解粒度を決め、risk・review・modelの直接根拠にしない |
+| E1-A03 | #132 | `ADOPTED` | 主agent・Task E | Review Modeはrisk・不確実性・検証可能性・rollback・外部副作用・暗黙契約から独立検証を決める |
+| E1-A04 | #132 | `ADOPTED` | 主agent/orchestrator・Task E | Model Classはrole別の必要能力を決め、高riskはreviewer、実装難度はimplementerへ別々に反映する |
+| E1-A05 | #133 | `ADOPTED` | 主agent・Task E | 共通証拠からTierとReview Modeを互いの分類値に依存せず判定する |
+| E1-A06 | #133 | `ADOPTED` | 主agent/orchestrator・Task E | Review Modeからrole・対象を定めた後にrole別classと実model mappingを確認する |
+| E1-A07 | #133 | `ADOPTED` | 主agent/orchestrator・人間・Task E | model不在・予算・期限で必要水準を下げず、実行不能時は停止・scope縮小・人間判断へ戻す |
+| E1-A08 | #133 | `ADOPTED` | 主agent・Task E/E-2 | 複雑性自体ではなく、それが生む不確実性・検証困難・暗黙契約等で`DEEP`を判定する |
+| E1-A09 | #133 | `ADOPTED` | 主agent/orchestrator・Task E | 強いmodelの使用で必要な独立reviewを省略しない |
+| E1-A10 | #134 | `ADOPTED` | 主agent・人間・Task E | 主agentがscope把握後にTierを提案し、人間は既存gate等で確認する。Tier専用gateは作らない |
+| E1-A11 | #134 | `ADOPTED` | 主agent・Task E | Review Modeは初期scope把握時と各対象gate直前に判定する |
+| E1-A12 | #134 | `ADOPTED` | 人間・Task E/E-2 | 人間は推奨DEEPを拒否できるが必須DEEPをSTANDARDへ上書きせず、実行前の費用・拒否時動作提示を維持する |
+| E1-A13 | #134 | `ADOPTED` | 主agent/orchestrator・人間・Task E/E-5 | role・対象確定後にclassを判定しdispatch直前にmappingを検証する。未知代替は人間判断まで停止する |
+| E1-A14 | #135 | `ADOPTED` | 主agent・Task E/Task C | Spec Tierはspec単位を基本とする |
+| E1-A15 | #135 | `ADOPTED` | 主agent・Task E/E-2/E-3 | Review Modeはgate・review対象・入力hash単位とする |
+| E1-A16 | #135 | `ADOPTED` | 主agent/orchestrator・Task E/E-5 | Model Classはrole・作業単位・入力hash単位とする |
+| E1-A17 | #136 | `ADOPTED` | 主agent・Task E | scope等の増減でTierを再判定するが、Tier変更だけで他二軸を自動変更しない |
+| E1-A18 | #136 | `ADOPTED` | 主agent・Task E/E-2/E-3 | risk等の変更でReview Modeを再判定し、上方変更はreview完了まで停止、下方変更には危険消滅の証拠を求める |
+| E1-A19 | #136 | `ADOPTED` | 主agent/orchestrator・Task E/E-5 | role・作業内容・判断量・hash・mapping変更時にclassを再判定する |
+| E1-A20 | #136 | `ADOPTED` | 主agent/orchestrator・Task E/E-3/E-5 | review収束中のmodel ID・推論設定変更はreviewer交代としてfresh reviewをやり直す |
+| E1-A21 | #137 | `ADOPTED` | 主agent・Task E | 必須事実が未取得なら推測せず`UNRESOLVED`とし、証拠収集以外を停止する |
+| E1-A22 | #137 | `ADOPTED` | 主agent・人間・Task E | 証拠が矛盾し優先関係不明なら`BLOCKED`として人間へ戻す |
+| E1-A23 | #137 | `ADOPTED` | 主agent・Task E/E-2 | 合理的調査後の対象固有不確実性を未取得情報と区別してReview Mode入力とし、境界はE-2へ渡す |
+| E1-A24 | #137 | `ADOPTED` | 主agent/orchestrator・Task E/E-5 | 適格model・mapping不在は実行解決を`BLOCKED`とし必要classを下げない |
+| E1-A25 | #137 | `ADOPTED` | 主agent・Task E/Design | 分類値と`RESOLVED / UNRESOLVED / BLOCKED / STALE`を分け、未判定を最大値で埋めない。schemaはDesignへ保留する |
+| E1-A26 | #138 | `ADOPTED` | 主agent/orchestrator・Task E/E-5 | 軽量・標準・高度の三段階を維持し、軽量classの名称は暫定、通常判断へ利用範囲を広げない |
+| E1-A27 | #138 | `ADOPTED` | task実行者・Task E/E-5 | 旧Mechanicalの判断禁止を`MECHANICAL_ONLY`実行制約へ分離し、機械作業以外の判断を禁止する |
+| E1-A28 | #138 | `ADOPTED` | 主agent/orchestrator・task実行者・Task E/E-5 | 上位model代行でも制約を緩めず、制約指定だけで任意modelを適格扱いしない |
+| E1-A29 | #139 | `ADOPTED` | 主agent/orchestrator・Task E | 観測事実と軸ごとの影響理由を追跡し、同じ事実を複数軸で使う場合も理由を分ける |
+| E1-A30 | #139 | `ADOPTED` | 主agent・Task E | TierはAC・責務・依存・選択・移行・人間判断を証拠とし、量的指標単独で分類しない |
+| E1-A31 | #139 | `ADOPTED` | 主agent・Task E/E-2 | Review Modeは影響・失敗・不確実性・検証・rollback・副作用・暗黙契約を証拠とし、Tierや費用等だけで安全判定しない |
+| E1-A32 | #139 | `ADOPTED` | 主agent/orchestrator・Task E/E-5 | classはroleの判断・制約統合・曖昧性・反例探索・domain知識・機械検証可能性で判定し、model名等だけで決めない |
+| E1-A33 | #139 | `ADOPTED` | 主agent/orchestrator・人間・Task E | 期限・予算は実行計画・scope縮小に使うが、review強度・能力水準を下げる証拠にしない |
+| E1-M01 | #140 | `ADOPTED` | Task E/Task C | #77・#78の三軸・namespace分離と同一文書体系内のTier別深度を維持する |
+| E1-M02 | #140 | `ADOPTED` | Task E | #79〜#81の目的・安全条件を維持し、E-1の判定順・権限・粒度・状態・証拠・制約分離で改訂する |
+| E1-M03 | #140 | `ADOPTED` | Task E/E-2/E-8 | #82・#83の段階的再検証・実例検証を維持し、実例はrevision・証拠確認後にE-2/E-8で扱う |
+| E1-M04 | #140 | `ADOPTED` | Task E/E-2/E-3 | #24のTier連動固定reviewを適応型へ改訂し、高risk検証・人間承認を維持、条件・回数はE-2/E-3へ渡す |
+| E1-M05 | #140 | `ADOPTED` | Task E/E-3/E-4 | #25〜#29を現行改訂込みで維持し、収束はE-3、agent・dispatchはE-4へ渡し、core/adapter置換・fail-closedを維持する |
+| E1-M06 | #140 | `ADOPTED` | Task E/E-5 | #30・#34・#35の三能力水準を維持し、Mechanical禁止判断を実行制約へ分離、上位代行でも制約不変とする |
+| E1-M07 | #140 | `ADOPTED` | Task E/E-5 | #31の旧model対応を履歴・候補に留め、現行保証へ流用せず更新可能な両provider mappingへ接続する |
+| E1-M08 | #140 | `ADOPTED` | Task E/E-3/E-4/E-5/E-8 | #32・#33・#36〜#39の最低能力・Critical適格性・未知時停止・reviewer変更・証跡・policy所有・総費用評価を維持する |
+| E1-M09 | #140 | `ADOPTED` | Task E/E-6 | #93〜#97のcontext予算契約をE-1では変えずE-6で具体化する |
+| E1-M10 | #140 | `ADOPTED` | orchestrator/Task E | Decision全体をretireせず、置換部分・維持目的・後続保留を区別する |
+
+#### DEFERRED項目
+
+| handoff ID | 正本対応 | 状態 | 保持した保留内容 |
+|---|---|---|---|
+| E5-DEFER-01 | #141 | `DEFERRED:E-5` | 両providerのmodel ID・世代・推論設定・role mapping、適格性、更新・代替条件を人間と判断し、現時点で具体modelを認定しない |
+| E5-DEFER-02 | #141 | `DEFERRED:E-5` | 代表作業評価は採用するが、工程・fixture・期待結果・合否・実施者・証跡・再評価条件を決め、1件成功を他roleへ外挿しない |
+| E5-DEFER-03 | #141 | `DEFERRED:E-5` | 更新契機候補を排除せず、確認・再評価頻度、適用時点、旧mapping条件、範囲、費用、人間判断を決める |
+| E1-D01 | #142 | `DEFERRED:Requirements` | 三軸分離、証拠追跡、判定責務・時点・粒度、未判定停止、再分類、最低能力と実行制約分離をRequirements候補にする |
+| E1-D02 | #142 | `DEFERRED:人間承認後のDesign` | E-1の意味contractを弱めず、field/schema、hash構成、状態遷移実装、証拠format、軽量class正式名称を人間承認後のDesign工程で扱う |
+| E1-D03 | #142 | `DEFERRED:E-2/E-3` | STANDARD/DEEP境界、review範囲・依存、昇降格、巡回・stale・前gate復帰を決める |
+| E1-D04 | #142 | `DEFERRED:E-4/E-6/E-7/E-8` | agent topology、context、通知・approval・転記workflow、計測・Issue移行を各論点へ渡す |
+| E1-D05 | #142 | `DEFERRED:#39` | #39を独立review実装・状態・証跡・validationへ限定し、旧全gate必須・stale approvalを実装許可にしない |
+| E1-D06 | #142 | `DEFERRED:#32/Task F` | skill/helper起動・parity・fresh-session E2Eを所有し、停止中資産を変更せず旧承認を実装許可にしない |
+| E1-D07 | #142 | `DEFERRED:#31/E-7/Discovery統合` | #31が通知UXを所有し、通知境界はE-7、最終順序はDiscovery統合で判断する。通知はapprovalを代替せず、旧順序を現行契約へ優先させない |
+| E1-D08 | #142 | `DEFERRED:orchestrator/Task E` | Task A〜Dを暗黙改訂せず、衝突・owner変更・新公開contractは人間判断へ戻す |
+
+集計は`ADOPTED 43 / DEFERRED 11 / REJECTED 0 / BLOCKED 0 / 未対応 0`。
+送信元sessionは正本SHA-256
+`7b739baf433450adbed10d7b7a5a70e48bc722a4616a505a781b6a13700b4c2b`を全54 IDについて逆照合し、
+2026-10-09に`CANONICALIZATION_PASS`を返した。このPASSはE-1の転記完全性確認だけを表し、
+Task E全体完了、E-2開始、人間approval、fresh独立review、実装許可を代替しない。
+
+### Task E — E-2 Review Modeと壁打ち粒度見直し
+
+> source handoff: `TASK_E_E2_HANDOFF_V1`、handoff ID
+> `ISSUE41-TASKE-E2-20261125-01`。受信本文SHA-256
+> `f86c0a621d6dc4ee025e101763776477d662d192fc620ccb056a506186123f99`。
+> 基準正本SHA-256
+> `0f4e0e25f20e8ca790c4d648ada36a953b311427828eeaa320cdd58161da792c`。
+> 35 IDは転記完全性の内部表現であり、人間への35回の採否質問または35個の利用者手順ではない。
+> E-2と壁打ち方法だけを対象とし、Task E全体、Requirements、Design、Tasks、実装の完了・承認を意味しない。
+
+#### ADOPTED項目
+
+| handoff ID | 正本対応 | 状態・owner | 保持した意味 |
+|---|---|---|---|
+| E2-A01 | #143 | `ADOPTED:Task E` | 主agentは基本事実の不足・矛盾を先に処理し、必須・推奨・STANDARDの順で判定する。未取得はUNRESOLVED、解消不能な矛盾はBLOCKEDとし、推測・相殺を禁止する |
+| E2-A02 | #143 | `ADOPTED:Task E` | 領域名ではなく列挙した対象領域の保護対象・振る舞い・境界・安全保証への実変更で昇格判定する |
+| E2-A03 | #143 | `ADOPTED:Task E` | 対策・backup・test PASSだけで該当を消さず、影響確認と検証済み根拠で非該当を判断する |
+| E2-A04 | #143 | `ADOPTED:Task E` | 公開契約追加の例外はconsumer/範囲、既存意味不変、他必須条件非該当、撤回後の契約/data維持の全証拠を要求し、STANDARD自動確定・新contract承認gate省略を認めない |
+| E2-A05 | #143 | `ADOPTED:Task E` | 合理的調査の説明項目をagent責務として保持し、時間・file数や人間への定型入力で代用しない |
+| E2-A06 | #143 | `ADOPTED:Task E` | 調査後も具体的な安全上の失敗経路を通常検証で否定・影響限定できなければDEEP_REQUIREDとし、想像だけで必須化しない |
+| E2-A07 | #143 | `ADOPTED:Task E` | 必須非該当で影響限定根拠と独立確認論点があれば推奨、通常確認可能で追加理由がなければSTANDARDとし、許容条件をagentが捏造しない |
+| E2-A08 | #143 | `ADOPTED:Task E/E-3` | test・証拠不足・未達ACをModeで合格にせず、reviewerが必要情報へアクセス不能なら停止・未解決を維持する |
+| E2-A09 | #143 | `ADOPTED:Task E` | task分割ではなく変更間相互作用を含む失敗経路で判定し、旧Q8詳細全体や追加点数表・承認手続きは採用しない |
+| E2-A10 | #144 | `ADOPTED:Task E` | 人間は推奨DEEPを拒否してSTANDARDを選べるが、判定を書き換えず理由・拒否・残論点を記録し必須検証を維持する |
+| E2-A11 | #144 | `ADOPTED:Task E` | 必須DEEP拒否・不能時は必要水準を維持して依存gate・対象作業を停止し、延期・scope縮小・中止へ戻す。同一context等で代替せず非依存作業まで一律停止しない |
+| E2-A12 | #144 | `ADOPTED:Task E` | 無応答・時間経過・一般的肯定を承認にせず、scope縮小後も対象・hash・副作用と必要承認を再評価する |
+| E2-A13 | #145 | `ADOPTED:Task E、具体値=E-3/E-6` | DEEP前に根拠、対象/hash、role/agent/class、context/機密/送信、巡回・Token・時間上限、不能・拒否時動作を含む計画を承認対象とし、取得不能値をUNAVAILABLEとする |
+| E2-A14 | #145 | `ADOPTED:Task E` | 作成前成果物では基準hash付き実行計画を承認し、実入力hashを実行前検証する。既存phase承認へ明示包含できるが、将来内容・review後成果物の承認を代替しない |
+| E2-A15 | #145 | `ADOPTED:Task E/E-3` | 計画内の通常修正・再確認で費用承認を繰り返さず、input freshness・再分類とreview結果の有効性は別に確認する |
+| E2-A16 | #145 | `ADOPTED:Task E` | scope、agent数、context、外部送信、費用・時間等の実質拡張は実行前再承認とし、上限到達時は未解決事項・追加見積を示して人間へ戻し黙って巡回しない |
+| E2-A17 | #145 | `ADOPTED:Task E` | STANDARDから推奨への変更は理由・計画を示し、拒否時は推奨拒否規則へ戻す。必須への変更では依存gate・対象作業を停止してreview完了後に再開する |
+| E2-A18 | #145 | `ADOPTED:Task E` | Mode下方変更には危険条件または推奨理由の消滅証拠と他必須条件確認を要求し、test PASS・review済み・費用・納期だけを根拠にしない |
+| E2-A19 | #145 | `ADOPTED:Task E` | Mode・hash・新事実・影響・再開条件をagentが追跡し、人間へ細則ごとの採否を要求しない |
+| E2-A20 | #145 | `ADOPTED:Task E/E-3` | requirements/design前提崩れはDEEP追加だけで続けず該当前段gateへ戻し、鮮度・再review詳細は統合実行方針へ渡す |
+| E2-P01 | #146 | `ADOPTED:Task E/Discovery運用` | 細則質問をやめ、安全境界・費用/権限trade-off・既存合意変更をdecision packageで示し、通常詳細はagentが例・反例とともに整理する |
+| E2-P02 | #146 | `ADOPTED:Task E` | 採用済み意味を維持しつつ共通原則へ統合し、細則自体の必要性を点検して意味統合・後段保留・改訂候補を分ける |
+| E2-P03 | #146 | `ADOPTED:Task E/Task C` | 原子的handoff IDを内部の転記完全性表現とし、人間の原子的承認義務にせず、新trade-off・意味変更だけ人間へ戻す |
+| E2-M01 | #147 | `ADOPTED:Task E` | #6・#8の安全目的を維持し、実影響判定と公開契約追加の条件付き例外で改訂する |
+| E2-M02 | #147 | `ADOPTED:Task E` | #9のproduction AI原則高riskと既存隔離read-only例外を維持し、新例外・具体modelを採用しない |
+| E2-M03 | #147 | `ADOPTED:Task E` | #10の目的を維持し公開契約例外の証拠条件と相互作用評価へ接続し、件数だけで昇格しない |
+| E2-M04 | #147 | `ADOPTED:Task E` | #11を未取得UNRESOLVEDと調査後の残存不確実性へ分けるよう改訂する |
+| E2-M05 | #147 | `ADOPTED:Task E` | #79・#80・#134・#136・#137を維持して三方針で具体化し、E-1 #132〜#142を弱めない |
+| E2-M06 | #147 | `ADOPTED:Task E、具体化=統合実行方針` | #24・#25・#30〜#39・#93〜#97を既存改訂込みで維持し、回数・agent数・Token閾値・model IDを新規固定しない |
+| E2-M07 | #147 | `ADOPTED:Task C/E/F` | #117〜#119の原子的対応・hash・source確認・PASSまでfail-closedを維持し、人間の壁打ち粒度と分離する |
+
+#### DEFERRED項目
+
+| handoff ID | 正本対応 | 状態・owner | 保持した保留内容 |
+|---|---|---|---|
+| E2-D01 | #148 | `DEFERRED:E-3〜E-7` | review・agent・model・context・通知等を一体の実行方針案にし、coverageを独立承認gate数にせず固定承認回数を増やさない |
+| E2-D02 | #148 | `DEFERRED:E-8` | hard safety、効率、Issue再利用・stale・owner、代表case・段階導入を検証・移行方針にし、計測field・fixtureごとの人間採否を求めない |
+| E2-D03 | #148 | `DEFERRED:E-5/統合実行方針` | 両provider mapping、role別代表作業評価、正式適用、更新頻度・契機を扱い、人間の更新依頼等を事前排除せず、具体modelを未検証認定しない |
+| E2-D04 | #148 | `DEFERRED:Requirements/人間承認後のDesign` | 三方針と負担削減をRequirements候補とし、schema/UI/event/context/計測/fixture詳細をDesignへ送り、DQ PR前にRequirements生成しない |
+| E2-D05 | #148 | `DEFERRED:E-8` | 仮想例は机上確認のみで実運用指標は未計測。cyclox2指定branchは前回local調査でref不在と報告された未検証事項として保持し、確認済み事実として引用しない |
+
+集計は`ADOPTED 30 / DEFERRED 5 / REJECTED 0 / BLOCKED 0 / 未対応 0`。
+送信元sessionは正本SHA-256
+`a7d6f67bd547a69cb0ad0856f875975dd7160d44f0da77b4c9bbdaf65512d3d3`を全35 IDについて逆照合し、
+2026-11-25に`CANONICALIZATION_PASS`を返した。このPASSはE-2と壁打ち方法の転記完全性確認だけを表し、
+Task E全体完了、統合実行方針の採用、Requirements・Design・Tasks、人間approval、実装許可を代替しない。
+
+### Task E — E-3〜E-8統合実行・検証・移行方針
+
+> source handoff: `TASK_E_FINAL_POLICY_HANDOFF_V1`、handoff ID
+> `ISSUE41-TASKE-FINAL-20261125-01`。受信本文SHA-256
+> `758739fa8e4618a417b86d62650bd0a53ba90adaea7a2b63442e1031f16c7d23`。
+> 基準正本SHA-256
+> `1d778bd8dfc5c762b6a180b5f32516780d96d6c1b46a56d132f1401bbef6502f`。
+> TE-A01〜TE-A11は統合実行方針・更新方式Bへの人間の個別採用、TE-R01〜TE-R08は
+> 「ここから先は基本的に推奨案を採用する」という包括方針に基づくE-8推奨採用である。
+> 包括採用を実装、外部依存導入、未評価model適用、Issue更新、commit、push、PR、
+> Requirements・Design・Tasks生成の許可へ広げない。
+
+#### ADOPTED項目
+
+| handoff ID | 正本対応 | 状態・owner | 保持した意味 |
+|---|---|---|---|
+| TE-A01 | #149 | `ADOPTED:Task E/#39` | STANDARDは主agent、DEEPは適格なfresh独立reviewerとし、独立性・人数・収束上限、計画内修正で承認を繰り返さない条件を維持 |
+| TE-A02 | #149 | `ADOPTED:Task E` | 主agentが調整と通常作業を兼任し、通常1 active subagent、累計上限なし、並列例外は費用・分担を示した人間承認とする |
+| TE-A03 | #150 | `ADOPTED:Task E/E-5` | 両providerをrole別に評価し、model名等でclassを決めず、三能力水準・MECHANICAL_ONLY・Critical下限・未知時停止を維持 |
+| TE-A04 | #150 | `ADOPTED:Task E、具体化=Design/検証` | 初回・未評価構成の正式適用前にrole代表作業で評価し、例を固定fixture一覧にせず詳細を後段化 |
+| TE-A05 | #150 | `ADOPTED:Task E/Task F adapter` | 毎taskで評価を繰り返さず利用条件と登録済み適格構成を確認し、未確認を既評価扱いしない |
+| TE-A06 | #150 | `ADOPTED:Task E/E-5` | 更新方式Bとして人間依頼を受け付け、観測可能な変更・品質変化から再評価を提案し、定期評価を常時既定にしない |
+| TE-A07 | #150 | `ADOPTED:Task E/Task F` | 観測不能を変更なしにせず、未評価model・provider越え代替・review中変更を自動承認しない |
+| TE-A08 | #150 | `ADOPTED:Task E/将来運用` | 定期再評価を排除せず、必要性と費用が判明した時点で判断し、周期・schedule・model IDを未確定に保つ |
+| TE-A09 | #151 | `ADOPTED:Task E、storage/lifecycle=Task F` | 正本参照・role別最小情報・工程区切りの引継ぎ・早期compactを使い、固定Token閾値を設けず既存context契約を維持 |
+| TE-A10 | #149 | `ADOPTED:#31/Task E、起動parity=#32/Task F` | 利用者向け通知を親agentへ集約し、通知・review完了・正本化待ちをapprovalや完了へ丸めない |
+| TE-A11 | #151 | `ADOPTED:人間承認後のDesign` | schema・event・具体設定/model IDを後段へ保留し、方針採用をmapping登録・評価合格・実装成功にしない |
+| TE-R01 | #152 | `ADOPTED:Task E/E-8` | B0互換、B1比較方式、C候補を分け、B1をcurrent policyへ復活させない |
+| TE-R02 | #152 | `ADOPTED:Task E/E-8` | 三代表caseをgolden manifest付きで検証し、Tier理由の固定reviewと仮想例の実証扱いを禁止 |
+| TE-R03 | #152 | `ADOPTED:Task E/正式受入` | #58 hard safetyを独立条件として維持し、効率・fixture合格で欠陥を相殺・一般化しない |
+| TE-R04 | #153 | `ADOPTED:Task E/E-8` | 同一platformのB1対Cで複数指標を測り、取得不能をUNAVAILABLE、provider間生Tokenだけの改善宣言を禁止 |
+| TE-R05 | #153 | `ADOPTED:Task E/E-8/正式review` | Codex先行hard safety後にClaude同条件を検証し、片側成功をparityにせず、削減率を再検証前の保証値にしない |
+| TE-R06 | #154 | `ADOPTED:Discovery統合/#39/#32/#31` | #39、#32、#31のownerを維持し、旧承認・停止資産・旧順序を新contract実装許可へ流用しない |
+| TE-R07 | #154 | `ADOPTED:Discovery統合/Task F/移行` | A〜F統合後に順序を確定し、共通policyと両adapterが揃うまでactive化せず、gate境界評価・無断fallback禁止を維持 |
+| TE-R08 | #154 | `ADOPTED:Discovery統合` | 未Decision Issueを並列起動せずDiscovery後に分類し、今回の採用から実装・GitHub操作を推定しない |
+
+#### DEFERRED項目
+
+| handoff ID | 正本対応 | 状態・owner | 保持した保留内容 |
+|---|---|---|---|
+| TE-D01 | #155、#156〜#161 | `DEFERRED:Task F/#32/#39/Design` | ownership、二種lock、lifecycle、adapter/E2E、state/output保存・具体方式を該当ownerへ渡し、Task E意味contractをcore/adapterで実装、不能時fail-closed |
+| TE-D02 | #155、#161 | `DEFERRED:Requirements/Design/検証` | role評価・実model・context API/閾値・通知schema・試験code/環境を後段化し、正式適用前評価という方針は維持 |
+| TE-D03 | #155 | `DEFERRED:Discovery統合/Task F` | 先行Task・旧Decisionの安全目的とownerを維持し、並列承認・上限・能力下限・人間approval・非破壊・転記完全性を緩和しない |
+
+集計は`ADOPTED 19 / DEFERRED 3 / REJECTED 0 / BLOCKED 0 / 未対応 0`。
+送信元sessionは正本SHA-256
+`db2b728d8a853f50543ef57d110833f30e9e89f9d8dee6d0bd792cbcd20cc449`を全22 IDについて逆照合し、
+2026-11-25に`CANONICALIZATION_PASS`を返した。これによりTask E Discovery方針とsource転記確認は完了した。
+このPASSはTask F本体、A〜F全体統合の独立review、正式phase承認、実装、parity実証を代替しない。
+
+### Task F — Workspace・lifecycle・migration・parityの統合方針
+
+Task F本体の#156〜#161はorchestratorが単一sessionで作成した推奨方針であり、#119を無条件に
+適用して別session確認を必須化しない。一方、次の5項目はTask E source sessionから渡された
+E/F境界のhandoffであるため、項目単位の転記確認対象とする。
+
+> source handoff: `TASK_F_BOUNDARY_RECOMMENDATIONS_V1`、handoff ID
+> `ISSUE41-TASKF-BOUNDARY-20261125-01`。受信本文SHA-256
+> `d1fa58d154cd6c82750870a53f7889b180b3758b1e573748afd5a66c5f157e92`。
+
+| handoff ID | 正本対応 | 状態・owner | 保持した意味 |
+|---|---|---|---|
+| F-X01 | #156、#158 | `ADOPTED:Task E/#39/Task F` | review agentも所有・operation lockを迂回せず、resume時に入力hash・Workspace・revision・dirty状態を照合し、read-onlyを変更許可やstale review有効化へ使わない |
+| F-X02 | #150、#156 | `ADOPTED:Task E/Task F` | model/provider変更による別Workspace、外部送信先・範囲の無断変更を禁止し、未知代替停止、人間承認、機密保護を維持 |
+| F-X03 | #158 | `ADOPTED:#31/Task E/Task F` | 停止・未検証・復旧中・pending-canonicalizationを完了へ丸めず、source確認前のagent正常closeを禁止するが、人間の物理終了を禁止せず再開参照を保持 |
+| F-X04 | #160 | `ADOPTED:#32/Task F、policy=Task E` | 明示起動だけでなく自然言語、直接skill・subagent経由、fresh-session E2E、doc-export直接CLIをparity範囲に戻し、releaseで両platformを検証 |
+| F-X05 | #159 | `ADOPTED:Task F/#30` | 無関係なGit・dirty変更・利用者資産・証跡を破壊せず管理対象差分を安全に戻せるrollbackとし、全管理対象の復帰禁止へ拡張しない |
+
+集計は`ADOPTED 5 / DEFERRED 0 / REJECTED 0 / BLOCKED 0 / 未対応 0`。
+送信元sessionは正本SHA-256
+`db2b728d8a853f50543ef57d110833f30e9e89f9d8dee6d0bd792cbcd20cc449`をF-X01〜F-X05について逆照合し、
+2026-11-25に`CANONICALIZATION_PASS`を返した。Task F本体は保証境界・責務・停止/復旧原則を
+#156〜#161へ統合したが、具体Design、実装、実機E2E、parity、migration、効率改善は未完了である。
+送信元sessionの役割はTask EとE/F境界の照合完了をもって終了し、今後の参加・再起動をTask F本体または
+A〜F全体統合の完了条件にしない。Task F本体およびTask A〜F全体の統合はorchestratorが所有する。
+既存Decisionと#149〜#161の横断確認では未解消の意味衝突・owner欠落を認めなかったが、
+この確認は後続のfresh独立reviewや人間承認を代替しない。
+
 ### 次回からの確認手順
 
 1. 専用sessionはhandoffを原子的なID付き項目として返す。複数の主体・条件・例外を一項目へ隠さない。
@@ -360,15 +608,20 @@ Requirements・Design・Tasksの人間approvalを代替しない。
 | #15 | 影響評価と人間承認を必要とする安全条件は維持する。独自変更をoverlayだけで実現する方式の固定は撤回し、#86の5層へ改訂する |
 | #16 | 正本文書の一意な責務とID参照は維持し、#98でresearch、runbook、steering、二次成果物まで責務境界を拡張する。context packetとhandoffは標準文書へ追加せず、Issue #41の派生資料として分離する |
 | #21・#22 | manual checklistの条件付き必須と人間実施は維持する。Design承認時に要否を決め、必要ならTasks承認前に計画し、実装後に人間が結果を記録するlifecycleをTask Cで確定した。現行workflow/templateとの差は未解消として後続へ渡す |
-| #29 | fail-closedとlocal harness contract優先は維持する。`kiro-impl`の衝突をoverlayでのみ置換する方式は撤回し、coreまたはadapterで明示的に置換する。具体的なdispatch契約はTask Eで決める |
-| #61 | 旧Issue順は履歴として保持する。現在はTask A〜Fのserial Discovery後に実装waveを確定する統合ロードマップを優先する |
-| #24 | Tier Lへ固定的にfresh review回数を割り当てる方式は、Task Eで三軸分離と`STANDARD / DEEP_RECOMMENDED / DEEP_REQUIRED`の適応型判定へ改訂する。高risk reviewと人間承認を弱めない目的は維持する |
-| #25 | risk boundary checkpoint、gateごと1 reviewer、同一reviewer最大10巡は維持候補とし、`DEEP`事前承認とreview単位の具体条件をTask Eで再確認する |
-| #30〜#39 | provider中立の能力class、Critical非降格、role別証跡、総Token・費用・手戻り評価はbaselineとして維持し、三軸の判定順・namespace・Review Modeとの接続をTask Eで改訂する |
+| #29 | fail-closedとlocal harness contract優先は維持する。`kiro-impl`の衝突をoverlayでのみ置換する方式は撤回し、#149・#155の実行意味contractをcoreまたはadapterで明示的に置換する。具体実装はDesignへ渡す |
+| #61〜#66 | 旧Issue順は履歴として保持する。#154によりTask A〜F統合後の依存・競合・受入条件から実装対象・順序を再分類し、critical衝突は自動上書きしない |
+| #24 | Tier Lへ固定的にfresh review回数を割り当てる方式を#143〜#145の適応型Review Modeへ改訂し、高risk reviewと人間承認を弱めない目的を維持する |
+| #25 | risk boundary checkpoint、gateごと1 reviewer、同一reviewer最大10巡を#149で維持し、DEEP事前承認、計画内修正の自律進行、実質拡張時の再承認を#145で具体化する |
+| #30〜#39・#141 | provider中立の能力水準、Critical非降格、未知時停止、role別証跡、総Token・費用・手戻り評価を維持し、具体modelの旧候補を現行保証へ使わず、#150の更新方式Bへ改訂する |
 | #42・#44 | navigationの構成は維持し、#101で自然言語approvalの成立条件を一つのpending gate、対象文書、version/hash、許可範囲の明示へ具体化する |
 | #50・#51 | 日本語既定、EARS互換、検証可能性は維持する。#103で対象の一意性を最優先とし、禁止語やID反復を具体性の代用にしないよう補正する |
 | #65 | 意味上の衝突に加え、対象hashの変更でも依存review・approvalをstaleにする。非意味変更の具体判定はDesignへ保留する |
-| #95 | 正本参照型を維持し、#104〜#106で未固定の最小差分、pending-canonicalization、workspace参照、機密情報除外を追加する。storageとlifecycleはTask Fで決める |
+| #95 | 正本参照型を維持し、#104〜#106で未固定の最小差分、pending-canonicalization、workspace参照、機密情報除外を追加する。storage・lifecycleの保証境界は#156〜#161、具体方式はDesignへ渡す |
+| #55〜#60 | B0/B1/C、三代表case、hard safety、効率の多面的計測、段階的両platform検証を#152・#153へ統合する。削減率は再検証前の保証値にしない |
+| #74・#75・#86・#91・#112・#115 | in-place bridge、同一state、五層architecture、利用者所有資産の非破壊、旧入口維持条件を#156〜#161でWorkspace所有、lifecycle、rollback、parityの観測可能な保証へ具体化する |
+| #104〜#106 | checkpointの正本参照、未固定差分、Workspace参照、機密除外を維持し、#156〜#158で所有・resume・close・recoveryを追加する。checkpointだけで分離済みとはみなさない |
+| #119 | session・agent境界を越えるhandoffはsource逆照合を維持する。orchestrator単一sessionが直接作成するTask F本文へ無条件に拡張せず、今回境界を越えたF-X01〜F-X05だけを項目確認する |
+| #130 | main worktree側outputsは所有者、resolver、Lease、operation lock、preflight、recoveryがDesign・実装・検証されるまで有効化しない |
 
 ## 却下・保留事項
 
@@ -384,7 +637,7 @@ Requirements・Design・Tasksの人間approvalを代替しない。
 
 ---
 
-## 未決事項と検討順
+## 後続工程へ渡す事項
 
 | 順番 | 検討事項 | 決める内容 |
 |---|---|---|
@@ -393,16 +646,19 @@ Requirements・Design・Tasksの人間approvalを代替しない。
 | 3 | model routing | 合意済み。具体的な対応表、能力tag、推論profile、実行時検証のformatはrequirements承認後のdesignで決める |
 | 4 | 人間review guideと出力表現 | 合意済み。適用範囲、日本語既定・例外、抽象語判定、EARS、文体、finding formatをrequirementsと独立reviewの対象にする |
 | 5 | 計測・比較と受入判定 | 合意済み。`B0 / B1 / C`、3代表case、hard safety、効率目標、再計測と例外条件をrequirementsと独立reviewの対象にする |
-| 6 | 移行・parity・Issue依存 | 合意済み。全open Issue、gate境界移行、`#41`の既定優先とcritical衝突時の壁打ち、両agent同時activationをrequirementsへ反映する |
+| 6 | 移行・parity・Issue依存 | 方針合意済み。全open Issue、gate境界移行、`#41`の既定優先、critical衝突時の停止、共通policyと両adapterが揃った後のactivationをrequirementsへ反映する |
+| 7 | Workspace・session lifecycle | 方針合意済み。単一owner、LeaseとOperation Lock、resume・close・recovery、Legacy Bridge、rollback、Claude/Codex E2Eをrequirementsへ反映し、方式はdesign、達成可否は実機検証で決める |
 
 ### 次回の再開点
 
-PR #45はmerge済み。Discovery改訂Task A「Kiro互換・製品境界」、Task B「cc-sdd source取り込み・
-provenance・外部source更新境界」、Task C「正本・文書責務・日本語・追跡可能性」は完了済み。
-Task D「doc-export・二次成果物」はD-1〜D-7の壁打ちと人間確認を終え、採用事項を#120〜#131、
-却下事項とRequirements候補・Design保留・未決調査をTask Dカバレッジ監査へ正本化した。
-送信元sessionによる転記完全性確認は`CANONICALIZATION_PASS`。次はTask D差分をcommit・push・PR・mergeし、
-Task E「agent・review・model・context予算」の開始資料を作成して人間承認を得る。
+PR #46はmerge済み。Discovery改訂Task A「Kiro互換・製品境界」、Task B「cc-sdd source取り込み・
+provenance・外部source更新境界」、Task C「正本・文書責務・日本語・追跡可能性」、
+Task D「doc-export・二次成果物」は完了済み。Task EはE-1を#132〜#142、E-2を#143〜#148、
+統合実行・検証・移行方針を#149〜#155へ正本化した。Task FのWorkspace ownership、Lease・Operation Lock、
+resume・close・recovery、Legacy Bridge・rollback、Claude/Codex parityは#156〜#161へ正本化した。
+送信元sessionはTask E最終22 IDとTask F境界5 IDへ`CANONICALIZATION_PASS`を返し、役割を終了した。
+次はorchestratorがDiscovery方針全体の人間向け仕様を提示し、必要な修正がなければcommit・DQ PRの区切りを提案する。
+これは保証境界と方針の確定であり、具体Design・実装・実測の完了ではない。
 Task A〜Fを統合したDiscovery DQ PRがmergeされるまで`requirements.md`生成へ進まない。
 
 ---
@@ -414,7 +670,7 @@ Task A〜Fを統合したDiscovery DQ PRがmergeされるまで`requirements.md`
 
 | フェーズ | 合意メモ（理由・補足） |
 |---|---|
-| 要件定義（requirements.md） | Discovery改訂Task A〜D完了・人間確認・転記完全性確認済み。Task E〜F未着手。Requirementsは未生成・未承認。 |
+| 要件定義（requirements.md） | Discovery改訂Task A〜Fの方針を#67〜#161へ正本化し、Task E最終handoff・Task F境界はsource逆照合PASS。A〜F統合はorchestrator所有で、具体Design・実装・実測は未着手。Requirementsは未生成・未承認。 |
 | 設計（design.md） | 未生成・未承認。 |
 | タスク分解・実装前確認（tasks.md） | 未生成・未承認。 |
 
@@ -451,3 +707,7 @@ Task A〜Fを統合したDiscovery DQ PRがmergeされるまで`requirements.md`
 | 2026-09-21 | #118として、正本反映後に壁打ちsessionが元handoffとの一致を確認し、`CANONICALIZATION_PASS`まで存続する二段階の正本化確認を採用 | KYamada / Codex |
 | 2026-09-21 | #119として、二段階確認をSDD Rigの転記完全性確認機能へ昇格し、Task C/E/Fを横断するRequirements候補として採用 | KYamada / Codex |
 | 2026-10-08 | Task DでPPTの非正本境界、明示生成、意味変換、出典・鮮度、template override、品質検査、保存・費用・後続ownerを合意。#120〜#131と全111 IDを正本化し、送信元sessionが`CANONICALIZATION_PASS`を確認 | KYamada / Codex |
+| 2026-10-09 | Task E E-1でSpec Tier・Review Mode・Model Classの責務、判定順、適用単位、再分類、状態、能力制約、証拠、旧Decision関係、後続ownerを合意。#132〜#142と全54 IDを正本化し、送信元sessionが`CANONICALIZATION_PASS`を確認 | KYamada / Codex |
+| 2026-11-25 | Task E E-2でReview Modeを影響と証拠、人間選択、承認範囲の三方針へ統合し、task分割による判定逃れ防止とdecision package単位の壁打ちへ見直した。#143〜#148と全35 IDを正本化し、送信元sessionが`CANONICALIZATION_PASS`を確認 | KYamada / Codex |
+| 2026-11-25 | Task Eのreview・agent・model・context・通知とE-8検証移行を#149〜#155、Task FのWorkspace所有・排他・lifecycle・bridge・rollback・parityを#156〜#161へ統合。A〜F統合はorchestrator所有とし、Task E最終22 IDとTask F境界5 IDだけを送信元sessionの逆照合対象とした | KYamada / Codex |
+| 2026-11-25 | 送信元sessionがTask E最終22 IDとTask F境界5 IDを27/27・未対応0で逆照合し、`CANONICALIZATION_PASS`を返却。Task E専用sessionの役割を終了し、Task F本体とA〜F全体統合をorchestratorへ戻した | KYamada / Codex |
